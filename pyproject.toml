@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "yomu"
+version = "1.0.0"
+description = ""
+authors = ["Srpboyz <srpboyz69@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+pyqt6 = "^6.8.1"
+pyqt6-webengine = "^6.8.0"
+beautifulsoup4 = "^4.12.3"
+dateparser = "^1.2.0"
+pywin32 = { version = "^306", platform = "win32" }
+
+[tool.pyright]
+includes = ["_sources", "yomu"]
+excludes = [".git", ".venv", ".venv-linux", "build", "dist", "resources"]
+typeCheckingMode = "off"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

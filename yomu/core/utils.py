@@ -1,0 +1,83 @@
+import json
+import os
+from typing import TypedDict
+
+from PyQt6.QtCore import QEventLoop, QTimer, QStandardPaths
+
+
+def app_data_path() -> str:
+    """Returns the app data path
+
+    Returns
+    -------
+    str
+        The path
+    """
+    location = QStandardPaths.StandardLocation.AppLocalDataLocation
+    path = QStandardPaths.standardLocations(location)[0]
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+
+    return path
+
+
+def resource_path() -> str:
+    path = __file__
+    for _ in range(3):
+        path = os.path.dirname(path)
+    return os.path.join(path, "resources")
+
+
+class Keybind(TypedDict):
+    description: str
+    keybinds: list[str]
+
+
+def get_keybinds() -> dict[str, Keybind]:
+    with open(os.path.join(resource_path(), "keybinds.json")) as f:
+        keybinds: dict[str, dict[str, str | list[str]]] = json.load(f)
+
+    extra_keybinds_path = os.path.join(app_data_path(), "keybinds.json")
+    if not os.path.exists(extra_keybinds_path):
+        with open(extra_keybinds_path, "w") as f:
+            json.dump({}, f)
+
+    try:
+        with open(extra_keybinds_path) as f:
+            updated_keybinds: dict[str, list[str]] = json.load(f)
+    except Exception:
+        ...
+    else:
+        for key, data in updated_keybinds.items():
+            keybinds[key].update(data)
+
+    return keybinds
+
+
+def sleep(
+    seconds: int,
+    *,
+    processFlags: QEventLoop.ProcessEventsFlag = QEventLoop.ProcessEventsFlag.AllEvents,
+):
+    loop = QEventLoop()
+    QTimer.singleShot(int(seconds * 1000), loop.exit)
+    loop.exec(processFlags)
+    loop.deleteLater()
+
+
+class _MissingValue:
+    def __bool__(self) -> bool:
+        return False
+
+    def __eq__(self, value) -> bool:
+        return self is value
+
+    def __hash__(self):
+        return id(self)
+
+    def __repr__(self) -> str:
+        return "..."
+
+
+MISSING = _MissingValue()
+del _MissingValue
