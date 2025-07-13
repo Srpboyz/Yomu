@@ -177,13 +177,13 @@ class DownloadThumbnail(QObject):
 
         image = QImage()
         if not image.loadFromData(data):
-            return self._request_failed()
+            return self.deleteLater()
         image = image.scaledToWidth(900, Qt.TransformationMode.SmoothTransformation)
 
         buffer = QBuffer(self)
         buffer.open(QBuffer.OpenModeFlag.WriteOnly)
         if not image.save(buffer, "PNG"):
-            return self._request_failed()
+            return self.deleteLater()
 
         data = buffer.buffer().data()
         self.thumbnail_downloaded.emit(self.manga, data)
