@@ -1,0 +1,81 @@
+{
+    "Toggle Fullscreen": {
+        "description": "Toggle Fullscreen",
+        "keybinds": [
+            "F11"
+        ]
+    },
+    "Refresh": {
+        "description": "Reload Page if supported by current tab",
+        "keybinds": [
+            "Ctrl+R"
+        ]
+    },
+    "Add Category": {
+        "description": "Create a new category. Only works in the library",
+        "keybinds": [
+            "Ctrl+N"
+        ]
+    },
+    "Delete Category": {
+        "description": "Delete the current category. Only works in the library",
+        "keybinds": [
+            "Ctrl+Shift+R"
+        ]
+    },
+    "Find": {
+        "description": "Find a manga by name. Only works in the library and source page",
+        "keybinds": [
+            "Ctrl+F"
+        ]
+    },
+    "Change Reader Mode": {
+        "description": "Change the current reader mode. Only works in the reader",
+        "keybinds": [
+            "Alt+V"
+        ]
+    },
+    "Change Fit Direction": {
+        "description": "Change between fit to width or height. Only works in single page mode",
+        "keybinds": [
+            "Alt+Shift+V"
+        ]
+    },
+    "Zoom Out": {
+        "description": "Zoom out of a page. Only works in the reader",
+        "keybinds": [
+            "Ctrl+-"
+        ]
+    },
+    "Zoom In": {
+        "description": "Zoom in on a page. Only works in the reader",
+        "keybinds": [
+            "Ctrl++",
+            "Ctrl+="
+        ]
+    },
+    "Previous Page": {
+        "description": "Go to the previous page. Proceeds to the previous chapter if you're on the first page. Only works in the reader",
+        "keybinds": [
+            "Left"
+        ]
+    },
+    "Next Page": {
+        "description": "Go to the next page. Proceeds to the next chapter if you're on the final page. Only works in the reader",
+        "keybinds": [
+            "Right"
+        ]
+    },
+    "Previous Chapter": {
+        "description": "Go to the previous chapter. Only works in the reader",
+        "keybinds": [
+            "Ctrl+Left"
+        ]
+    },
+    "Next Chapter": {
+        "description": "Go to the next chapter. Only works in the reader",
+        "keybinds": [
+            "Ctrl+Right"
+        ]
+    }
+}

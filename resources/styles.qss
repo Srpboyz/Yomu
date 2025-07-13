@@ -1,0 +1,401 @@
+* {
+    font-family: "JetBrains Mono";
+}
+
+/* Generic Styles */
+
+MangaList MangaView {
+    border-radius: 10px;
+}
+
+MangaList MangaView::hover {
+    background-color: #3D3D3D;
+}
+
+CardList CardItem {
+    background-color: #2D2D2D;
+    padding: 7 5 7 5;
+    border-radius: 6px;
+}
+
+CardList CardItem::hover {
+    background-color: #3D3D3D;
+}
+
+CardList CardItem > QLabel {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+QMenu {
+    background: #000000;
+    padding: 0 0 0 0;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #414141;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+QMenu::item {
+    padding: 5px 20px 5px 20px;
+    border-radius: 2px;
+}
+
+QMenu::item:selected {
+    background-color: #3C3C3C; 
+}
+
+QScrollArea {
+    border: none;
+}
+
+QTabBar::tab {
+    background-color: rgba(0, 0, 0, 0);
+    color: #FFFFFF;
+    font-size: 17px;
+    border: 1px solid rgba(0, 0, 0, 0);
+    padding: 5px 0px 5px 0px;
+    outline: 0;
+}
+
+QTabBar::tab:!selected:hover {
+    background-color: #303030;
+}
+
+QTabBar::tab:selected {
+    color: #90CAF9;
+    border-bottom-color: #90CAF9;
+    outline: 0;
+}
+
+/* Used for non kde linux */
+
+QScrollBar:vertical {
+    border: none;
+    width: 14px;
+    margin: 0px 0px 0px 0px;
+    background-color: rgba(30, 30, 30, 0);
+    border-radius: 0px;
+}
+
+QScrollBar:handle:vertical {
+    background-color: #3E3D3D;
+    margin: 0px 5px 0px 5px;
+    border-radius: 2px;
+    min-height: 30px;
+}
+
+QScrollBar:handle:vertical:hover {
+    background-color: #4C4A4A;
+    margin: 0px 4px 0px 4px;
+    border-radius: 2.5px;
+}
+
+QScrollBar:handle:vertical:pressed {
+    background-color: #5C5B5B;
+}
+
+QScrollBar::sub-line::vertical {
+    border: none;
+    background: none;
+    height: 15px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line::vertical {
+    border: none;
+    background: none;
+    height: 15px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-page:vertical,  QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    height: 14px;
+    margin: 0px 0px 0px 0px;
+    background-color: rgba(30, 30, 30, 0);
+    border-radius: 0px;
+    min-width: 30px;
+}
+
+QScrollBar:handle:horizontal {
+    background-color: #3E3D3D;
+    margin: 5px 0px 5px 0px;
+    border-radius: 2px;
+}
+
+QScrollBar:handle:horizontal:hover {
+    background-color: #4C4A4A;
+    margin: 4px 0px 4px 0px;
+    border-radius: 2.5px;
+}
+
+QScrollBar:handle:horizontal:pressed {
+    background-color: #5C5B5B;
+}
+
+QScrollBar::sub-line::horizontal {
+    border: none;
+    background: none;
+    width: 15px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line::horizontal {
+    border: none;
+    background: none;
+    width: 15px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+} 
+
+QScrollBar::add-page:horizontal,  QScrollBar::sub-page:horizontal {
+    background: none;
+}
+
+
+
+/* Specific Styles */
+
+
+ReaderWindow > TitleBar {
+    background-color: #2C2C2C;
+    border-radius: 0px;
+}
+
+ReaderWindow[active="false"] > TitleBar {
+    background-color: #3C3C3C;
+    border-radius: 0px;
+}
+
+ReaderWindow > TitleBar > QLabel {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+ReaderWindow > TitleBar > QToolButton {
+    background-color: rgba(0,0,0,0);
+    qproperty-iconSize: 15px;
+    padding: 5 5 5 5;
+    border: none;
+}
+
+ReaderWindow > TitleBar > QToolButton:hover {
+    background-color: #3D3D3D; 
+}
+
+MenuWidget {
+    background-color: #202020;
+    padding-bottom: 1px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+MenuWidget > MenuItem {
+    background-color: #2D2D2D;
+    color: #FFFFFF;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 3 3 3 3;
+    margin: 3 8 3 8;
+}
+
+MenuWidget > MenuItem::hover {
+    background-color: #3D3D3D;
+}
+
+Downloads DownloadItem {
+    background-color: #2D2D2D;
+    font-weight: bold;
+    border-radius: 6px;
+    padding: 7 5 7 5;
+}
+
+Downloads DownloadItem::hover {
+    background-color: #3D3D3D;
+}
+
+Downloads DownloadItem > QLabel#Title {
+    font-weight: bold;
+    font-size: 25px;
+}
+
+Downloads DownloadItem > QLabel#Page {
+    background: transparent;
+}
+
+Downloads DownloadItem > .QFrame {
+    background-color: #0067F8;
+}
+
+ExtensionList ExtensionItem[extEnabled="false"] > QLabel {
+    color: #888888;
+}
+
+SourcePage {
+    border: none;
+    outline: 0;
+}
+
+SourcePage > QDialog {
+    border: 1px solid #3C3C3C;
+}
+
+SearchWidget > QLineEdit {
+    background-color: #2D2D2D;
+}
+
+MangaCard {
+    background-color: #292929;
+    border-radius: 10px;
+}
+
+MangaCard > QTextEdit {
+    background-color: #292929;
+    border: none;
+}
+
+MangaCard > QLabel#ChapterList {
+    margin-bottom: 5px;
+    margin-right: 0px;
+    font-weight: bold;
+    font-size: 25px;
+}
+
+MangaCard > QToolButton#Flip {
+    background: transparent;
+    border: 0;
+    qproperty-iconSize: 24px;
+}
+
+MangaCard > ChapterList {
+    background-color: #292929;
+    border: 1px solid #202020;
+}
+
+MangaCard > ChapterList QLabel#Loading {
+    background-color: transparent;
+}
+
+MangaCard > ChapterList ChapterListItem {
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 7px;
+    padding: 1px 7px 1px 3px;
+}
+
+MangaCard > ChapterList ChapterListItem[selected="true"],
+MangaCard > ChapterList ChapterListItem::hover {
+    background-color: #3D3D3D;
+}
+
+MangaCard > ChapterList ChapterListItem > QLabel {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+MangaCard > ChapterList ChapterListItem > QLabel#Title {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+MangaCard > ChapterList ChapterListItem[read="true"] > QLabel#Title,
+MangaCard > ChapterList ChapterListItem > QLabel#Timestamp {
+    color: #888888;
+}
+
+Reader NavigationBar {
+    background-color: rgba(0, 0, 0, 175);
+}
+
+Reader NavigationBar > QLabel {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+Reader NavigationBar > QPushButton {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+}
+
+Reader PageBar > PageSlider {
+    background-color: rgba(0, 0, 0, 175);
+    border-radius: 10px;
+}
+
+Reader PageBar > QPushButton {
+    background-color: rgba(0, 0, 0, 175);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 10 10 10 10;
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+Reader > PageBar > QPushButton:hover {
+    background-color: #000000;
+}
+
+FilterDialog > QLabel {
+    font-size: 17px;
+    font-weight: bold;
+}
+
+FilterDialog ListOptions > QListWidget {
+    background-color: transparent; 
+    border: none; 
+    outline: none;
+}
+
+FilterDialog ListOptions > QListWidget::item:selected {
+    background-color: transparent;
+}
+
+FilterDialog ListOptions > QListWidget::item:hover {
+    background-color: transparent;
+}
+
+Settings > QTabWidget {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+}
+
+Settings > QTabWidget > QTabBar::tab {
+    padding-left: 3px;
+    padding-right: 3px;
+    font-size: 12px;
+}
+
+Settings QGroupBox {
+    background-color: transparent;
+}
+
+Settings QComboBox {
+    padding-left: 3px;
+}
+
+Settings QTableWidget {
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+}
+
+Migrate MigrationItem > QLabel {
+    font-size: 22px;
+}
