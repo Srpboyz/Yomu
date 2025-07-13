@@ -32,7 +32,7 @@ class Response(QObject):
         self._error_string = ""
 
         self._error = Response.Error.NoError
-        self._attributes = {attr: request.attribute(attr) for attr in Request.Attribute}
+        self._attributes = {}
         self._headers: QHttpHeaders = QHttpHeaders()
         self._is_finished = False
 
@@ -60,12 +60,12 @@ class Response(QObject):
 
     def _connect_reply(self, reply: QNetworkReply) -> None:
         reply.finished.connect(self._reply_finished)
-        self.cancelled.connect(reply.abort, Qt.ConnectionType.QueuedConnection)
+        self.cancelled.connect(reply.abort)
 
     def _reply_finished(self) -> None:
         reply: QNetworkReply = self.sender()
         self._attributes = {
-            attr: reply.attribute(attr) or self.request.attribute(attr, MISSING)
+            attr: value if (value := reply.attribute(attr)) is not None else MISSING
             for attr in Request.Attribute
         }
         self._headers = reply.headers()
@@ -82,7 +82,10 @@ class Response(QObject):
     def attribute(
         self, attribute: Request.Attribute, defaultValue: Any = MISSING
     ) -> Any:
-        return self._attributes.get(attribute, defaultValue)
+        value = self._attributes.get(attribute, defaultValue)
+        if value is MISSING:
+            return defaultValue
+        return value
 
     def set_attribute(self, attribute: Request.Attribute, value: Any) -> None:
         self._attributes[attribute] = value
