@@ -20,4 +20,10 @@
 1. Clone the repository
 2. Run `poetry install`
 3. Activate the virtual environment
-4. python -m yomu
+4. Run `python -m yomu`
+
+## Uninstall
+1. Go to your local app data directory
+    * Windows: `C:\\Users\\<name>\\AppData\\Local`
+    * Linux: `~/.local/share`
+2. Delete the Yomu folder
