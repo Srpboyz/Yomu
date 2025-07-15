@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import contextlib
 import os
-import shutil
 from copy import copy
 from typing import overload
 
-from PyQt6.QtCore import QBuffer, QObject, Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QBuffer, QDir, QObject, Qt, QTimer, QFile
 from PyQt6.QtGui import QImage
 from PyQt6.QtNetwork import QNetworkInformation
 
@@ -100,7 +98,7 @@ class DownloadChapter(QObject):
 
         buffer = QBuffer(self)
         buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-        if not image.save(buffer, "PNG"):
+        if not image.save(buffer, "JPG"):
             return self._request_failed()
 
         data = buffer.buffer().data()
@@ -272,9 +270,7 @@ class Downloader(QObject):
 
     def _chapter_failed(self, chapter: Chapter, aborted: bool) -> None:
         if aborted:
-            path = Downloader.resolve_path(chapter)
-            if os.path.exists(path):
-                shutil.rmtree(path, ignore_errors=True)
+            QDir(Downloader.resolve_path(chapter)).removeRecursively()
 
         self.download_failed.emit(chapter, aborted)
 
@@ -290,9 +286,7 @@ class Downloader(QObject):
         if not chapter.downloaded:
             return
 
-        path = Downloader.resolve_path(chapter)
-        shutil.rmtree(path, ignore_errors=True)
-
+        QDir(Downloader.resolve_path(chapter)).removeRecursively()
         if self.app.sql.mark_chapters_download_status(chapter, downloaded=False):
             self.chapter_deleted.emit(chapter)
 
@@ -308,14 +302,14 @@ class Downloader(QObject):
             f.write(data)
 
     def delete_thumbnail(self, manga: Manga) -> None:
-        path = Downloader.resolve_path(manga)
-        with contextlib.suppress(FileNotFoundError):
-            os.remove(os.path.join(path, "thumbnail.png"))
+        QFile.remove(os.path.join(Downloader.resolve_path(manga), "thumbnail.png"))
 
     @overload
+    @staticmethod
     def resolve_path(arg: Manga) -> str: ...
 
     @overload
+    @staticmethod
     def resolve_path(arg: Chapter) -> str: ...
 
     @staticmethod
