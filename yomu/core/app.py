@@ -6,7 +6,7 @@ import sys
 from types import TracebackType
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEventLoop, QFileSystemWatcher, QSettings, Qt
+from PyQt6.QtCore import pyqtSignal, QDir, QEventLoop, QFileSystemWatcher, QSettings, Qt
 from PyQt6.QtGui import QColor, QFontDatabase, QIcon, QMouseEvent, QPalette, QPixmap
 from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 
@@ -72,7 +72,7 @@ class YomuApp(QApplication):
         super().__init__(argv)
         self.setApplicationName("Yomu")
         self.setApplicationDisplayName("Yomu")
-        self.setApplicationVersion("1.0.0")
+        self.setApplicationVersion("1.0.1")
         self.setQuitOnLastWindowClosed(False)
         if sys.platform == "linux":
             self.setDesktopFileName("yomu")
@@ -241,6 +241,7 @@ class YomuApp(QApplication):
 
         self.sql.commit()
         self.ipc_server.close()
+        QDir(utils.temp_dir_path()).removeRecursively()
 
         return exit_code
 

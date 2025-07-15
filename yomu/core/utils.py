@@ -2,7 +2,7 @@ import json
 import os
 from typing import TypedDict
 
-from PyQt6.QtCore import QEventLoop, QTimer, QStandardPaths
+from PyQt6.QtCore import QCoreApplication, QEventLoop, QTimer, QStandardPaths
 
 
 def app_data_path() -> str:
@@ -13,11 +13,29 @@ def app_data_path() -> str:
     str
         The path
     """
-    location = QStandardPaths.StandardLocation.AppLocalDataLocation
-    path = QStandardPaths.standardLocations(location)[0]
+    path = QStandardPaths.writableLocation(
+        QStandardPaths.StandardLocation.AppLocalDataLocation
+    )
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
 
+    return path
+
+
+def temp_dir_path() -> str:
+    """Returns the temporary dir path
+
+    Returns
+    -------
+    str
+        The path
+    """
+    path = os.path.join(
+        QStandardPaths.writableLocation(QStandardPaths.StandardLocation.TempLocation),
+        QCoreApplication.applicationName(),
+    )
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
     return path
 
 

@@ -10,7 +10,7 @@ from .data import Command, ReturnData, WindowReturnData
 
 class IPCSocket(QLocalSocket):
     def connectToServer(self) -> bool:
-        super().connectToServer("yomu")
+        super().connectToServer("yomu-ipc")
         return self.waitForConnected()
 
     def open_window(self) -> WindowReturnData:

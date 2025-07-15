@@ -21,7 +21,7 @@ class IPCServer(QLocalServer):
         self.newConnection.connect(self._new_connection_pending)
 
     def listen(self) -> None:
-        name = "yomu"
+        name = "yomu-ipc"
         not super().listen(name) and self.removeServer(name) and super().listen(name)
 
     def _new_connection_pending(self) -> None:
