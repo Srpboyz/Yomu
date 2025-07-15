@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 from copy import copy
-from enum import auto, IntEnum
+from enum import IntEnum
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QRect, QSize, Qt

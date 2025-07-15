@@ -17,7 +17,7 @@ class MangaView(QFrame):
     def __init__(self, parent: QWidget, manga: Manga) -> None:
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_Hover)
-        self._manga = manga
+        self._manga = copy(manga)
 
         self.thumbnail_widget = ThumbnailWidget(self)
         self.thumbnail_widget.setFixedSize(195, 279)

@@ -125,7 +125,7 @@ class WebtoonView(BaseView):
     def zoom_out(self):
         factor = 0.8
         if self.scale_factor <= factor**5:
-            return False
+            return
 
         scrollbar = self.reader.verticalScrollBar()
         value = int(scrollbar.value() / 1.25)
@@ -139,7 +139,7 @@ class WebtoonView(BaseView):
     def zoom_in(self) -> None:
         factor = 1.25
         if self.scale_factor >= factor**5:
-            return False
+            return
 
         scrollbar = self.reader.verticalScrollBar()
         value = int(scrollbar.value() * 1.25)

@@ -2,7 +2,7 @@
 
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = ['asyncio', 'dataclasses', 'difflib', 'filecmp', 'psutil', 'pydoc', 'pywintypes', 'sqlite3', 'tzdata', 'uuid', 'zoneinfo', 'bs4']
+hiddenimports = ['asyncio', 'dataclasses', 'difflib', 'filecmp', 'packaging', 'psutil', 'pydoc', 'pywintypes', 'sqlite3', 'tzdata', 'uuid', 'zoneinfo', 'bs4']
 hiddenimports += collect_submodules('dateparser')
 hiddenimports += collect_submodules('PyQt6')
 

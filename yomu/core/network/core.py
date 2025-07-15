@@ -85,7 +85,9 @@ class Network(QNetworkAccessManager):
             )
 
         self.response_finished.emit(response)
-        if response.attribute(Request.Attribute.AutoDeleteReplyOnFinishAttribute, True):
+        if response.attribute(
+            Request.Attribute.AutoDeleteReplyOnFinishAttribute, self.autoDeleteReplies()
+        ):
             response.deleteLater()
 
     def _reachability_changed(
