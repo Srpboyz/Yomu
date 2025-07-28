@@ -101,7 +101,6 @@ class MangaCard(QFrame, StackWidgetMixin):
         self._minus_button.pressed.connect(self.remove_from_library)
         self._minus_button.hide()
 
-        window.titlebar.refresh_button.pressed.connect(self._refresh_button_pressed)
         window.titlebar.insert_button(self._plus_button, index=5)
         window.titlebar.insert_button(self._minus_button, index=6)
 
@@ -142,8 +141,7 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.setFocusProxy(self.chapter_list)
 
     def _refresh_button_pressed(self) -> None:
-        if self.window().current_widget == self:
-            self.update_manga()
+        self.update_manga()
 
     def _chapter_update_finished(self, manga: Manga, success: bool) -> None:
         if manga == self.manga and not success:
@@ -245,12 +243,16 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.window().app.sql.set_library(self.manga, library=False)
 
     def set_current_widget(self) -> None:
-        self.window().setWindowTitle(self.manga.title)
+        window = self.window()
+        window.setWindowTitle(self.manga.title)
+        window.titlebar.refresh_button.clicked.connect(self._refresh_button_pressed)
         if self.manga.library:
             self._minus_button.show()
         else:
             self._plus_button.show()
 
     def clear_widget(self) -> None:
+        window = self.window()
+        window.titlebar.refresh_button.clicked.disconnect(self._refresh_button_pressed)
         self._plus_button.hide()
         self._minus_button.hide()

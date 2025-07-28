@@ -32,7 +32,7 @@ class Library(QWidget, StackWidgetMixin):
         self.tab_bar = QTabBar(self)
         self.tab_bar.installEventFilter(self)
         self.tab_bar.currentChanged.connect(self._tab_changed)
-        self.tab_bar.addTab("Library")
+        self.tab_bar.addTab("All")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -63,9 +63,6 @@ class Library(QWidget, StackWidgetMixin):
             self.tab_bar.hide()
 
         self.addAction("Add Category").triggered.connect(self.add_category)
-        window.titlebar.refresh_button.released.connect(
-            self._refresh_button_clicked, Qt.ConnectionType.QueuedConnection
-        )
         window.app.keybinds_changed.connect(self._set_keybinds)
         self._set_keybinds(core_utils.get_keybinds())
 
@@ -146,8 +143,7 @@ class Library(QWidget, StackWidgetMixin):
         return False
 
     def _refresh_button_clicked(self) -> None:
-        if self.window().current_widget == self:
-            self.update_all_manga()
+        self.update_all_manga()
 
     def _library_status_changed(self, manga: Manga) -> None:
         if manga.library:
@@ -209,9 +205,8 @@ class Library(QWidget, StackWidgetMixin):
         mangas = self.sql.get_category_mangas(category)
         for i in range(self.manga_count):
             view = self.manga_view_at(i)
-            if view is None:
-                continue
-            view.show() if view.manga in mangas else view.hide()
+            if view is not None:
+                view.setVisible(view.manga in mangas)
 
     def _set_keybinds(self, keybinds: dict[str, core_utils.Keybind]) -> None:
         for action in self.actions():
@@ -243,4 +238,11 @@ class Library(QWidget, StackWidgetMixin):
                 )
 
     def set_current_widget(self) -> None:
-        self.window().setWindowTitle("Library")
+        window = self.window()
+        window.setWindowTitle("Library")
+        window.titlebar.refresh_button.pressed.connect(self._refresh_button_clicked)
+
+    def clear_widget(self) -> None:
+        self.window().titlebar.refresh_button.pressed.disconnect(
+            self._refresh_button_clicked
+        )

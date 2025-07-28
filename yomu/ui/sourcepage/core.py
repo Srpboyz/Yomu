@@ -69,7 +69,6 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self._filter_button.hide()
 
         titlebar = window.titlebar
-        titlebar.refresh_button.released.connect(self.reset)
         titlebar.insert_button(self._web_view_button, index=3)
         titlebar.insert_button(self._filter_button, index=4)
 
@@ -177,9 +176,12 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self.currentWidget().set_current_widget()
 
         window.setWindowTitle(self.source.name)
+        window.titlebar.refresh_button.released.connect(self.reset)
+
         self._web_view_button.show()
         self._filter_button.setVisible(self._filter_button.isEnabled())
 
     def clear_widget(self) -> None:
+        self.window().titlebar.refresh_button.released.disconnect(self.reset)
         self._web_view_button.hide()
         self._filter_button.hide()
