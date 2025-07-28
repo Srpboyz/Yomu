@@ -70,7 +70,11 @@ class ThumbnailWidget(QLabel):
 
         error = response.error()
         if error == Response.Error.NoError:
-            return self._load_image(self.manga.source.parse_thumbnail(response))
+            return self._load_image(
+                response.read_all()
+                if self.status == LoadingStatus.CACHE
+                else self.manga.source.parse_thumbnail(response)
+            )
 
         if self.status == LoadingStatus.CACHE:
             return self.fetch_thumbnail(force_network=True)
