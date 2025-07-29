@@ -55,7 +55,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.sql = window.app.sql
 
         self.current_view: BaseView = WebtoonView(self)
-        self.overlay = Overlay(self.viewport())
+        self.overlay = Overlay(self)
 
         self.info_bar = NavigationBar(self)
         self.page_bar = PageBar(self)
