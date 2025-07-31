@@ -140,15 +140,6 @@ class SinglePageView(BaseView):
         if page_widget is not None:
             self.setFixedSize(page_widget.size())
 
-    def page_at(self, pos: QPoint) -> PageView | None:
-        if (widget := self.childAt(pos)) is not None:
-            if isinstance(widget, PageWidget):
-                return widget.page_view
-            return widget
-        if (widget := self.layout().currentWidget()) is not None:
-            return widget.page_view
-        return None
-
     def set_page_views(self, views: list[PageView]) -> None:
         layout = self.layout()
         layout.blockSignals(True)

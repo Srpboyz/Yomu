@@ -83,4 +83,4 @@ class BaseView(QWidget, ABC, metaclass=ViewMeta):
     def context_menu(self) -> QMenu | None: ...
 
     def page_at(self, pos: QPoint) -> PageView | None:
-        return self.childAt(pos)
+        return self.childAt(self.mapFromParent(pos))

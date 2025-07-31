@@ -7,7 +7,7 @@ from enum import IntEnum
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QRect, QSize, Qt
-from PyQt6.QtGui import QMouseEvent, QResizeEvent, QWheelEvent
+from PyQt6.QtGui import QContextMenuEvent, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
 
@@ -152,16 +152,12 @@ class Reader(QScrollArea, StackWidgetMixin):
             self.overlay.show() if self.overlay.isHidden() else self.overlay.hide()
         return ret
 
-    def contextMenuEvent(self, a0):
+    def contextMenuEvent(self, a0: QContextMenuEvent) -> None:
         menu = QMenu(self)
         menu.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         menu.addAction("Change View").triggered.connect(self.change_view)
 
-        pos = (
-            self.current_view.visibleRegion().boundingRect().topLeft()
-            + self.cursor().pos()
-        )
-        page = self.current_view.page_at(pos)
+        page = self.current_view.page_at(a0.pos())
         if page is not None:
             if page.status == PageView.Status.FAILED:
                 menu.addAction("Reload").triggered.connect(page.fetch_page)
