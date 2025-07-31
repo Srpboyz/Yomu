@@ -95,7 +95,9 @@ class MangaList(QScrollArea):
 
     def manga_view_at(self, index: int) -> MangaView | None:
         if (item := self.item_at(index)) is not None:
-            return item.widget()
+            widget = item.widget()
+            if isinstance(widget, MangaView):
+                return widget
 
     def find_manga(self) -> None:
         Find(self).exec()
