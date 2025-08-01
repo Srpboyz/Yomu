@@ -27,6 +27,8 @@ class Library(QWidget, StackWidgetMixin):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
         self._manga_list = MangaList(self, window.app)
+        self._manga_list.installEventFilter(self)
+
         self.sql = window.app.sql
 
         self.tab_bar = QTabBar(self)
@@ -77,19 +79,40 @@ class Library(QWidget, StackWidgetMixin):
     def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
         if isinstance(a0, MangaView):
             return self.mangaViewEvent(a0, a1)
-        if a0 == self.tab_bar:
+        if a0 == self._manga_list and a1.type() == QEvent.Type.ContextMenu:
+            menu = QMenu(self)
+            menu.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+
+            create_category = menu.addAction("Create Category")
+            delete_category = menu.addAction("Delete Category")
+
+            index = self.tab_bar.currentIndex()
+            if not index:
+                delete_category.setVisible(False)
+
+            action = menu.exec(a1.globalPos())
+            if action == create_category:
+                self.add_category()
+            elif action == delete_category:
+                self.sql.delete_category(
+                    self._categories.get(self.tab_bar.tabText(index))
+                )
+        elif a0 == self.tab_bar:
             if a1.type() == QEvent.Type.ContextMenu:
                 menu = QMenu(self)
                 menu.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
-                menu.addAction("Add Category").triggered.connect(self.add_category)
+                create_category = menu.addAction("Create Category")
                 delete_category = menu.addAction("Delete Category")
 
                 index = self.tab_bar.tabAt(a1.pos())
                 if not index:
                     delete_category.setVisible(False)
 
-                if menu.exec(a1.globalPos()) == delete_category:
+                action = menu.exec(a1.globalPos())
+                if action == create_category:
+                    self.add_category()
+                elif action == delete_category:
                     self.sql.delete_category(
                         self._categories.get(self.tab_bar.tabText(index))
                     )
@@ -113,13 +136,17 @@ class Library(QWidget, StackWidgetMixin):
             menu.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
 
             remove_from_library = menu.addAction("Remove From Library")
+            category_menu = menu.addMenu("Add to Category")
 
             current_index = self.tab_bar.currentIndex()
-            category_menu = menu.addMenu("Add to Category")
-            for name in self._categories.keys():
-                _ = category_menu.addAction(name)
-                if current_index:
-                    _.setVisible(False)
+            keys = self._categories.keys()
+            if len(keys) > 0:
+                for name in keys:
+                    _ = category_menu.addAction(name)
+                    if current_index:
+                        _.setVisible(False)
+            else:
+                category_menu.menuAction().setVisible(False)
 
             remove_manga_from_category = menu.addAction("Remove From Category")
             if current_index:
