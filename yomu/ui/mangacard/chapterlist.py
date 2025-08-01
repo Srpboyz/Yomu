@@ -247,7 +247,7 @@ class ChapterList(CardList):
         selected_action = menu.exec(event.globalPos())
 
         if selected_action == open_chapter:
-            self.item_clicked.emit(item.chapter)
+            self.item_clicked.emit(self.layout().indexOf(item) - 1)
         elif selected_action == mark_read:
             self._mark_as_read(True)
         elif selected_action == mark_unread:
