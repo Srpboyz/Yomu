@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import Qt, QSizeF
+from PyQt6.QtCore import QPoint, QSizeF, Qt
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
 from yomu.ui.reader.page import PageView
@@ -121,6 +121,13 @@ class WebtoonView(BaseView):
         layout = self.layout()
         for i in range(layout.count()):
             layout.itemAt(i).widget().scale_page(scaleFactor)
+
+    def page_at(self, pos: QPoint) -> PageView | None:
+        pos, layout = self.mapFromParent(pos), self.layout()
+        for i in range(layout.count()):
+            page_widget: WebtoonPage = layout.itemAt(i).widget()
+            if page_widget.geometry().contains(pos):
+                return page_widget.page_view
 
     def zoom_out(self):
         factor = 0.8

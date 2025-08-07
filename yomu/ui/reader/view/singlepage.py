@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import Callable, override, TYPE_CHECKING
 
-from PyQt6.QtCore import QEvent, QPoint, QRect, QSize
+from PyQt6.QtCore import QEvent, QPoint, QPoint, QRect, QSize
 from PyQt6.QtWidgets import QMenu, QHBoxLayout, QStackedLayout, QWidget
 
 from yomu.core import utils as core_utils
@@ -175,6 +175,11 @@ class SinglePageView(BaseView):
         self.actions()[0].setShortcuts(
             keybindingData["keybinds"] if keybindingData is not None else []
         )
+
+    def page_at(self, pos: QPoint) -> PageView | None:
+        page_widget = self.layout().currentWidget()
+        if page_widget.geometry().contains(self.mapFromParent(pos)):
+            return page_widget.page_view
 
     def zoom_out(self) -> None: ...
 

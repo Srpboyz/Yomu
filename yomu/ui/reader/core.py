@@ -162,9 +162,8 @@ class Reader(QScrollArea, StackWidgetMixin):
             if page.status == PageView.Status.FAILED:
                 menu.addAction("Reload").triggered.connect(page.fetch_page)
             elif page.status == PageView.Status.LOADED:
-                menu.addAction("Copy Image").triggered.connect(
-                    page.copy_image_to_clipboard
-                )
+                copy_image = menu.addAction("Copy Image")
+                copy_image.triggered.connect(page.copy_image_to_clipboard)
 
         if (viewMenu := self.current_view.context_menu()) is not None:
             menu.addSeparator()
