@@ -17,10 +17,18 @@
 
 ## Usage
 
+### Python
 1. Clone the repository
 2. Run `poetry install`
 3. Activate the virtual environment
 4. Run `python -m yomu`
+
+### Executable
+1. Download zip file from releases
+2. Unzip the file
+3. Run the executable
+    * `yomu.exe` on Windows
+    * `yomu-reader` on linux
 
 ## Uninstall
 1. Go to your local app data directory
