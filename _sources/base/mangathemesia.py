@@ -131,3 +131,6 @@ class MangaThemesia(Source):
         )
 
         return MangaList(mangas=mangas, has_next_page=has_next_page)
+
+    def get_page(self, page):
+        return self._build_request(page.url)
