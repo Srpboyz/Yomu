@@ -153,9 +153,12 @@ class MangaCard(QFrame, StackWidgetMixin):
             self.refresh_manga_details()
 
     def _manga_thumbnail_updated(self, manga: Manga) -> None:
-        if self.manga == manga:
-            self._manga = copy(manga)
-            self.thumbnail_widget.fetch_thumbnail()
+        if self.manga != manga:
+            return None
+
+        self._manga = copy(manga)
+        self.window().setWindowTitle(manga.title)
+        self.thumbnail_widget.fetch_thumbnail()
 
     def _chapter_list_updated(self, manga: Manga) -> None:
         if self.manga == manga:
