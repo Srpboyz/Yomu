@@ -224,7 +224,7 @@ class Downloader(QObject):
         if (
             chapter.read
             and chapter.downloaded
-            and self.app.settings.value("autodelete_chapter_after_read", False, bool)
+            and self.app.settings.value("autodelete_chapter", False, bool)
         ):
             self.delete_chapter(chapter)
 

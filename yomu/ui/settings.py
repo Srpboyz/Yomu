@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 )
 
 from yomu.core import utils
+from .reader import Reader
 
 if TYPE_CHECKING:
     from .window import ReaderWindow
@@ -28,14 +29,15 @@ if TYPE_CHECKING:
 class BoolOption(QCheckBox):
     value_changed = pyqtSignal((str, object))
 
-    def __init__(self, name: str, value: bool) -> None:
+    def __init__(self, key: str, name: str, value: bool) -> None:
         super().__init__()
+        self.key = key
         self.setText(name)
         self.setChecked(value)
         self.checkStateChanged.connect(self._check_state_changed)
 
     def _check_state_changed(self, state: Qt.CheckState) -> None:
-        self.value_changed.emit(self.text(), state == Qt.CheckState.Checked)
+        self.value_changed.emit(self.key, state == Qt.CheckState.Checked)
 
 
 class Keybinds(QTableWidget):
@@ -80,19 +82,42 @@ class Settings(QDialog):
         self.setContentsMargins(0, 0, 0, 0)
 
         widget = QFrame()
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._create_general_settings())
+        layout.addWidget(self._create_reader_settings(window))
+        widget.setLayout(layout)
 
-        general_settings = QGroupBox(self)
-        general_settings.setTitle(QWidget.tr("General"))
-        general_layout = QVBoxLayout(general_settings)
+        keybinds_table = Keybinds(self)
+        window.app.keybinds_changed.connect(keybinds_table.set_keybindings)
 
+        tab_view = QTabWidget(self)
+        tab_view.setContentsMargins(0, 0, 0, 0)
+        tab_view.addTab(widget, "Settings")
+        tab_view.addTab(keybinds_table, "Keybinds")
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(tab_view)
+        self.setLayout(layout)
+
+        self.resize(340, 300)
+
+    def _create_general_settings(self) -> QGroupBox:
+        general_settings_group = QGroupBox(self)
+        general_settings_group.setTitle(QWidget.tr("General"))
+        general_group_layout = QVBoxLayout(general_settings_group)
+
+        key = "offline_mode"
         offline_settings = BoolOption(
-            "Offline Mode", self.settings.value("offline_mode", False, bool)
+            key, "Offline Mode", self.settings.value(key, False, bool)
         )
         offline_settings.value_changed.connect(self._option_changed)
 
+        key = "autodelete_chapter"
         delete_after_read = BoolOption(
-            "Autodelete chapter after read",
-            self.settings.value("autodelete_chapter_after_read", False, bool),
+            key, "Autodelete Chapter after Read", self.settings.value(key, False, bool)
         )
         delete_after_read.value_changed.connect(self._option_changed)
 
@@ -102,53 +127,32 @@ class Settings(QDialog):
             "Automatically delete a chapter after its been marked as read"
         )
 
-        general_layout.addWidget(offline_settings)
-        general_layout.addSpacing(10)
-        general_layout.addWidget(delete_after_read)
-        general_layout.addWidget(delete_after_read_label)
+        general_group_layout.addWidget(offline_settings)
+        general_group_layout.addSpacing(10)
+        general_group_layout.addWidget(delete_after_read)
+        general_group_layout.addWidget(delete_after_read_label)
+        return general_settings_group
 
-        reader_settings = QGroupBox(self)
-        reader_settings.setTitle(QWidget.tr("Reader"))
-        reader_layout = QVBoxLayout(reader_settings)
+    def _create_reader_settings(self, window: ReaderWindow) -> QGroupBox:
+        reader_settings_group = QGroupBox(self)
+        reader_settings_group.setTitle(QWidget.tr("Reader"))
+        reader_group_layout = QVBoxLayout(reader_settings_group)
 
-        from .reader import Reader
+        combo_box = QComboBox()
+        combo_box.currentTextChanged.connect(window.reader.set_view)
+        window.reader.view_changed.connect(combo_box.setCurrentText)
+        combo_box.addItems(Reader.views.keys())
+        combo_box.setCurrentText("Webtoon")
 
-        view_list = QComboBox()
-        view_list.currentTextChanged.connect(window.reader.set_view)
-        window.reader.view_changed.connect(view_list.setCurrentText)
-        view_list.addItems(Reader.views.keys())
-        view_list.setCurrentText("Webtoon")
+        combo_box_label = QLabel()
+        combo_box_label.setText("Set this window's current reader mode")
 
-        view_list_label = QLabel()
-        view_list_label.setText("Set this window's current reader mode")
+        reader_group_layout.addWidget(combo_box)
+        reader_group_layout.addWidget(combo_box_label)
+        return reader_settings_group
 
-        reader_layout.addWidget(view_list)
-        reader_layout.addWidget(view_list_label)
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(general_settings)
-        layout.addWidget(reader_settings)
-        widget.setLayout(layout)
-
-        keybinds_Table = Keybinds(self)
-        window.app.keybinds_changed.connect(keybinds_Table.set_keybindings)
-
-        tab_view = QTabWidget(self)
-        tab_view.setContentsMargins(0, 0, 0, 0)
-        tab_view.addTab(widget, "Settings")
-        tab_view.addTab(keybinds_Table, "Keybinds")
-
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(tab_view)
-        self.setLayout(layout)
-
-        self.resize(338, 250)
-
-    def _option_changed(self, name: str, newValue: bool) -> None:
-        self.settings.setValue(name.replace(" ", "_").lower(), newValue)
+    def _option_changed(self, key: str, new_value: bool) -> None:
+        self.settings.setValue(key, new_value)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         self.hide()
