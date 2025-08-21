@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent, QMouseEvent
@@ -23,6 +23,7 @@ from yomu.core import utils
 from .reader import Reader
 
 if TYPE_CHECKING:
+    from yomu.source import Source
     from .window import ReaderWindow
 
 
@@ -85,6 +86,9 @@ class Settings(QDialog):
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._create_general_settings())
+        layout.addWidget(
+            self._create_library_settings(window.app.source_manager.sources)
+        )
         layout.addWidget(self._create_reader_settings(window))
         widget.setLayout(layout)
 
@@ -102,7 +106,9 @@ class Settings(QDialog):
         layout.addWidget(tab_view)
         self.setLayout(layout)
 
-        self.resize(340, 300)
+        self.resize(340, 350)
+
+    parent: Callable[..., ReaderWindow]
 
     def _create_general_settings(self) -> QGroupBox:
         general_settings_group = QGroupBox(self)
@@ -132,6 +138,32 @@ class Settings(QDialog):
         general_group_layout.addWidget(delete_after_read)
         general_group_layout.addWidget(delete_after_read_label)
         return general_settings_group
+
+    def _library_source_changed(self, index: int) -> None:
+        combo_box: QComboBox = self.sender()
+        source: Source | None = combo_box.itemData(index)
+        self.parent().library.set_source(source)
+
+    def _create_library_settings(self, sources: list[Source]) -> QGroupBox:
+        library_settings_group = QGroupBox(self)
+        library_settings_group.setTitle(QWidget.tr("Library"))
+        library_group_layout = QVBoxLayout(library_settings_group)
+
+        combo_box = QComboBox()
+        combo_box.addItem("All", None)
+        for source in sources:
+            combo_box.addItem(source.name, source)
+        combo_box.setCurrentText("All")
+        combo_box.currentIndexChanged.connect(self._library_source_changed)
+
+        combo_box_label = QLabel()
+        combo_box_label.setText(
+            "Sets the visible manga to a specific source for the library"
+        )
+
+        library_group_layout.addWidget(combo_box)
+        library_group_layout.addWidget(combo_box_label)
+        return library_settings_group
 
     def _create_reader_settings(self, window: ReaderWindow) -> QGroupBox:
         reader_settings_group = QGroupBox(self)

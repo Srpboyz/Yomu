@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yomu"
-version = "1.0.1"
+version = "1.1.1"
 description = ""
 authors = ["Srpboyz <srpboyz69@gmail.com>"]
 readme = "README.md"

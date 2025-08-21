@@ -20,6 +20,7 @@ from .components.mangalist import MangaList, MangaView
 from .stack import StackWidgetMixin
 
 if TYPE_CHECKING:
+    from yomu.source import Source
     from yomu.ui import ReaderWindow
 
 
@@ -30,6 +31,7 @@ class Library(QWidget, StackWidgetMixin):
         self._manga_list.installEventFilter(self)
 
         self.sql = window.app.sql
+        self.current_source: Source | None = None
 
         self.tab_bar = QTabBar(self)
         self.tab_bar.installEventFilter(self)
@@ -251,6 +253,13 @@ class Library(QWidget, StackWidgetMixin):
             return None
 
         self.sql.create_category(name)
+
+    def set_source(self, source: Source | None) -> None:
+        show_all = source is None
+        for i in range(self.manga_count):
+            if (view := self.manga_view_at(i)) is not None:
+                view.setVisible(show_all or view.manga.source == source)
+        self.current_source = source
 
     def update_all_manga(self) -> None:
         updater = self.window().app.updater
