@@ -6,6 +6,7 @@ import os
 
 from PyQt6.QtCore import QEvent, QObject, Qt
 from PyQt6.QtGui import QPixmap
+from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QApplication, QFrame, QLabel, QVBoxLayout, QWidget
 
 from yomu.core.models import Manga
@@ -107,6 +108,7 @@ class MangaView(QFrame):
 
         self._manga = copy(manga)
         if not self.thumbnail_widget.pixmap().isNull():
+            self.thumbnail_widget.priority = QNetworkRequest.Priority.HighPriority
             self.fetch_thumbnail()
 
     def fetch_thumbnail(self) -> None:

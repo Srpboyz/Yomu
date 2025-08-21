@@ -16,6 +16,9 @@ from yomu.core import utils
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
 
+    class Parent(QWidget):
+        manga: Manga
+
 
 class LoadingStatus(IntEnum):
     NULL, CACHE, NETWORK = range(3)
@@ -30,6 +33,7 @@ class ThumbnailWidget(QLabel):
         self.status = LoadingStatus.NULL
         self.priority = QNetworkRequest.Priority.NormalPriority
 
+    parent: Callable[[], Parent]
     window: Callable[[], ReaderWindow]
 
     @property
