@@ -41,6 +41,7 @@ class Reader(QScrollArea, StackWidgetMixin):
     view_changed = pyqtSignal(str)
     status_changed = pyqtSignal(Status)
     resized = pyqtSignal(QSize)
+    menu_requested = pyqtSignal(QMenu)
     _cancel_request = pyqtSignal()
 
     def __init__(self, window: ReaderWindow) -> None:
@@ -187,6 +188,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         )
         menu.addAction(self.tr("Next Chapter")).triggered.connect(self.next_chapter)
 
+        self.menu_requested.emit(menu)
         menu.exec(a0.globalPos())
 
     def resizeEvent(self, a0: QResizeEvent) -> None:
