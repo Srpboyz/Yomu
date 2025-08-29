@@ -1,14 +1,16 @@
 from __future__ import annotations
-from bs4 import BeautifulSoup
+from typing import Sequence
 
+from bs4 import BeautifulSoup
 from PyQt6.QtNetwork import QNetworkCookie
 
 from yomu.core import Request
 from yomu.core.network import Network, Response
-from yomu.source import FilterType
+from yomu.source import Chapter, FilterType, Page
 from yomu.source.models import *
 
 from _sources.base.madara import Madara
+from yomu.source.models import Chapter, Page
 
 
 class Toonily(Madara):
@@ -44,7 +46,13 @@ class Toonily(Madara):
             Toonily.BASE_URL,
         )
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def search_for_manga(self, query: str) -> Request:
+        query = query.replace(" ", "-")
+        return self._build_request(f"{Toonily.BASE_URL}/search/{query}")
+
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         pages = [
             Page(
@@ -54,10 +62,6 @@ class Toonily(Madara):
             for number, div in enumerate(html.select(self.page_selector)[:-1])
         ]
         return pages
-
-    def search_for_manga(self, query: str) -> Request:
-        query = query.replace(" ", "-")
-        return self._build_request(f"{Toonily.BASE_URL}/search/{query}")
 
     def update_filters(self, filters: dict[str, int | str | bool]) -> bool:
         new_value = filters.get("nsfw", False)

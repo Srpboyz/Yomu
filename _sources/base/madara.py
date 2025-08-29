@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Sequence
 
 from bs4 import BeautifulSoup, Tag
 from dateparser import parse
@@ -6,6 +7,7 @@ from PyQt6.QtCore import QUrl, QUrlQuery
 
 from yomu.core.network import Request, Response
 from yomu.source import *
+from yomu.source.models import Chapter, Manga, MangaList, Page
 
 
 class Madara(Source):
@@ -75,7 +77,7 @@ class Madara(Source):
 
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
-    def parse_latest(self, response: Response) -> MangaList:
+    def parse_latest(self, response: Response, page: int) -> MangaList:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
 
         mangas = list(
@@ -85,10 +87,28 @@ class Madara(Source):
 
         return MangaList(mangas=mangas, has_next_page=can_load_more)
 
+    def search_for_manga(self, query: str) -> None:
+        query = query.replace(" ", "+")
+        return self._build_request(self._build_search_query(query))
+
+    def search_manga_from_element(self, element: Tag) -> Manga:
+        a = element.select_one("div.post-title a")
+        thumbnail = self.get_image_from_element(element.select_one("img"))
+
+        title, url = a.text, self.url_to_slug(a.attrs["href"])
+        return Manga(title=title, thumbnail=thumbnail, url=url)
+
+    def parse_search_results(self, response: Response, query: str) -> MangaList:
+        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        mangas = list(
+            map(self.search_manga_from_element, html.select(self.manga_search_selector))
+        )
+        return MangaList(mangas=mangas)
+
     def get_manga_info(self, manga: Manga) -> Request:
         return self._build_request(self.BASE_URL + manga.url)
 
-    def parse_manga_info(self, response: Response) -> Manga:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
 
         title = (
@@ -139,7 +159,7 @@ class Madara(Source):
         uploaded = uploaded or datetime.now()
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         chapters = [
             self.chapter_from_element(element, number)
@@ -150,7 +170,9 @@ class Madara(Source):
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return self._build_request(self.BASE_URL + chapter.url)
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         pages = [
             Page(
@@ -180,21 +202,3 @@ class Madara(Source):
                 url_query.addQueryItem(param, str(value))
         url.setQuery(url_query)
         return url
-
-    def search_for_manga(self, query: str) -> None:
-        query = query.replace(" ", "+")
-        return self._build_request(self._build_search_query(query))
-
-    def search_manga_from_element(self, element: Tag) -> Manga:
-        a = element.select_one("div.post-title a")
-        thumbnail = self.get_image_from_element(element.select_one("img"))
-
-        title, url = a.text, self.url_to_slug(a.attrs["href"])
-        return Manga(title=title, thumbnail=thumbnail, url=url)
-
-    def parse_search_results(self, response: Response) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
-        mangas = list(
-            map(self.search_manga_from_element, html.select(self.manga_search_selector))
-        )
-        return MangaList(mangas=mangas)

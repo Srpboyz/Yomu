@@ -1,4 +1,5 @@
 import re
+from typing import Sequence
 
 from dateparser import parse
 from PyQt6.QtCore import QJsonDocument
@@ -7,6 +8,7 @@ from PyQt6.QtNetwork import QHttpHeaders
 from yomu.core import Request
 from yomu.core.network import Response, Url
 from yomu.source import *
+from yomu.source.models import Chapter, Manga, MangaList, Page
 
 from .utils import *
 
@@ -48,7 +50,7 @@ class MangaDex(Source):
         url.set_params(params)
         return Request(url)
 
-    def parse_latest(self, response: Response) -> MangaList:
+    def parse_latest(self, response: Response, page: int) -> MangaList:
         json = QJsonDocument.fromJson(response.read_all()).toVariant()
 
         can_load_more = json["offset"] + 7 < min(json["total"], 10000)
@@ -76,11 +78,34 @@ class MangaDex(Source):
 
         return MangaList(mangas=mangas, has_next_page=can_load_more)
 
+    def search_for_manga(self, query: str) -> None:
+        params = {
+            "title": query,
+            "limit": 100,
+            "includes[]": ["cover_art"],
+            "hasAvailableChapters": "true",
+            "contentRating[]": self.filters["content-rating"]["value"],
+        }
+
+        url = Url(f"{MangaDex.API_URL}/manga")
+        url.set_params(params)
+        return Request(url)
+
+    def parse_search_results(self, response: Response, query: str) -> MangaList:
+        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        mangas = list(
+            dict.fromkeys(
+                Manga(title=title, url=url, thumbnail=thumbnail)
+                for title, thumbnail, url in parse_manga_data(json)
+            )
+        )
+        return MangaList(mangas=mangas, has_next_page=False)
+
     def get_manga_info(self, manga: Manga) -> Request:
         manga_id = re.match(Regex.MANGA, manga.url).group(1)
         return create_manga_request([manga_id])
 
-    def parse_manga_info(self, response: Response) -> Manga | None:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         json = QJsonDocument.fromJson(response.read_all()).toVariant()
 
         manga_url = MangaDex.BASE_URL + "/title/{0}"
@@ -136,7 +161,7 @@ class MangaDex(Source):
         url.set_params(params)
         return Request(url)
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         json = QJsonDocument.fromJson(response.read_all()).toVariant()
         total = json["total"]
 
@@ -198,7 +223,9 @@ class MangaDex(Source):
         url = f"{MangaDex.API_URL}/at-home/server/{id}?forcePort443=true"
         return Request(url)
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         json = QJsonDocument.fromJson(response.read_all()).toVariant()
 
         url: str = MangaDex.UPLOAD_URL + "/data/" + json["chapter"]["hash"] + "/{0}"
@@ -207,29 +234,6 @@ class MangaDex(Source):
             for number, page in enumerate(json["chapter"]["data"])
         ]
         return pages
-
-    def search_for_manga(self, query: str) -> None:
-        params = {
-            "title": query,
-            "limit": 100,
-            "includes[]": ["cover_art"],
-            "hasAvailableChapters": "true",
-            "contentRating[]": self.filters["content-rating"]["value"],
-        }
-
-        url = Url(f"{MangaDex.API_URL}/manga")
-        url.set_params(params)
-        return Request(url)
-
-    def parse_search_results(self, response: Response) -> MangaList:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
-        mangas = list(
-            dict.fromkeys(
-                Manga(title=title, url=url, thumbnail=thumbnail)
-                for title, thumbnail, url in parse_manga_data(json)
-            )
-        )
-        return MangaList(mangas=mangas, has_next_page=False)
 
     def get_thumbnail(self, manga: Manga) -> Request:
         headers = QHttpHeaders()

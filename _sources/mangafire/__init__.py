@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Sequence
 
 from bs4 import BeautifulSoup, Tag
 from dateparser import parse
@@ -20,8 +21,8 @@ class MangaFire(Source):
         url.add_params({"language[]": "en", "sort": "recently_updated", "page": page})
         return Request(url)
 
-    def parse_latest(self, response: Response) -> MangaList:
-        return self.parse_search_results(response)
+    def parse_latest(self, response: Response, page: int) -> MangaList:
+        return self.parse_search_results(response, "")
 
     def search_for_manga(self, query: str) -> Request:
         query = query.replace(" ", "+")
@@ -40,7 +41,7 @@ class MangaFire(Source):
 
         return Manga(title=title, thumbnail=thumbnail, url=url.toString())
 
-    def parse_search_results(self, response: Response) -> MangaList:
+    def parse_search_results(self, response: Response, query: str) -> MangaList:
         document = BeautifulSoup(response.read_all().data(), features="html.parser")
         mangas = list(
             map(
@@ -56,7 +57,7 @@ class MangaFire(Source):
     def get_manga_info(self, manga: Manga) -> Request:
         return Request(MangaFire.BASE_URL + manga.url)
 
-    def parse_manga_info(self, response: Response) -> Manga:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         document = html.select_one(".main-inner:not(.manga-bottom)")
 
@@ -102,7 +103,7 @@ class MangaFire(Source):
         url.setFragment(str(manga_id))
         return Request(url)
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         document = BeautifulSoup(response.json()["result"], features="html.parser")
         manga_list = document.select("li")
 
@@ -133,7 +134,9 @@ class MangaFire(Source):
         chapter_id = Url(chapter.url).fragment()
         return Request(MangaFire.BASE_URL + f"/ajax/read/chapter/{chapter_id}")
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         return [
             Page(number=i, url=image[0])
             for i, image in enumerate(response.json()["result"]["images"])

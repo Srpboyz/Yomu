@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from dateparser import parse
 from PyQt6.QtNetwork import QHttpHeaders
@@ -32,7 +32,7 @@ class Comick(Source):
         request.setHeaders(headers)
         return request
 
-    def parse_latest(self, response: Response) -> MangaList:
+    def parse_latest(self, response: Response, page: int) -> MangaList:
         page = int(response.url().query().queryItemValue("page"))
         return MangaList(
             mangas=list(map(self._parse_search_data, response.json())),
@@ -59,7 +59,7 @@ class Comick(Source):
         request.setHeaders(headers)
         return request
 
-    def parse_search_results(self, response: Response) -> MangaList:
+    def parse_search_results(self, response: Response, query: str) -> MangaList:
         return MangaList(
             mangas=list(map(self._parse_search_data, response.json())),
             has_next_page=False,
@@ -76,7 +76,7 @@ class Comick(Source):
         request.setHeaders(headers)
         return request
 
-    def parse_manga_info(self, response: Response) -> None:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         data: ComicInfo = response.json()
 
         manga = self._parse_search_data(data["comic"])
@@ -117,7 +117,7 @@ class Comick(Source):
             url=url,
         )
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         chapters: list[ChapterInfo] = sorted(
             response.json()["chapters"], key=lambda data: float(data["chap"])
         )
@@ -134,7 +134,9 @@ class Comick(Source):
         request.setHeaders(headers)
         return request
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         return [
             Page(number=i, url=image["url"])
             for i, image in enumerate(response.json()["chapter"]["images"])

@@ -1,9 +1,11 @@
+from typing import Sequence
 from bs4 import BeautifulSoup, Tag
 from dateparser import parse
 from PyQt6.QtCore import QUrl
 
 from yomu.core.network import Request, Response
 from yomu.source import *
+from yomu.source.models import Chapter, Manga, MangaList, Page
 
 
 class MangaThemesia(Source):
@@ -47,13 +49,41 @@ class MangaThemesia(Source):
     def get_latest(self, page: int) -> Request:
         return self.search_for_manga("", page=page)
 
-    def parse_latest(self, response: Response) -> MangaList:
-        return self.parse_search_results(response, check_for_next=True)
+    def parse_latest(self, response: Response, page: int) -> MangaList:
+        return self.parse_search_results(response, "", check_for_next=True)
+
+    def search_for_manga(self, query: str, *, page: int = 1) -> Request:
+        query = query.replace(" ", "+")
+        url = f"{self.BASE_URL}/{self.request_sub_string}?page={page}&order=update&title={query}"
+        return self._build_request(url)
+
+    def manga_from_element(self, element: Tag) -> Manga:
+        a = element.select_one("a")
+
+        title = a.attrs["title"]
+        thumbnail = element.select_one("img").attrs["src"]
+        url = self.url_to_slug(a.attrs["href"])
+
+        return Manga(title=title, thumbnail=thumbnail, url=url)
+
+    def parse_search_results(
+        self, response: Response, query: str, *, check_for_next: bool = False
+    ) -> MangaList:
+        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+
+        mangas = list(map(self.manga_from_element, html.select(self.search_selector)))
+        has_next_page = (
+            bool(html.select_one("div.pagination .next, div.hpage .r"))
+            if check_for_next
+            else False
+        )
+
+        return MangaList(mangas=mangas, has_next_page=has_next_page)
 
     def get_manga_info(self, manga: Manga) -> Request:
         return self._build_request(self.BASE_URL + manga.url)
 
-    def parse_manga_info(self, response: Response) -> Manga:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
 
         title = html.select_one(self.title_selector).text
@@ -85,7 +115,7 @@ class MangaThemesia(Source):
         url = self.url_to_slug(element.select_one("a").attrs["href"])
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         chapters = [
             self.chapter_from_element(tag, number)
@@ -96,7 +126,9 @@ class MangaThemesia(Source):
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return self._build_request(self.BASE_URL + chapter.url)
 
-    def parse_chapter_pages(self, response: Response) -> list[Page]:
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         pages = html.select(self.page_selector)
         return [
@@ -104,33 +136,5 @@ class MangaThemesia(Source):
             for number, page in enumerate(pages)
         ]
 
-    def search_for_manga(self, query: str, *, page: int = 1) -> Request:
-        query = query.replace(" ", "+")
-        url = f"{self.BASE_URL}/{self.request_sub_string}?page={page}&order=update&title={query}"
-        return self._build_request(url)
-
-    def manga_from_element(self, element: Tag) -> Manga:
-        a = element.select_one("a")
-
-        title = a.attrs["title"]
-        thumbnail = element.select_one("img").attrs["src"]
-        url = self.url_to_slug(a.attrs["href"])
-
-        return Manga(title=title, thumbnail=thumbnail, url=url)
-
-    def parse_search_results(
-        self, response: Response, *, check_for_next: bool = False
-    ) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
-
-        mangas = list(map(self.manga_from_element, html.select(self.search_selector)))
-        has_next_page = (
-            bool(html.select_one("div.pagination .next, div.hpage .r"))
-            if check_for_next
-            else False
-        )
-
-        return MangaList(mangas=mangas, has_next_page=has_next_page)
-
-    def get_page(self, page):
+    def get_page(self, page: Page) -> Request:
         return self._build_request(page.url)

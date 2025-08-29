@@ -1,11 +1,13 @@
 from datetime import datetime
 import json
+from typing import Sequence
 
 from bs4 import BeautifulSoup
 from dateparser import parse
 
 from yomu.core.network import Response, Request, Url
 from yomu.source import *
+from yomu.source.models import Chapter, Manga, MangaList, Page
 
 from .types import *
 
@@ -21,13 +23,33 @@ class NyxScans(Source):
             f"{NyxScans.API_URL}/query?page={page}&perPage={NyxScans.per_page}"
         )
 
-    def parse_latest(self, response: Response) -> MangaList:
-        return self.parse_search_results(response)
+    def parse_latest(self, response: Response, page: int) -> MangaList:
+        return self.parse_search_results(response, "")
+
+    def search_for_manga(self, query: str) -> Request:
+        return Request(f"{NyxScans.API_URL}/query?page=1&perPage=18&searchTerm={query}")
+
+    def parse_search_results(self, response: Response, query: str) -> MangaList:
+        data: MangaListDto = response.json()
+
+        mangas = [
+            Manga(
+                title=manga["postTitle"],
+                thumbnail=manga["featuredImage"],
+                url=f"{manga['slug']}#{manga['id']}",
+            )
+            for manga in filter(lambda manga: not manga["isNovel"], data["posts"])
+        ]
+
+        page = int(response.url().query().queryItemValue("page"))
+        has_next_page = (page * NyxScans.per_page) > data["totalCount"]
+
+        return MangaList(mangas=mangas, has_next_page=has_next_page)
 
     def get_manga_info(self, manga: Manga) -> Request:
         return Request(f"{NyxScans.BASE_URL}/series/{manga.url}")
 
-    def parse_manga_info(self, response: Response) -> Manga:
+    def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         script = html.find_all("script", type="application/ld+json")[-1]
 
@@ -69,7 +91,7 @@ class NyxScans(Source):
 
         return Chapter(title=title, number=number, url=slug, uploaded=uploaded)
 
-    def parse_chapters(self, response: Response) -> list[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         return list(
             map(
                 self._parse_chapter,
@@ -83,7 +105,9 @@ class NyxScans(Source):
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return Request(f"{NyxScans.BASE_URL}/series/{chapter.url}")
 
-    def parse_chapter_pages(self, response):
+    def parse_chapter_pages(
+        self, response: Response, chapter: Chapter
+    ) -> Sequence[Page]:
         html = BeautifulSoup(response.read_all().data(), features="html.parser")
         script = html.select_one("script:-soup-contains(images)")
         if script is None:
@@ -108,23 +132,3 @@ class NyxScans(Source):
         return list(
             map(lambda image: Page(number=image["order"], url=image["url"]), images)
         )
-
-    def search_for_manga(self, query: str) -> Request:
-        return Request(f"{NyxScans.API_URL}/query?page=1&perPage=18&searchTerm={query}")
-
-    def parse_search_results(self, response: Response) -> MangaList:
-        data: MangaListDto = response.json()
-
-        mangas = [
-            Manga(
-                title=manga["postTitle"],
-                thumbnail=manga["featuredImage"],
-                url=f"{manga['slug']}#{manga['id']}",
-            )
-            for manga in filter(lambda manga: not manga["isNovel"], data["posts"])
-        ]
-
-        page = int(response.url().query().queryItemValue("page"))
-        has_next_page = (page * NyxScans.per_page) > data["totalCount"]
-
-        return MangaList(mangas=mangas, has_next_page=has_next_page)
