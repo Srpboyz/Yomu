@@ -72,7 +72,7 @@ class YomuApp(QApplication):
         super().__init__(argv)
         self.setApplicationName("Yomu")
         self.setApplicationDisplayName("Yomu")
-        self.setApplicationVersion("1.1.2")
+        self.setApplicationVersion("1.1.3")
         self.setQuitOnLastWindowClosed(False)
         if sys.platform == "linux":
             self.setDesktopFileName("yomu")
