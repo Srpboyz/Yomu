@@ -77,14 +77,18 @@ class ThumbnailWidget(QLabel):
             return self._load_image(
                 response.read_all()
                 if self.status == LoadingStatus.CACHE
-                else self.manga.source.parse_thumbnail(response)
+                else self.manga.source.parse_thumbnail(
+                    response, self.manga.to_source_manga()
+                )
             )
 
         if self.status == LoadingStatus.CACHE:
             return self.fetch_thumbnail(force_network=True)
 
         if error != Response.Error.OperationCanceledError:
-            self.manga.source.thumbnail_request_error(response)
+            self.manga.source.thumbnail_request_error(
+                response, self.manga.to_source_manga()
+            )
             return self.setText("Failed to load image")
 
     def _load_image(self, data: bytes) -> None:

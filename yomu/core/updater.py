@@ -39,7 +39,9 @@ class MangaUpdate(BaseUpdate):
         response: Response = self.sender()
         if response.error() == Response.Error.NoError:
             try:
-                smanga = self.manga.source.parse_manga_info(response)
+                smanga = self.manga.source.parse_manga_info(
+                    response, self.manga.to_source_manga()
+                )
             except Exception as e:
                 if self.logger is not None:
                     self.logger.error("Failled to parse manga info", exc_info=e)
@@ -50,7 +52,9 @@ class MangaUpdate(BaseUpdate):
                 else:
                     self.failed.emit(self.manga)
         else:
-            self.manga.source.manga_info_request_error(response)
+            self.manga.source.manga_info_request_error(
+                response, self.manga.to_source_manga()
+            )
 
         self.deleteLater()
 
@@ -62,10 +66,12 @@ class ChaptersUpdate(BaseUpdate):
         response: Response = self.sender()
         if response.error() == Response.Error.NoError:
             try:
-                chapters = self.manga.source.parse_chapters(response)
+                chapters = self.manga.source.parse_chapters(
+                    response, self.manga.to_source_manga()
+                )
             except Exception as e:
                 if self.logger is not None:
-                    self.logger.error("Failled to parse chapters", exc_info=e)
+                    self.logger.error("Failed to parse chapters", exc_info=e)
                 self.failed.emit(self.manga)
             else:
                 if isinstance(chapters, Sequence) and all(
@@ -75,7 +81,9 @@ class ChaptersUpdate(BaseUpdate):
                 else:
                     self.failed.emit(self.manga)
         else:
-            self.manga.source.manga_info_request_error(response)
+            self.manga.source.chapter_request_error(
+                response, self.manga.to_source_manga()
+            )
             self.failed.emit(self.manga)
 
         self.deleteLater()

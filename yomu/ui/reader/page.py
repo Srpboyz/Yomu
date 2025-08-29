@@ -87,11 +87,13 @@ class PageView(QLabel):
             data = (
                 response.read_all()
                 if self.page.downloaded
-                else self.page.chapter.source.parse_page(response)
+                else self.page.chapter.source.parse_page(
+                    response, self.page.to_source_page()
+                )
             )
             self._load_image(data)
         else:
-            self.page.source.page_request_error(response)
+            self.page.source.page_request_error(response, self.page.to_source_page())
             self.status = PageView.Status.FAILED
 
     def _load_image(self, data: bytes) -> None:

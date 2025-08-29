@@ -15,6 +15,8 @@ class SearchWidget(BasePage):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        self.current_text = ""
+
         self.line_edit = QLineEdit(self)
         self.line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.line_edit.setPlaceholderText("Search")
@@ -26,8 +28,9 @@ class SearchWidget(BasePage):
 
     def search(self) -> None:
         window = self.window()
+        self._cancel_request.emit()
 
-        query = self.line_edit.text()
+        self.current_text = query = self.line_edit.text()
         if not query:
             return self.clear_widget()
 
@@ -61,11 +64,11 @@ class SearchWidget(BasePage):
             return None
 
         if error != Response.Error.NoError:
-            self.source.search_request_error(response)
+            self.source.search_request_error(response, self.current_text)
             return window.display_message("Error while searching for manga")
 
         try:
-            manga_list = self.source.parse_search_results(response)
+            manga_list = self.source.parse_search_results(response, self.current_text)
         except Exception as e:
             window.logger.exception(
                 f"Failed to parse search results for {self.source.name}", exc_info=e

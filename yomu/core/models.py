@@ -89,13 +89,13 @@ class Chapter(Base):
     def source(self) -> Source:
         return self.manga.source
 
-    def to_source_manga(self) -> SourceChapter:
+    def to_source_chapter(self) -> SourceChapter:
         return SourceChapter(
             number=self.number, title=self.title, url=self.url, uploaded=self.uploaded
         )
 
     def get_pages(self) -> Request:
-        request = self.source.get_chapter_pages(self.to_source_manga())
+        request = self.source.get_chapter_pages(self.to_source_chapter())
         request.source = self.source
         return request
 

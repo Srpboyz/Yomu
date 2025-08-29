@@ -9,9 +9,11 @@ from PyQt6.QtGui import QImage
 from PyQt6.QtNetwork import QNetworkInformation
 
 from .app import YomuApp
-from .models import Chapter, Manga, Page
+from .models import Chapter, Manga
 from .network import Network, Request, Response
 from . import utils
+
+from yomu.source.models import Page as SourcePage
 
 
 class DownloadChapter(QObject):
@@ -24,7 +26,7 @@ class DownloadChapter(QObject):
         super().__init__(parent)
         self.network = network
         self.chapter = chapter
-        self._pages: list[Page] = []
+        self._pages: list[SourcePage] = []
         self._index = -1
         self.cancelled = False
 
@@ -52,11 +54,15 @@ class DownloadChapter(QObject):
         error = response.error()
         if error != Response.Error.NoError:
             if not self.cancelled:
-                self.chapter.source.page_request_error(response)
+                self.chapter.source.chapter_pages_request_error(
+                    response, self.chapter.to_source_chapter()
+                )
             return self._request_failed()
 
         try:
-            self._pages = self.chapter.source.parse_chapter_pages(response)
+            self._pages = self.chapter.source.parse_chapter_pages(
+                response, self.chapter.to_source_chapter()
+            )
         except Exception:
             return self._request_failed()
 
@@ -83,11 +89,13 @@ class DownloadChapter(QObject):
         error = response.error()
         if error != Response.Error.NoError:
             if not self.cancelled:
-                self.chapter.source.page_request_error(response)
+                self.chapter.source.page_request_error(
+                    response, self._pages[self._index]
+                )
             return self._request_failed()
 
         try:
-            data = self.chapter.source.parse_page(response)
+            data = self.chapter.source.parse_page(response, self._pages[self._index])
         except Exception:
             return self._request_failed()
 
@@ -165,11 +173,15 @@ class DownloadThumbnail(QObject):
         error = response.error()
         if error != Response.Error.NoError:
             if error != Response.Error.OperationCanceledError:
-                self.manga.source.thumbnail_request_error(response)
+                self.manga.source.thumbnail_request_error(
+                    response, self.manga.to_source_manga()
+                )
             return self.deleteLater()
 
         try:
-            data = self.manga.source.parse_thumbnail(response)
+            data = self.manga.source.parse_thumbnail(
+                response, self.manga.to_source_manga()
+            )
         except Exception:
             return self.deleteLater()
 

@@ -241,11 +241,15 @@ class Reader(QScrollArea, StackWidgetMixin):
             return
 
         if error != Response.Error.NoError:
-            self.chapter.source.chapter_pages_request_error(response)
+            self.chapter.source.chapter_pages_request_error(
+                response, self.chapter.to_source_chapter()
+            )
             return self.display_message("Error fetching chapter")
 
         try:
-            pages = self.chapter.source.parse_chapter_pages(response)
+            pages = self.chapter.source.parse_chapter_pages(
+                response, self.chapter.to_source_chapter()
+            )
         except Exception as e:
             window.logger.error(
                 f"Failed to parse chapter for {self.chapter.source.name}", exc_info=e

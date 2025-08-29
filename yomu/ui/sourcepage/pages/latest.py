@@ -84,13 +84,13 @@ class LatestWidget(BasePage):
             return None
 
         if error != Response.Error.NoError:
-            self.source.latest_request_error(response)
+            self.source.latest_request_error(response, self._page)
             return self._error_occured()
 
         window = self.window()
 
         try:
-            manga_list = self.source.parse_latest(response)
+            manga_list = self.source.parse_latest(response, self._page)
         except Exception as e:
             window.logger.exception(
                 f"Failed to parse page {self._page} of latest update for {self.source.name}",
