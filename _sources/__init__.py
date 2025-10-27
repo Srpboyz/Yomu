@@ -7,6 +7,7 @@ from .manga18fx import Manga18fx
 from .mangafire import MangaFire
 from .mangadex import MangaDex
 from .nyxscans import NyxScans
+from .templescan import TempleScan
 from .theblank import TheBlank
 from .toongod import ToonGod
 from .toonily import Toonily
@@ -24,6 +25,7 @@ def _default_sources() -> list:
         MangaFire,
         MangaDex,
         NyxScans,
+        TempleScan,
         TheBlank,
         ToonGod,
         Toonily,
