@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from bs4 import Tag
+from dateparser import parse
 from PyQt6.QtNetwork import QSslConfiguration, QSslSocket
 
 from yomu.core import Request
@@ -35,6 +38,17 @@ class Manga18fx(Madara):
         return self._build_request(f"{Manga18fx.BASE_URL}/search?q={query}")
 
     search_manga_from_element = latest_manga_from_element
+
+    def chapter_from_element(self, element: Tag, number: int) -> Chapter:
+        a = element.find("a")
+        title, url = a.text.strip(), self.url_to_slug(a.attrs["href"])
+        uploaded = (
+            parse(upload_span.text)
+            if (upload_span := element.select_one("span")) is not None
+            else datetime.now()
+        )
+
+        return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
     def get_page(self, page: Page) -> Request:
         request = super().get_page(page)
