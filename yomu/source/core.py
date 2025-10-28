@@ -27,7 +27,6 @@ class FilterOption(TypedDict):
 
 class Source(ABC):
     BASE_URL: str
-    ICON_URL: str = None
 
     name: str
     rate_limit: RateLimit | None = None

@@ -327,4 +327,5 @@ class ChapterList(CardList):
 
         layout.setDirection(QVBoxLayout.Direction.BottomToTop)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.verticalScrollBar().setValue(0)
         self.loading_icon.show()
