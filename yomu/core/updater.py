@@ -151,7 +151,7 @@ class Updater(QObject):
 
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
-        update = MangaUpdate(self, copy(manga), manga_response)
+        update = MangaUpdate(self, copy(manga), manga_response, self.app.logger)
         update.success.connect(self._manga_updated)
         update.failed.connect(self._manga_failed)
 
@@ -184,7 +184,7 @@ class Updater(QObject):
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
 
-        update = ChaptersUpdate(self, copy(manga), manga_response)
+        update = ChaptersUpdate(self, copy(manga), manga_response, self.app.logger)
         update.success.connect(self._chapter_list_updated)
         update.failed.connect(self._chapter_list_failed)
 
