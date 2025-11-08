@@ -25,13 +25,16 @@ class MangaView(QFrame):
 
         self.title_widget = QLabel(manga.title, self)
         self.title_widget.installEventFilter(self)
-        self.title_widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_widget.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.title_widget.setFixedWidth(230)
         self.title_widget.setWordWrap(True)
         self.title_widget.setMouseTracking(True)
         self.title_widget.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
+
+        metrics = self.title_widget.fontMetrics()
+        self.title_widget.setFixedHeight(2 * metrics.lineSpacing())
 
         self.library_icon = QLabel(self.thumbnail_widget)
         self.library_icon.setPixmap(
@@ -100,6 +103,8 @@ class MangaView(QFrame):
 
         if self.manga.title != manga.title:
             self.title_widget.setText(manga.title)
+            metrics = self.title_widget.fontMetrics()
+            self.title_widget.setFixedHeight(2 * metrics.lineSpacing())
         self._manga = copy(manga)
 
     def thumbnail_changed(self, manga: Manga) -> None:
