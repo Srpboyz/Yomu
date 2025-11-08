@@ -2,6 +2,14 @@ from __future__ import annotations
 
 from enum import IntEnum
 from typing import NotRequired, TypedDict
+import os
+import sys
+
+IPC_NAME = (
+    "yomu-ipc-dev"
+    if os.path.basename(sys.executable) in ("python", "python.exe", "pythonw.exe")
+    else "yomu-ipc"
+)
 
 
 class Command(IntEnum):

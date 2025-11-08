@@ -5,12 +5,12 @@ import json
 from PyQt6.QtCore import QByteArray
 from PyQt6.QtNetwork import QLocalSocket
 
-from .data import Command, ReturnData, WindowReturnData
+from .data import Command, ReturnData, WindowReturnData, IPC_NAME
 
 
 class IPCSocket(QLocalSocket):
     def connectToServer(self) -> bool:
-        super().connectToServer("yomu-ipc")
+        super().connectToServer(IPC_NAME)
         return self.waitForConnected()
 
     def open_window(self) -> WindowReturnData:

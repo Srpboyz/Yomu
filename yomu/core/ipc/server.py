@@ -8,7 +8,7 @@ from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 
 from yomu.ui import ReaderWindow
 
-from .data import Command, SourceRequestData
+from .data import Command, SourceRequestData, IPC_NAME
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
@@ -21,8 +21,11 @@ class IPCServer(QLocalServer):
         self.newConnection.connect(self._new_connection_pending)
 
     def listen(self) -> None:
-        name = "yomu-ipc"
-        not super().listen(name) and self.removeServer(name) and super().listen(name)
+        (
+            not super().listen(IPC_NAME)
+            and self.removeServer(IPC_NAME)
+            and super().listen(IPC_NAME)
+        )
 
     def _new_connection_pending(self) -> None:
         client = self.nextPendingConnection()
