@@ -85,6 +85,7 @@ class TempleScan(Source):
                         if data["update_chapter"]
                         else data["created_at"]
                     ),
+                    reverse=True,
                 ),
             )
         )
