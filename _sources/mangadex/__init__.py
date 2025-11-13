@@ -8,7 +8,6 @@ from PyQt6.QtNetwork import QHttpHeaders
 from yomu.core import Request
 from yomu.core.network import Response, Url
 from yomu.source import *
-from yomu.source.models import Chapter, Manga, MangaList, Page
 
 from .utils import *
 
@@ -27,9 +26,6 @@ class MangaDex(Source):
             "type": FilterType.LIST,
         }
     }
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
 
     def get_latest(self, page: int) -> Request:
         limit = 100
