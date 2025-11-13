@@ -163,8 +163,9 @@ class ReaderWindow(QWidget):
             )
 
     def closeEvent(self, a0: QCloseEvent) -> None:
-        super().closeEvent(a0)
         self.closed.emit()
+        super().closeEvent(a0)
+        self.deleteLater()
 
     def setWindowTitle(self, title: str) -> None:
         self.titlebar.setWindowTitle(title)
