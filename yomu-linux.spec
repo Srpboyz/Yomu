@@ -8,7 +8,7 @@ hiddenimports += collect_submodules('PyQt6')
 
 a = Analysis(
     ['yomu/__main__.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
     datas=[('resources', 'resources'), ('_sources', '_sources')],
     hiddenimports=hiddenimports,

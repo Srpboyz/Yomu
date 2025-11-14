@@ -15,6 +15,25 @@
 * Library categories
 * Extendibility via extensions
 
+## Supported Sources
+
+* Armageddon
+* Comick (Removed)
+* Firescans
+* Galaxy Degen Scans
+* Kappa Beast
+* Manga18fx
+* Mangadex
+* Mangafire (Removed)
+* Nyx Scans
+* Temple Scan
+* The Blank Scans
+* ToonGod
+* Toonily
+* WebtoonXYZ
+
+Note: Sources may not be up to date
+
 ## Usage
 
 ### Python
@@ -28,7 +47,7 @@
 2. Unzip the file
 3. Run the executable
     * `yomu.exe` on Windows
-    * `yomu-reader` on linux
+    * `yomu-reader` on Linux
 
 ## Uninstall
 1. Go to your local app data directory
