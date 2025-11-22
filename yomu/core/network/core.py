@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from logging import getLogger
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEventLoop, QJsonDocument, QStandardPaths, Qt
@@ -16,6 +17,9 @@ from .response import Response
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
+
+
+logger = getLogger(__name__)
 
 
 class Network(QNetworkAccessManager):
@@ -80,7 +84,7 @@ class Network(QNetworkAccessManager):
             Response.Error.OperationCanceledError,
             Response.Error.NoError,
         ):
-            self._app.logger.warning(
+            logger.warning(
                 f"{response.operation.name} request to {response.url().toString()} failed - Reason: {error.name}({response.attribute(Request.Attribute.HttpStatusCodeAttribute)}) - {response.error_string()}"
             )
 
@@ -107,7 +111,7 @@ class Network(QNetworkAccessManager):
         if name != "offline_mode":
             return None
 
-        self._app.logger.info(f"Offline mode {'enabled' if value else 'disabled'}")
+        logger.info(f"Offline mode {'enabled' if value else 'disabled'}")
 
         is_online = not value and (
             self.network_info.reachability() == QNetworkInformation.Reachability.Online

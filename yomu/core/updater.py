@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from logging import Logger
+from logging import Logger, getLogger
 from copy import copy
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -15,6 +15,8 @@ from .network import Response
 
 if TYPE_CHECKING:
     from .app import YomuApp
+
+logger = getLogger(__name__)
 
 
 class BaseUpdate(QObject):
@@ -151,7 +153,7 @@ class Updater(QObject):
 
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
-        update = MangaUpdate(self, copy(manga), manga_response, self.app.logger)
+        update = MangaUpdate(self, copy(manga), manga_response, logger)
         update.success.connect(self._manga_updated)
         update.failed.connect(self._manga_failed)
 
@@ -184,7 +186,7 @@ class Updater(QObject):
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
 
-        update = ChaptersUpdate(self, copy(manga), manga_response, self.app.logger)
+        update = ChaptersUpdate(self, copy(manga), manga_response, logger)
         update.success.connect(self._chapter_list_updated)
         update.failed.connect(self._chapter_list_failed)
 

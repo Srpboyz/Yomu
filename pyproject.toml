@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yomu"
-version = "1.2.0"
+version = "1.2.1"
 description = ""
 authors = ["Srpboyz <srpboyz69@gmail.com>"]
 readme = "README.md"
@@ -12,11 +12,6 @@ pyqt6-webengine = "^6.8.0"
 beautifulsoup4 = "^4.12.3"
 dateparser = "^1.2.0"
 pywin32 = { version = "^306", platform = "win32" }
-
-[tool.pyright]
-includes = ["_sources", "yomu"]
-excludes = [".git", ".venv", ".venv-linux", "build", "dist", "resources"]
-typeCheckingMode = "off"
 
 [build-system]
 requires = ["poetry-core"]

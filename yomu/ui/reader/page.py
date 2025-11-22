@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from enum import IntEnum
+from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, Qt, QUrl
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
 
     from .view.base import BaseView
+
+logger = getLogger(__name__)
 
 
 class PageView(QLabel):
@@ -92,7 +95,7 @@ class PageView(QLabel):
                         response, self.page.to_source_page()
                     )
                 except Exception as e:
-                    self.window().logger.error("Failed to parse page", exc_info=e)
+                    logger.error("Failed to parse page", exc_info=e)
                     self.status = PageView.Status.FAILED
                     return
 

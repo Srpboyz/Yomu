@@ -26,6 +26,21 @@ if TYPE_CHECKING:
 __all__ = ("YomuApp",)
 
 
+QApplication.setApplicationName("Yomu")
+QApplication.setApplicationDisplayName("Yomu")
+QApplication.setApplicationVersion("1.2.1")
+if sys.platform == "linux":
+    QApplication.setDesktopFileName("yomu")
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename=os.path.join(utils.app_data_path(), "yomu.log"),
+    format="%(levelname)s:%(asctime)s:%(name)s - %(lineno)d: %(message)s",
+)
+logger = logging.getLogger("yomu")
+
+
 class AppSettings(QSettings):
     value_changed = pyqtSignal((str, object))
 
@@ -70,12 +85,7 @@ class YomuApp(QApplication):
 
     def __init__(self, argv: list[str]) -> None:
         super().__init__(argv)
-        self.setApplicationName("Yomu")
-        self.setApplicationDisplayName("Yomu")
-        self.setApplicationVersion("1.2.0")
         self.setQuitOnLastWindowClosed(False)
-        if sys.platform == "linux":
-            self.setDesktopFileName("yomu")
 
         self._native_event_filter = NativeEventFilter()
         self.installNativeEventFilter(self._native_event_filter)
@@ -156,17 +166,6 @@ class YomuApp(QApplication):
         path = os.path.join(app_data_path, "keybinds.json")
         QFileSystemWatcher([path], self).fileChanged.connect(keybinds_updated)
 
-        self.logger = logging.getLogger("yomu")
-        self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            "%(levelname)s:%(asctime)s:%(module)s - %(lineno)d: %(message)s"
-        )
-        file_handler = logging.FileHandler(
-            os.path.join(app_data_path, "yomu.log"), encoding="utf-8"
-        )
-        file_handler.setFormatter(formatter)
-        self.logger.addHandler(file_handler)
-
     @property
     def windows(self) -> tuple[ReaderWindow]:
         return tuple(self._windows)
@@ -198,8 +197,8 @@ class YomuApp(QApplication):
         traceback: TracebackType | None,
     ) -> None:
         error = f"{exctype.__name__}: {value}"
-        self.logger.exception(error, exc_info=(exctype, value, traceback))
-        YomuApp.display_message(f"Yomu crashed. Check logs for info")
+        logger.exception(error, exc_info=(exctype, value, traceback))
+        YomuApp.display_message("Yomu crashed. Check logs for info")
         YomuApp.exit(1)
 
     def create_window(self) -> ReaderWindow:

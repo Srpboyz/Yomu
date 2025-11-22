@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from logging import getLogger
 from enum import IntEnum
 
 from PyQt6.QtCore import QEventLoop
@@ -9,6 +10,8 @@ from yomu.core.network import Response, Request
 from yomu.source import MangaList
 
 from .base import BasePage
+
+logger = getLogger(__name__)
 
 
 class LatestWidget(BasePage):
@@ -87,19 +90,17 @@ class LatestWidget(BasePage):
             self.source.latest_request_error(response, self._page)
             return self._error_occured()
 
-        window = self.window()
-
         try:
             manga_list = self.source.parse_latest(response, self._page)
         except Exception as e:
-            window.logger.exception(
+            logger.exception(
                 f"Failed to parse page {self._page} of latest update for {self.source.name}",
                 exc_info=e,
             )
             return self._error_occured()
 
         if not isinstance(manga_list, MangaList):
-            window.logger.error(
+            logger.error(
                 f"{self.source.name} returned a {type(manga_list).__name__} instead of a MangaList for the latest parse"
             )
             return self._error_occured()

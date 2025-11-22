@@ -4,6 +4,7 @@ import os
 from collections.abc import Sequence
 from copy import copy
 from enum import IntEnum
+from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QRect, QSize, Qt
@@ -26,6 +27,8 @@ if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
 
     from .view.base import BaseView
+
+logger = getLogger(__name__)
 
 
 class Reader(QScrollArea, StackWidgetMixin):
@@ -251,7 +254,7 @@ class Reader(QScrollArea, StackWidgetMixin):
                 response, self.chapter.to_source_chapter()
             )
         except Exception as e:
-            window.logger.error(
+            logger.error(
                 f"Failed to parse chapter for {self.chapter.source.name}", exc_info=e
             )
             return self.display_message("Error fetching chapter")

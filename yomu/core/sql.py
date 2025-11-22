@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
+from logging import getLogger
 from typing import TYPE_CHECKING
 
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
@@ -13,6 +14,8 @@ from .utils import app_data_path
 
 if TYPE_CHECKING:
     from .app import YomuApp
+
+logger = getLogger(__name__)
 
 
 class Sql:
@@ -102,7 +105,7 @@ class Sql:
         query.prepare("INSERT INTO categories(name) VALUES (:name) RETURNING id;")
         query.bindValue(":name", name)
         if not query.exec():
-            return self.app.logger.error(
+            return logger.error(
                 f"Failed to create category - {query.lastError().text()}"
             )
 
@@ -119,9 +122,7 @@ class Sql:
         if ret := query.exec():
             self.app.category_deleted.emit(category)
         else:
-            self.app.logger.error(
-                f"Failed to delete category - {query.lastError().text()}"
-            )
+            logger.error(f"Failed to delete category - {query.lastError().text()}")
         return ret
 
     def get_category_mangas(self, category: Category) -> list[Manga]:
@@ -137,9 +138,7 @@ class Sql:
         )
         query.bindValue(":category_id", category.id)
         if not query.exec():
-            self.app.logger.error(
-                f"Failed to get category mangas - {query.lastError().text()}"
-            )
+            logger.error(f"Failed to get category mangas - {query.lastError().text()}")
             return []
 
         source_manager = self.app.source_manager
@@ -171,7 +170,7 @@ class Sql:
         query.bindValue(":category_id", category.id)
         query.bindValue(":manga_id", manga.id)
         if not (ret := query.exec()):
-            self.app.logger.error(
+            logger.error(
                 f"Failed to add manga to category - {query.lastError().text()}"
             )
         else:
@@ -186,7 +185,7 @@ class Sql:
         query.bindValue(":manga_id", manga.id)
         query.bindValue(":category_id", category.id)
         if not (ret := query.exec()):
-            self.app.logger.error(
+            logger.error(
                 f"Failed to delete category manga - {query.lastError().text()}"
             )
         else:
@@ -199,9 +198,7 @@ class Sql:
         query = self.create_query()
         query.setForwardOnly(True)
         if not query.exec("SELECT * FROM mangas WHERE library = TRUE;"):
-            self.app.logger.error(
-                f"Failed to get the library - {query.lastError().text()}"
-            )
+            logger.error(f"Failed to get the library - {query.lastError().text()}")
 
         mangas: list[Manga] = []
         while query.next():
@@ -235,7 +232,7 @@ class Sql:
             manga.library = library
             self.app.manga_library_status_changed.emit(manga)
         else:
-            self.app.logger.error(
+            logger.error(
                 f"Failed to add manga ({manga.title}) to library - {query.lastError().text()}"
             )
         return ret
@@ -357,7 +354,7 @@ class Sql:
         query.bindValue(":id", id)
 
         if not (ret := query.exec()):
-            self.app.logger.error(
+            logger.error(
                 f"Failed to get update manga ({id}) - {query.lastError().text()}"
             )
 
@@ -370,7 +367,7 @@ class Sql:
         )
         query.bindValue(":manga_id", manga.id)
         if not query.exec():
-            self.app.logger.error(
+            logger.error(
                 f"Failed to get get chapters for {manga.title} - {query.lastError().text()}"
             )
 
@@ -407,7 +404,7 @@ class Sql:
         query.bindValue(":chapter_id", chapter_id)
 
         if not query.exec():
-            return self.app.logger.error(
+            return logger.error(
                 f"Failed to get chapter with id {chapter_id} - {query.lastError().text()}"
             )
 
@@ -557,7 +554,7 @@ class Sql:
                 chapter.read = read
                 self.app.chapter_read_status_changed.emit(chapter)
             else:
-                self.app.logger.error(
+                logger.error(
                     f"Failed to mark chapter ({chapter.title}) as read - {query.lastError().text()}"
                 )
 
@@ -574,7 +571,7 @@ class Sql:
             chapter.downloaded = downloaded
             self.app.chapter_download_status_changed.emit(chapter)
         else:
-            self.app.logger.error(
+            logger.error(
                 f"Failed mark chapter ({chapter.title}) as downloaded - {query.lastError().text()}"
             )
         return ret

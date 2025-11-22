@@ -46,6 +46,10 @@ def resource_path() -> str:
     return os.path.join(path, "resources")
 
 
+def icon_path() -> str:
+    return os.path.join(resource_path(), "icons")
+
+
 class Keybind(TypedDict):
     description: str
     keybinds: list[str]

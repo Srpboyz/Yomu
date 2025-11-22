@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import os
 import sys
+from logging import getLogger
 from typing import TYPE_CHECKING, overload
 
 from yomu.source import Source
@@ -10,6 +11,8 @@ from .utils import app_data_path
 
 if TYPE_CHECKING:
     from .app import YomuApp
+
+logger = getLogger(__name__)
 
 
 class SourceManager:
@@ -25,14 +28,14 @@ class SourceManager:
         try:
             source = cls(self.app.network)
         except Exception as e:
-            self.app.logger.error(
+            logger.error(
                 f"Failed to load source {getattr(cls, 'name', cls.__name__)}",
                 exc_info=e,
             )
             return None
 
         if source.id in self._sources:
-            self.app.logger.error(
+            logger.error(
                 f"Duplicate source id between {self._sources[source.id].name} and {source.name}"
             )
             return None
@@ -56,7 +59,7 @@ class SourceManager:
             try:
                 mod = importlib.import_module(f".{source_dir}", package="sources")  # fmt:skip
             except Exception as e:
-                self.app.logger.error(
+                logger.error(
                     f"Failed to load source directory {source_dir}", exc_info=e
                 )
                 continue

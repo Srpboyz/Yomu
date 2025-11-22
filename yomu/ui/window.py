@@ -10,7 +10,6 @@ from PyQt6.QtWidgets import QMessageBox, QVBoxLayout, QWidget
 from yomu.core import utils
 from .downloads import Downloads
 from .extensionlist import ExtensionList
-
 from .library import Library
 from .mangacard import MangaCard
 from .menu import MenuWidget
@@ -22,7 +21,6 @@ from .stack import Stack
 from .titlebar import TitleBar
 
 if TYPE_CHECKING:
-    from logging import Logger
     from yomu.core.app import YomuApp
 
 
@@ -95,10 +93,6 @@ class ReaderWindow(QWidget):
         return self._app
 
     application = app
-
-    @property
-    def logger(self) -> Logger:
-        return self.app.logger
 
     @property
     def current_widget(self) -> QWidget:

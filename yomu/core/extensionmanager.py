@@ -7,6 +7,7 @@ import os
 import sys
 from dataclasses import dataclass
 from hashlib import md5
+from logging import getLogger
 from typing import Self, TYPE_CHECKING
 
 from yomu.extension import YomuExtension
@@ -25,6 +26,9 @@ if TYPE_CHECKING:
     class ExtenstionModule:
         @staticmethod
         def setup(app: YomuApp) -> YomuExtension: ...
+
+
+logger = getLogger(__name__)
 
 
 @dataclass(kw_only=True, slots=True)
@@ -115,7 +119,7 @@ class ExtensionManager:
                     try:
                         mod: ExtenstionModule = importlib.import_module(f".{extension_dir}", package="extensions")  # fmt:skip
                     except Exception as e:
-                        self.app.logger.error(
+                        logger.error(
                             f"Failed to import: {e.__class__.__name__} - {e}",
                             exc_info=e,
                         )
@@ -126,7 +130,7 @@ class ExtensionManager:
                             extension = mod.setup(app=self.app)
                         except Exception as e:
                             enabled, extension = False, None
-                            self.app.logger.error(
+                            logger.error(
                                 f"Failed to initialize: {e.__class__.__name__} - {e}",
                                 exc_info=e,
                             )
