@@ -92,9 +92,17 @@ class SourceManager:
 
         source_filters = self._load_source_filters()
         for cls in source_cls:
-            source = self.load_source(cls)
+            try:
+                source = self.load_source(cls)
+            except Exception as e:
+                logger.error(
+                    f"Failed to load source directory {source_dir}", exc_info=e
+                )
+                continue
+
             if source is None or str(source.id) not in source_filters:
                 continue
+
             self.update_source_filters(
                 source, source_filters[str(source.id)], update_file=False
             )
