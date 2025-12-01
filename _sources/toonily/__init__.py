@@ -5,9 +5,8 @@ from bs4 import BeautifulSoup
 from PyQt6.QtNetwork import QNetworkCookie
 
 from yomu.core import Request
-from yomu.core.network import Network, Response
+from yomu.core.network import Response
 from yomu.source import Chapter, FilterType, Page
-from yomu.source.models import *
 
 from _sources.base.madara import Madara
 from yomu.source.models import Chapter, Page
@@ -27,22 +26,21 @@ class Toonily(Madara):
     request_sub_string = "serie"
     manga_search_selector = "div.page-item-detail.manga"
 
-    def __init__(self, network: Network) -> None:
-        super().__init__(network)
-        self._is_nsfw = False
-        network.cookieJar().setCookiesFromUrl(
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.network.cookieJar().setCookiesFromUrl(
             [QNetworkCookie(b"toonily-mature", b"0")], Toonily.BASE_URL
         )
 
     @property
     def is_nsfw(self) -> bool:
-        return self._is_nsfw
+        return self.filters["nsfw"]["value"]
 
     @is_nsfw.setter
-    def is_nsfw(self, nsfw: bool) -> None:
-        self._is_nsfw = nsfw
+    def is_nsfw(self, is_nsfw: bool) -> None:
+        self.filters["nsfw"]["value"] = is_nsfw
         self.network.cookieJar().setCookiesFromUrl(
-            [QNetworkCookie(b"toonily-mature", f"{int(nsfw)}".encode())],
+            [QNetworkCookie(b"toonily-mature", f"{int(is_nsfw)}".encode())],
             Toonily.BASE_URL,
         )
 
@@ -68,9 +66,5 @@ class Toonily(Madara):
         if new_value == self.filters["nsfw"]["value"]:
             return False
 
-        self.filters["nsfw"]["value"] = is_nsfw = new_value
-        self.network.cookieJar().setCookiesFromUrl(
-            [QNetworkCookie(b"toonily-mature", f"{int(is_nsfw)}".encode())],
-            Toonily.BASE_URL,
-        )
+        self.is_nsfw = new_value
         return True
