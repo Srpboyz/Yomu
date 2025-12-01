@@ -1,4 +1,5 @@
 from .armageddon import Armageddon
+from .comix import Comix
 from .firescans import FireScans
 from .galaxydegenscans import GalaxyDegenScans
 from .kappabeast import KappaBeast
@@ -15,6 +16,7 @@ from .webtoonxyz import WebtoonXYZ
 def _default_sources() -> list:
     return [
         Armageddon,
+        Comix,
         FireScans,
         GalaxyDegenScans,
         KappaBeast,
