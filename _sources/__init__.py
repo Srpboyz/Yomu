@@ -6,6 +6,7 @@ from .kappabeast import KappaBeast
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
 from .nyxscans import NyxScans
+from .philiascans import PhiliaScans
 from .templescan import TempleScan
 from .theblank import TheBlank
 from .toongod import ToonGod
@@ -23,6 +24,7 @@ def _default_sources() -> list:
         Manga18fx,
         MangaDex,
         NyxScans,
+        PhiliaScans,
         TempleScan,
         TheBlank,
         ToonGod,
