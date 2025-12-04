@@ -441,7 +441,7 @@ class Sql:
             read=bool(query.value("chapters.read")),
         )
 
-    def update_chapters(self, manga: Manga, chapters: list[Chapter]) -> bool:
+    def update_chapters(self, manga: Manga, chapters: list[SourceChapter]) -> bool:
         query = self.create_query()
         query.prepare("SELECT * FROM chapters WHERE manga_id = ?;")
         query.addBindValue(manga.id)
@@ -465,7 +465,10 @@ class Sql:
             return (
                 source_chapter.number != saved_chapter.number
                 or source_chapter.title != saved_chapter.title
-                or source_chapter.uploaded != saved_chapter.uploaded
+                or (
+                    source_chapter.uploaded.timestamp()
+                    != saved_chapter.uploaded.timestamp()
+                )
             )
 
         chapters_to_remove = sorted(
