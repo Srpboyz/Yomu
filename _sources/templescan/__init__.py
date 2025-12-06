@@ -28,6 +28,7 @@ class ChapterData(TypedDict):
     chapter_title: str
     chapter_slug: str
     created_at: str
+    price: int
 
 
 class TempleScan(Source):
@@ -177,7 +178,7 @@ class TempleScan(Source):
         return list(
             map(
                 lambda pair: self._parse_chapter_data(pair[1], pair[0] + 1, manga.url),
-                enumerate(chapters),
+                enumerate(filter(lambda chapter: chapter["price"] == 0, chapters)),
             )
         )
 

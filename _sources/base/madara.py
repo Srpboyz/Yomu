@@ -32,9 +32,6 @@ class Madara(Source):
     chapter_selector: str = "li.wp-manga-chapter"
     page_selector: str = "div.page-break.no-gaps"
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
     def _build_request(
         self,
         url: str | QUrl,
