@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from dateparser import parse
 from PyQt6.QtNetwork import QHttpHeaders
 
 from yomu.core.network import Response, Request, Url
@@ -180,7 +179,7 @@ class Comix(Source):
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
-            Page(number=i, url=image)
+            Page(number=i, url=image["url"])
             for i, image in enumerate(response.json()["result"]["images"])
         ]
 
