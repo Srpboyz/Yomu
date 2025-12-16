@@ -34,7 +34,7 @@ if sys.platform == "linux":
 
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     filename=os.path.join(utils.app_data_path(), "yomu.log"),
     format="%(levelname)s:%(asctime)s:%(name)s - %(lineno)d: %(message)s",
 )
