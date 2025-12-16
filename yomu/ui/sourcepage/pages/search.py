@@ -86,6 +86,7 @@ class SearchWidget(BasePage):
 
         self.manga_list.clear()
         self.insert_mangas(manga_list.mangas)
+        self.page_loaded.emit()
 
     def clear_widget(self) -> None:
         self.line_edit.clear()

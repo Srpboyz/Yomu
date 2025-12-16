@@ -3,7 +3,7 @@ from __future__ import annotations
 from logging import getLogger
 from enum import IntEnum
 
-from PyQt6.QtCore import QEventLoop
+from PyQt6.QtCore import Qt
 
 from yomu.core.utils import sleep
 from yomu.core.network import Response, Request
@@ -31,6 +31,10 @@ class LatestWidget(BasePage):
         layout = self.layout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
+        self.page_loaded.connect(
+            self._value_changed, Qt.ConnectionType.QueuedConnection
+        )
 
     @property
     def status(self) -> Status:
@@ -75,11 +79,11 @@ class LatestWidget(BasePage):
         if (response := self.window().network.handle_request(request)) is None:
             return self._error_occured()
 
-        response.finished.connect(self._page_loaded)
+        response.finished.connect(self._page_received)
         self._cancel_request.connect(response.abort)
         self.status = LatestWidget.Status.LOADING
 
-    def _page_loaded(self) -> None:
+    def _page_received(self) -> None:
         response: Response = self.sender()
 
         error = response.error()
@@ -113,13 +117,7 @@ class LatestWidget(BasePage):
         )
 
         self.manga_list.show()
-        sleep(0.1, processFlags=QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
-
-        if (
-            not self.manga_list.verticalScrollBar().maximum()
-            and self.is_current_widget()
-        ):
-            self.load_page()
+        self.page_loaded.emit()
 
     def _error_occured(self, *, message: str | None = None) -> None:
         if message is None:

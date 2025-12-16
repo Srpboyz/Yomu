@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 
 class BasePage(QWidget):
+    page_loaded = pyqtSignal()
     _cancel_request = pyqtSignal()
 
     def __init__(self, parent: QWidget, app: YomuApp) -> None:
