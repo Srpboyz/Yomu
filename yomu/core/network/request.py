@@ -72,7 +72,7 @@ class Request(QNetworkRequest):
         self.setAttribute(Request.Attribute.CacheSaveControlAttribute, True)
         self.setAttribute(
             Request.Attribute.CacheLoadControlAttribute,
-            Request.CacheLoadControl.PreferCache,
+            Request.CacheLoadControl.PreferNetwork,
         )
 
     def __repr__(self) -> str:

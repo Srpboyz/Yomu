@@ -61,6 +61,10 @@ class ThumbnailWidget(QLabel):
                 self.status = LoadingStatus.NETWORK
 
         request.setPriority(self.priority)
+        request.setAttribute(
+            Request.Attribute.CacheLoadControlAttribute,
+            Request.CacheLoadControl.PreferCache,
+        )
         response = network.handle_request(request)
         response.finished.connect(self._thumbnail_received)
         self._cancel_request.connect(response.abort)

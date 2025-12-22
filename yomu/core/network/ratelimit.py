@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QObject, QTimer
 
+from .request import Request
 from .response import Response
 
 
@@ -27,7 +28,7 @@ class NetworkDeque(deque[Response]):
             ...
 
 
-class SourceRequests(QObject):
+class SourceHandler(QObject):
     def __init__(self, parent: RateLimitHandler, rate_limit: RateLimit):
         super().__init__(parent)
         self.rate_limit = rate_limit
@@ -44,11 +45,6 @@ class SourceRequests(QObject):
 
     def _remove_request_count(self) -> None:
         self._sent_requests -= 1
-
-    def _get_next(self) -> Response | None:
-        for responses in self._responses_to_send:
-            if (response := responses.popleft()) is not None:
-                return response
 
     def __iter__(self):
         for responses in self._responses_to_send:
@@ -81,21 +77,26 @@ class RateLimitHandler(QObject):
     def __init__(self, network: Network) -> None:
         super().__init__(network)
         self.network = network
-        self._requests: dict[Source, SourceRequests] = {}
+        self.source_handlers: dict[Source, SourceHandler] = {}
 
         timer = QTimer(self)
         timer.setInterval(300)
         timer.timeout.connect(self._send_rate_limited_requests)
         timer.start()
 
+    @property
+    def cache(self):
+        return self.network.cache()
+
     def _send_rate_limited_requests(self) -> None:
         if self.network.network_online:
-            for responses in self._requests.values():
+            for responses in self.source_handlers.values():
                 for response in responses:
                     self.network._send_response(response)
 
     def handle_request(self, response: Response) -> None:
-        source = response.request.source
+        request = response.request
+        source = request.source
         if (
             source is None
             or source.rate_limit is None
@@ -103,6 +104,24 @@ class RateLimitHandler(QObject):
         ):
             return self.network._send_response(response)
 
-        if source not in self._requests:
-            self._requests[source] = SourceRequests(self, source.rate_limit)
-        self._requests[source].append(response)
+        if (
+            request.attribute(Request.Attribute.CacheLoadControlAttribute)
+            == Request.CacheLoadControl.AlwaysCache
+        ):
+            return self.network._send_response(response)
+
+        if (
+            request.attribute(Request.Attribute.CacheLoadControlAttribute)
+            == Request.CacheLoadControl.PreferCache
+        ):
+            metadata = self.network.cache().metaData(request.url())
+            if metadata.isValid() and metadata.expirationDate().isValid():
+                request.setAttribute(
+                    Request.Attribute.CacheLoadControlAttribute,
+                    Request.CacheLoadControl.AlwaysCache,
+                )
+                return self.network._send_response(response)
+
+        if source not in self.source_handlers:
+            self.source_handlers[source] = SourceHandler(self, source.rate_limit)
+        self.source_handlers[source].append(response)

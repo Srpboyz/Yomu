@@ -74,6 +74,10 @@ class PageView(QLabel):
                 self.status = PageView.Status.FAILED
                 return
             request.setPriority(Request.Priority.HighPriority)
+            request.setAttribute(
+                Request.Attribute.CacheLoadControlAttribute,
+                Request.CacheLoadControl.PreferCache,
+            )
 
         else:
             request = Request(QUrl.fromLocalFile(self.page.url))
