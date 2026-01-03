@@ -72,8 +72,9 @@ class Network(QNetworkAccessManager):
 
     @property
     def network_online(self) -> bool:
-        return (
-            self.network_info.reachability() == QNetworkInformation.Reachability.Online
+        return self.network_info.reachability() in (
+            QNetworkInformation.Reachability.Site,
+            QNetworkInformation.Reachability.Online,
         )
 
     def _response_finished(self) -> None:
@@ -100,7 +101,11 @@ class Network(QNetworkAccessManager):
         self.network_status_changed.emit(reachability)
 
         is_online = not self.offline_mode and (
-            reachability == QNetworkInformation.Reachability.Online
+            reachability
+            in (
+                QNetworkInformation.Reachability.Site,
+                QNetworkInformation.Reachability.Online,
+            )
         )
 
         if self._online != is_online:
@@ -114,7 +119,11 @@ class Network(QNetworkAccessManager):
         logger.info(f"Offline mode {'enabled' if value else 'disabled'}")
 
         is_online = not value and (
-            self.network_info.reachability() == QNetworkInformation.Reachability.Online
+            self.network_info.reachability()
+            in (
+                QNetworkInformation.Reachability.Site,
+                QNetworkInformation.Reachability.Online,
+            )
         )
 
         if self._online != is_online:

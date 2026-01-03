@@ -228,7 +228,10 @@ class Downloader(QObject):
             self.delete_thumbnail(manga)
 
     def _network_status_changed(self, reachability: QNetworkInformation.Reachability):
-        if reachability != QNetworkInformation.Reachability.Online:
+        if reachability in (
+            QNetworkInformation.Reachability.Site,
+            QNetworkInformation.Reachability.Online,
+        ):
             for download in self.findChildren(DownloadChapter):
                 download.abort()
 
