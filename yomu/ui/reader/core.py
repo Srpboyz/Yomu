@@ -153,7 +153,16 @@ class Reader(QScrollArea, StackWidgetMixin):
             a0.type() == QEvent.Type.MouseButtonRelease
             and a0.button() == Qt.MouseButton.LeftButton
         ):
-            self.overlay.show() if self.overlay.isHidden() else self.overlay.hide()
+            overlay_state = self.overlay.state
+            if overlay_state == Overlay.State.SHOWN:
+                self.overlay.hide()
+            elif overlay_state == Overlay.State.HIDDEN:
+                self.overlay.show()
+            elif overlay_state == Overlay.State.ANIMATING:
+                if self.overlay.animation_direction() == Overlay.Direction.Forward:
+                    self.overlay.hide()
+                else:
+                    self.overlay.show()
         return ret
 
     def contextMenuEvent(self, a0: QContextMenuEvent) -> None:

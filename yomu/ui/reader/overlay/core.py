@@ -31,6 +31,8 @@ class Overlay(QFrame):
     class State(IntEnum):
         SHOWN, ANIMATING, HIDDEN = range(3)
 
+    Direction = QPropertyAnimation.Direction
+
     def __init__(self, reader: Reader) -> None:
         super().__init__(reader.viewport())
         self.reader = reader
@@ -78,8 +80,13 @@ class Overlay(QFrame):
     def isHidden(self) -> bool:
         return self.state == Overlay.State.HIDDEN
 
+    is_hidden = isHidden
+
+    def animation_direction(self) -> Direction:
+        return self._animation.direction()
+
     def show(self) -> None:
-        if self.state != Overlay.State.HIDDEN:
+        if self.state == Overlay.State.SHOWN:
             return
 
         self._state = Overlay.State.ANIMATING
@@ -87,7 +94,7 @@ class Overlay(QFrame):
         self._animation.start()
 
     def hide(self) -> None:
-        if self.state != Overlay.State.SHOWN:
+        if self.state == Overlay.State.HIDDEN:
             return
 
         self._state = Overlay.State.ANIMATING
