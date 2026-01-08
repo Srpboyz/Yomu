@@ -22,13 +22,9 @@ logger = getLogger(__name__)
 class BaseUpdate(QObject):
     failed = pyqtSignal(Manga)
 
-    def __init__(
-        self, parent: Updater, manga: Manga, response: Response, logger: Logger = None
-    ):
+    def __init__(self, parent: Updater, manga: Manga, response: Response) -> None:
         super().__init__(parent)
         self.manga = manga
-        self.logger = logger
-
         response.finished.connect(self._request_finished)
 
     def _request_finished(self) -> None: ...
@@ -45,8 +41,10 @@ class MangaUpdate(BaseUpdate):
                     response, self.manga.to_source_manga()
                 )
             except Exception as e:
-                if self.logger is not None:
-                    self.logger.error("Failled to parse manga info", exc_info=e)
+                if logger is not None:
+                    logger.error(
+                        f"Failed to parse manga info for id {self.manga.id}", exc_info=e
+                    )
                 self.failed.emit(self.manga)
             else:
                 if isinstance(smanga, SourceManga):
@@ -72,8 +70,10 @@ class ChaptersUpdate(BaseUpdate):
                     response, self.manga.to_source_manga()
                 )
             except Exception as e:
-                if self.logger is not None:
-                    self.logger.error("Failed to parse chapters", exc_info=e)
+                if logger is not None:
+                    logger.error(
+                        f"Failed to parse chapters for id {self.manga.id}", exc_info=e
+                    )
                 self.failed.emit(self.manga)
             else:
                 if isinstance(chapters, Sequence) and all(
@@ -153,7 +153,7 @@ class Updater(QObject):
 
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
-        update = MangaUpdate(self, copy(manga), manga_response, logger)
+        update = MangaUpdate(self, copy(manga), manga_response)
         update.success.connect(self._manga_updated)
         update.failed.connect(self._manga_failed)
 
@@ -186,7 +186,7 @@ class Updater(QObject):
         request.setPriority(priority)
         manga_response = self.app.network.handle_request(request)
 
-        update = ChaptersUpdate(self, copy(manga), manga_response, logger)
+        update = ChaptersUpdate(self, copy(manga), manga_response)
         update.success.connect(self._chapter_list_updated)
         update.failed.connect(self._chapter_list_failed)
 
