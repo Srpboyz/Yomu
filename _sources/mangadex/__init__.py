@@ -102,7 +102,7 @@ class MangaDex(Source):
         return create_manga_request([manga_id])
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
 
         manga_url = MangaDex.BASE_URL + "/title/{0}"
         cover_url = MangaDex.UPLOAD_URL + "/covers/{}/{}"
@@ -120,13 +120,9 @@ class MangaDex(Source):
             elif type == "artist":
                 artist = relationship["attributes"]["name"]
 
-        title = manga_data["attributes"]["title"].get("en")
-        if title is None:
-            for title_data in manga_data["attributes"]["altTitles"]:
-                title = title_data.get("en")
-                if title is not None:
-                    break
-
+        title = utils.get_en_or_first_title(
+            manga_data["attributes"]["title"], manga_data["attributes"]["altTitles"]
+        )
         description = manga_data["attributes"]["description"].get("en", "")
         url = manga_url.format(manga_data["id"])
 

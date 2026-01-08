@@ -48,15 +48,21 @@ def parse_manga_data(json: dict):
                 )
                 break
 
-        title = manga_data["attributes"]["title"].get("en")
-        if title is None:
-            for title_data in manga_data["attributes"]["altTitles"]:
-                title = title_data.get("en")
-                if title is not None:
-                    break
-
-        if title is None:
-            title = tuple(manga_data["attributes"]["title"].values())[0]
+        title = get_en_or_first_title(
+            manga_data["attributes"]["title"], manga_data["attributes"]["altTitles"]
+        )
         url = manga_url.format(dex_id)
 
         yield title, thumbnail, url
+
+
+def get_en_or_first_title(titles: dict[str, str], alt_titles: list[dict[str, str]]):
+    title = titles.get("en")
+    if title is None:
+        for title_data in alt_titles:
+            title = title_data.get("en")
+            if title is not None:
+                break
+        else:
+            title = tuple(titles.values())[0]
+    return title
