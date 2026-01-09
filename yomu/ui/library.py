@@ -186,7 +186,7 @@ class Library(QWidget, StackWidgetMixin):
 
             view.thumbnail_widget.priority = QNetworkRequest.Priority.HighPriority
             view.installEventFilter(self)
-            if self.current_source != manga.source:
+            if self.current_source and self.current_source != manga.source:
                 view.hide()
             return view.fetch_thumbnail()
 
