@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Comix(Source):
     BASE_URL = "https://comix.to"
     API_URL = "https://comix.to/api/v2"
-    rate_limit = RateLimit(5, 1)
+    rate_limit = RateLimit(5)
 
     NSFW_IDS = ["-87264", "-8", "-87265", "-13", "-87266", "-87268"]
 

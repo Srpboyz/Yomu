@@ -34,7 +34,7 @@ class ChapterData(TypedDict):
 class TempleScan(Source):
     name = "Temple Scan"
     BASE_URL = "https://templetoons.com"
-    rate_limit = RateLimit(1, 1)
+    rate_limit = RateLimit(1)
 
     DETAILS_REGEX = re.compile(r'info\\":(\{.*\}).*userIsFollowed')
     IMAGES_REGEX = re.compile(r'images\\":(\[.*?]).*')

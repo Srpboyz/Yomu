@@ -17,7 +17,7 @@ class MangaDex(Source):
     API_URL = API_URL
     UPLOAD_URL = UPLOAD_URL
     has_filters = True
-    rate_limit = RateLimit(3, 1)
+    rate_limit = RateLimit(3)
     filters = {
         "content-rating": {
             "display_name": "Content Rating",

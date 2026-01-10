@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
+from numbers import Real
 
 __all__ = ("RateLimit", "TimeUnit")
 
@@ -11,8 +12,16 @@ class TimeUnit(IntEnum):
 @dataclass(frozen=True, repr=False, slots=True)
 class RateLimit:
     rate: int
-    per: float
-    unit: TimeUnit = field(default=TimeUnit.SECONDS)
+    per: Real = 1
+    unit: TimeUnit = TimeUnit.SECONDS
+
+    def __post_init__(self):
+        if not isinstance(self.rate, int):
+            raise TypeError("rate must be an int")
+        if not isinstance(self.per, Real):
+            raise TypeError("per must be a number")
+        if not isinstance(self.unit, TimeUnit):
+            raise TypeError("unit must be a TimeUnit enum")
 
     @property
     def milliseconds(self) -> float:

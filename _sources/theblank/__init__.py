@@ -6,7 +6,7 @@ from _sources.base.madara import Madara
 class TheBlank(Madara):
     name = "The Blank Scanlations"
     BASE_URL = "https://theblank.net"
-    rate_limit = RateLimit(10, 1)
+    rate_limit = RateLimit(10)
 
     request_sub_string = "manga"
     chapter_selector: str = "li.wp-manga-chapter:not(.vip-permission)"

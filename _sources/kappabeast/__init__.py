@@ -15,7 +15,7 @@ from yomu.source.models import Chapter, Manga
 class KappaBeast(MangaThemesia):
     name = "Kappa Beast"
     BASE_URL = "https://kappabeast.com"
-    rate_limit = RateLimit(3, 1)
+    rate_limit = RateLimit(3)
 
     request_sub_string = "manga"
     page_selector = ".epcontent.entry-content img"
