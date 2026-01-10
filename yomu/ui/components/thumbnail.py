@@ -21,11 +21,12 @@ if TYPE_CHECKING:
 
 
 class LoadingStatus(IntEnum):
-    NULL, CACHE, NETWORK = range(3)
+    NULL, CACHE, NETWORK, LOADED = range(4)
 
 
 class ThumbnailWidget(QLabel):
     _cancel_request = pyqtSignal()
+    Status = LoadingStatus
 
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
@@ -41,8 +42,10 @@ class ThumbnailWidget(QLabel):
         return self.parent().manga
 
     def fetch_thumbnail(self, *, force_network: bool = False) -> None:
+        self.setCursor(Qt.CursorShape.ArrowCursor)
         if not self.manga.thumbnail:
             return self.setText("Thumbnail not found")
+
         window = self.window()
         network = window.network
         path = window.app.downloader.resolve_path(self.manga)
@@ -102,12 +105,13 @@ class ThumbnailWidget(QLabel):
                 return self.fetch_thumbnail(force_network=True)
             return self.setText("Failed to load image")
 
-        thumbnail = thumbnail.scaled(
-            self.size(),
-            Qt.AspectRatioMode.KeepAspectRatioByExpanding,
-            Qt.TransformationMode.SmoothTransformation,
+        self.setPixmap(
+            thumbnail.scaledToHeight(
+                self.height(), Qt.TransformationMode.SmoothTransformation
+            )
         )
-        self.setPixmap(thumbnail)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.status = LoadingStatus.LOADED
 
     def clear(self):
         super().clear()

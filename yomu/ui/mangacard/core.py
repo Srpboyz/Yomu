@@ -4,8 +4,8 @@ import os
 from copy import copy
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QSize, Qt
-from PyQt6.QtGui import QIcon, QMouseEvent
+from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QSize, Qt
+from PyQt6.QtGui import QIcon, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QTextBrowser,
     QToolButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from yomu.core.network import Request
@@ -54,6 +55,7 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.thumbnail_widget = ThumbnailWidget(self)
         self.thumbnail_widget.setObjectName("Thumbnail")
         self.thumbnail_widget.setFixedSize(QSize(195, 279) * 1.2)
+        self.thumbnail_widget.installEventFilter(self)
         self.thumbnail_widget.priority = Request.Priority.HighPriority
 
         info_layout = QHBoxLayout()
@@ -206,6 +208,16 @@ class MangaCard(QFrame, StackWidgetMixin):
             "This chapter isn't downloaded. Please connect to the internet to view/download the chapter."
         )
 
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
+        if (
+            a0 == self.thumbnail_widget
+            and a1.type() == QEvent.Type.MouseButtonRelease
+            and a1.button() == Qt.MouseButton.LeftButton
+            and self.thumbnail_widget.status == ThumbnailWidget.Status.LOADED
+        ):
+            DisplayThumbnail(self.window().stack, self.thumbnail_widget.pixmap()).show()
+        return super().eventFilter(a0, a1)
+
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         if a0.button() == Qt.MouseButton.BackButton:
             a0.ignore()
@@ -259,3 +271,42 @@ class MangaCard(QFrame, StackWidgetMixin):
         window.titlebar.refresh_button.clicked.disconnect(self._refresh_button_pressed)
         self._plus_button.hide()
         self._minus_button.hide()
+
+
+class DisplayThumbnail(QFrame):
+    def __init__(self, parent: QWidget, pixmap: QPixmap) -> None:
+        super().__init__(parent)
+        self.setStyleSheet("DisplayThumbnail {background-color: rgba(0, 0, 0, 0.8);}")
+
+        parent.installEventFilter(self)
+        self.label = QLabel(self)
+        self.label.setPixmap(pixmap)
+        self.label.setScaledContents(True)
+
+        pixmap = pixmap.scaledToHeight(
+            round(parent.height() * 0.8), Qt.TransformationMode.SmoothTransformation
+        )
+        self.label.setFixedSize(pixmap.size())
+
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.label)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(layout)
+
+        self.resize(parent.size())
+        self.raise_()
+
+    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
+        if a0 == self.parent() and a1.type() == QEvent.Type.Resize:
+            pixmap = self.label.pixmap().scaledToHeight(
+                round(self.parent().height() * 0.7),
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            self.label.setFixedSize(pixmap.size())
+            self.resize(a0.size())
+        return super().eventFilter(a0, a1)
+
+    def mousePressEvent(self, a0: QMouseEvent) -> None:
+        if not self.label.underMouse():
+            self.deleteLater()
