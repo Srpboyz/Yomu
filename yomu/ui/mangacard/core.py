@@ -4,8 +4,8 @@ import os
 from copy import copy
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QSize, Qt
-from PyQt6.QtGui import QIcon, QMouseEvent, QPixmap
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QSize, Qt, QUrl
+from PyQt6.QtGui import QDrag, QIcon, QMouseEvent, QPixmap
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -310,3 +310,23 @@ class DisplayThumbnail(QFrame):
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         if not self.label.underMouse():
             self.deleteLater()
+
+    def mouseMoveEvent(self, ev: QMouseEvent) -> None:
+        if (
+            ev.buttons() != Qt.MouseButton.LeftButton
+            or (pixmap := self.label.pixmap()).isNull()
+        ):
+            return
+
+        mimedata = QMimeData()
+        mimedata.setImageData(pixmap.toImage())
+        path = os.path.join(utils.temp_dir_path(), "dragged-image.jpg")
+        pixmap.save(path, "JPG")
+        mimedata.setUrls([QUrl.fromLocalFile(path)])
+
+        pixmap = pixmap.scaledToHeight(400, Qt.TransformationMode.FastTransformation)
+        drag = QDrag(self)
+        drag.setMimeData(mimedata)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(pixmap.rect().center())
+        drag.exec(Qt.DropAction.CopyAction)

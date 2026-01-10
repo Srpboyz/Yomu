@@ -7,8 +7,8 @@ from enum import IntEnum
 from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QRect, QSize, Qt
-from PyQt6.QtGui import QContextMenuEvent, QMouseEvent, QResizeEvent, QWheelEvent
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QRect, QSize, Qt, QUrl
+from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QResizeEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
 
@@ -203,6 +203,28 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.menu_requested.emit(menu)
         menu.exec(a0.globalPos())
 
+    def mouseMoveEvent(self, ev: QMouseEvent) -> None:
+        page = self.current_view.page_at(ev.pos())
+        if (
+            ev.buttons() != Qt.MouseButton.LeftButton
+            or page is None
+            or (pixmap := page.pixmap()).isNull()
+        ):
+            return
+
+        mimedata = QMimeData()
+        mimedata.setImageData(pixmap.toImage())
+        path = os.path.join(core_utils.temp_dir_path(), "dragged-image.jpg")
+        pixmap.save(path, "JPG")
+        mimedata.setUrls([QUrl.fromLocalFile(path)])
+
+        pixmap = pixmap.scaledToHeight(400, Qt.TransformationMode.FastTransformation)
+        drag = QDrag(page)
+        drag.setMimeData(mimedata)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(pixmap.rect().center())
+        drag.exec(Qt.DropAction.CopyAction)
+
     def resizeEvent(self, a0: QResizeEvent) -> None:
         super().resizeEvent(a0)
         self.resized.emit(a0.size())
@@ -246,8 +268,6 @@ class Reader(QScrollArea, StackWidgetMixin):
 
     def _pages_fetched(self) -> None:
         response: Response = self.sender()
-        window = self.window()
-
         error = response.error()
         if error == Response.Error.OperationCanceledError:
             return

@@ -4,8 +4,8 @@ import os
 from enum import IntEnum
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, Qt, QUrl
-from PyQt6.QtGui import QPixmap, QMovie
+from PyQt6.QtCore import pyqtSignal, QMimeData, Qt, QUrl
+from PyQt6.QtGui import QDrag, QPixmap, QMovie, QMouseEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QLabel, QWidget
 
@@ -40,6 +40,25 @@ class ThumbnailWidget(QLabel):
     @property
     def manga(self) -> Manga:
         return self.parent().manga
+
+    def mouseMoveEvent(self, ev: QMouseEvent) -> None:
+        if (
+            ev.buttons() != Qt.MouseButton.LeftButton
+            or (pixmap := self.pixmap()).isNull()
+        ):
+            return
+
+        mimedata = QMimeData()
+        mimedata.setImageData(pixmap.toImage())
+        path = os.path.join(utils.temp_dir_path(), "dragged-image.jpg")
+        pixmap.save(path, "JPG")
+        mimedata.setUrls([QUrl.fromLocalFile(path)])
+
+        drag = QDrag(self)
+        drag.setMimeData(mimedata)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(pixmap.rect().center())
+        drag.exec(Qt.DropAction.CopyAction)
 
     def fetch_thumbnail(self, *, force_network: bool = False) -> None:
         self.setCursor(Qt.CursorShape.ArrowCursor)

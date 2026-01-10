@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "yomu"
 version = "1.2.4"
-description = ""
+description = "A manga reader made using PyQt6"
 authors = ["Srpboyz <srpboyz69@gmail.com>"]
 readme = "README.md"
 
