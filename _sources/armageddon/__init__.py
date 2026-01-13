@@ -17,13 +17,13 @@ class Armageddon(MangaThemesia):
 
         script = document.select_one("script:-soup-contains(WyJodHRw)")
         if script is None:
-            return []
+            return super().parse_chapter_pages(response, chapter)
 
         match = re.search(
             rb"""['"](WyJodHRw[\w+/=]+)['"]""", response.read_all().data()
         )
         if match is None:
-            return []
+            return super().parse_chapter_pages(response, chapter)
 
         base64_string = match.group(1)
         urls = json.loads(base64.b64decode(base64_string).decode("utf-8"))
