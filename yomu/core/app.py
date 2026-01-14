@@ -7,7 +7,15 @@ from types import TracebackType
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QDir, QEventLoop, QFileSystemWatcher, QSettings, Qt
-from PyQt6.QtGui import QColor, QFontDatabase, QIcon, QMouseEvent, QPalette, QPixmap
+from PyQt6.QtGui import (
+    QColor,
+    QFontDatabase,
+    QIcon,
+    QMouseEvent,
+    QPalette,
+    QPixmap,
+    QShortcut,
+)
 from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
 
 from yomu.source import Source
@@ -159,8 +167,20 @@ class YomuApp(QApplication):
         QFileSystemWatcher([path], self).fileChanged.connect(set_styles)
         set_styles(path)
 
+        keybinds = utils.get_keybinds()
+        shortcut = QShortcut(self)
+        shortcut.activated.connect(lambda: self.create_window().showMaximized())
+        shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        shortcut.setKeys(
+            keybinds.get("New Window", {"keybinds": []}).get("keybinds", [])
+        )
+
         def keybinds_updated():
-            self.keybinds_changed.emit(utils.get_keybinds())
+            keybinds = utils.get_keybinds()
+            shortcut.setKeys(
+                keybinds.get("New Window", {"keybinds": []}).get("keybinds", [])
+            )
+            self.keybinds_changed.emit(keybinds)
 
         app_data_path = utils.app_data_path()
         path = os.path.join(app_data_path, "keybinds.json")

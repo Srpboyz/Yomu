@@ -79,6 +79,7 @@ class ReaderWindow(QWidget):
         self.resize(self.screen().size() * 0.7)
 
         self.addAction("Refresh").triggered.connect(self.titlebar.refresh_button.click)
+        self.addAction("Close Window").triggered.connect(self.close)
 
         fullscreen = self.addAction("Toggle Fullscreen")
         fullscreen.triggered.connect(self.toggle_fullscreen)

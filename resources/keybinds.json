@@ -1,4 +1,16 @@
 {
+    "New Window": {
+        "description": "Open a new window",
+        "keybinds": [
+            "Ctrl+Shift+N"
+        ]
+    },
+    "Close Window": {
+        "description": "Close the current window",
+        "keybinds": [
+            "Ctrl+W"
+        ]
+    },
     "Toggle Fullscreen": {
         "description": "Toggle Fullscreen",
         "keybinds": [
