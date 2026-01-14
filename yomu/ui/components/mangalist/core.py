@@ -11,6 +11,7 @@ from yomu.core import utils
 from .find import Find
 from .layout import FlowLayout
 from .mangaview import MangaView
+from .selector import MangaSelector
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
@@ -38,6 +39,7 @@ class MangaList(QScrollArea):
         app.keybinds_changed.connect(self._set_keybinds)
         self._set_keybinds(utils.get_keybinds())
         self.setMouseTracking(True)
+        self.selector = MangaSelector(self)
 
     window: Callable[[], ReaderWindow]
     verticalScrollBar: Callable[[], QScrollBar]
