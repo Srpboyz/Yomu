@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QPointF, Qt
 from PyQt6.QtGui import QCloseEvent, QMouseEvent
-from PyQt6.QtWidgets import QMessageBox, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMessageBox, QScrollArea, QVBoxLayout, QWidget
 
 from yomu.core import utils
+from .components.autoscroll import AutoScroller
 from .downloads import Downloads
 from .extensionlist import ExtensionList
 from .library import Library
@@ -87,6 +88,11 @@ class ReaderWindow(QWidget):
 
         self.setAttribute(Qt.WidgetAttribute.WA_NativeWindow)
         self.windowHandle().installEventFilter(self)
+
+        for scrollarea in self.findChildren(
+            QScrollArea, options=Qt.FindChildOption.FindChildrenRecursively
+        ):
+            AutoScroller(scrollarea)
 
     @property
     def app(self) -> YomuApp:
