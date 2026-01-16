@@ -18,6 +18,7 @@
 ## Supported Sources
 
 * Armageddon
+* Atsumaru
 * Comick (Removed)
 * Firescans
 * Galaxy Degen Scans
