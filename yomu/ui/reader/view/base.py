@@ -74,10 +74,8 @@ class BaseView(QWidget, ABC, metaclass=ViewMeta):
     @abstractmethod
     def clear(self) -> None: ...
 
-    @abstractmethod
     def zoom_out(self) -> None: ...
 
-    @abstractmethod
     def zoom_in(self) -> None: ...
 
     @abstractmethod

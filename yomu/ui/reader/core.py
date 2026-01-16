@@ -21,12 +21,11 @@ from yomu.ui.stack import StackWidgetMixin
 from .page import PageView
 from .overlay import Overlay
 from .overlay.bar import NavigationBar, PageBar, BaseBar
-from .view import SinglePageView, WebtoonView
+from .view import BaseView, SinglePageView, WebtoonView
 
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
 
-    from .view.base import BaseView
 
 logger = getLogger(__name__)
 

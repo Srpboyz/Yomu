@@ -258,10 +258,6 @@ class SinglePageView(BaseView):
         if page_widget and page_widget.geometry().contains(self.mapFromParent(pos)):
             return page_widget.page_view
 
-    def zoom_out(self) -> None: ...
-
-    def zoom_in(self) -> None: ...
-
     def clear(self) -> None:
         layout = self.layout()
         layout.blockSignals(True)
