@@ -66,7 +66,7 @@ class TempleScan(Source):
         )
 
     def _parse_manga_cache(self, response: Response) -> None:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
 
         script = document.select_one("script:-soup-contains(allComics)")
         if script is None:

@@ -51,7 +51,7 @@ class Toonily(Madara):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         pages = [
             Page(
                 number=number,

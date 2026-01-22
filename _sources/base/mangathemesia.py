@@ -69,7 +69,7 @@ class MangaThemesia(Source):
     def parse_search_results(
         self, response: Response, query: str, *, check_for_next: bool = False
     ) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
 
         mangas = list(map(self.manga_from_element, html.select(self.search_selector)))
         has_next_page = (
@@ -84,7 +84,7 @@ class MangaThemesia(Source):
         return self._build_request(self.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
 
         title = html.select_one(self.title_selector).text
         description = html.select_one(self.details_selector).get_text(separator=" ", strip=True)  # fmt:skip
@@ -116,7 +116,7 @@ class MangaThemesia(Source):
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         chapters = [
             self.chapter_from_element(tag, number)
             for number, tag in enumerate(html.select(self.chapter_selector)[::-1])
@@ -129,7 +129,7 @@ class MangaThemesia(Source):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         pages = html.select(self.page_selector)
         return [
             Page(number=number, url=page.attrs["src"])

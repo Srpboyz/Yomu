@@ -13,7 +13,7 @@ class Armageddon(MangaThemesia):
     request_sub_string = "manga"
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
 
         script = document.select_one("script:-soup-contains(WyJodHRw)")
         if script is None:

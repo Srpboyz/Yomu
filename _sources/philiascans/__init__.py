@@ -45,7 +45,7 @@ class PhiliaScans(Source):
         return Manga(title=title, url=url, thumbnail=thumbnail)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
         has_next_page = (
             document.select_one("li.page-item:not(.disabled) a.page-link[rel=next]")
             is not None
@@ -59,7 +59,7 @@ class PhiliaScans(Source):
         return Request(PhiliaScans.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
 
         title = document.select_one("h1.serie-title").get_text(" ", True)
         description = document.select_one("div.description-content").get_text(" ", True)
@@ -96,7 +96,7 @@ class PhiliaScans(Source):
         return Chapter(title=title, number=number, uploaded=datetime.now(), url=url)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
         return list(
             filter(
                 None,
@@ -113,7 +113,7 @@ class PhiliaScans(Source):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        document = BeautifulSoup(response.read_all().data(), features="html.parser")
+        document = BeautifulSoup(response.read_all().data(), features="lxml")
         return [
             Page(number=i, url=self.image_from_tag(tag))
             for i, tag in enumerate(document.select("div#ch-images img"))

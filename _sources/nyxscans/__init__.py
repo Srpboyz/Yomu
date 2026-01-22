@@ -51,7 +51,7 @@ class NyxScans(Source):
         return Request(f"{NyxScans.BASE_URL}/series/{manga.url}")
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         script = html.find_all("script", type="application/ld+json")[-1]
 
         data = json.loads(script.get_text(strip=True))
@@ -109,7 +109,7 @@ class NyxScans(Source):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         script = html.select_one("script:-soup-contains(images)")
         if script is None:
             raise TypeError()

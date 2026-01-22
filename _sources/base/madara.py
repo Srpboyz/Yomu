@@ -75,7 +75,7 @@ class Madara(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
 
         mangas = list(
             map(self.latest_manga_from_element, html.select(self.manga_latest_selector))
@@ -96,7 +96,7 @@ class Madara(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         mangas = list(
             map(self.search_manga_from_element, html.select(self.manga_search_selector))
         )
@@ -106,7 +106,7 @@ class Madara(Source):
         return self._build_request(self.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
 
         title = (
             html.select_one(self.manga_title_selector)
@@ -157,7 +157,7 @@ class Madara(Source):
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         chapters = [
             self.chapter_from_element(element, number)
             for number, element in enumerate(html.select(self.chapter_selector)[::-1])
@@ -170,7 +170,7 @@ class Madara(Source):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="html.parser")
+        html = BeautifulSoup(response.read_all().data(), features="lxml")
         pages = [
             Page(
                 number=number,

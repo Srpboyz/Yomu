@@ -36,7 +36,7 @@ __all__ = ("YomuApp",)
 
 QApplication.setApplicationName("Yomu")
 QApplication.setApplicationDisplayName("Yomu")
-QApplication.setApplicationVersion("1.2.7")
+QApplication.setApplicationVersion("1.2.8")
 if sys.platform == "linux":
     QApplication.setDesktopFileName("yomu")
 

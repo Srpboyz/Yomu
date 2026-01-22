@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yomu"
-version = "1.2.7"
+version = "1.2.8"
 description = "A manga reader made using PyQt6"
 authors = ["Srpboyz <srpboyz69@gmail.com>"]
 readme = "README.md"
@@ -12,6 +12,8 @@ pyqt6-webengine = "^6.8.0"
 beautifulsoup4 = "^4.12.3"
 dateparser = "^1.2.0"
 pywin32 = { version = "^306", platform = "win32" }
+lxml = "^6.0.2"
+pillow = "^12.1.0"
 
 [build-system]
 requires = ["poetry-core"]
