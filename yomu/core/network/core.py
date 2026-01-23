@@ -3,7 +3,7 @@ from __future__ import annotations
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEventLoop, QJsonDocument, QStandardPaths, Qt
+from PyQt6.QtCore import pyqtSignal, QEventLoop, QJsonDocument, QStandardPaths
 from PyQt6.QtNetwork import (
     QNetworkAccessManager,
     QNetworkDiskCache,
@@ -52,6 +52,7 @@ class Network(QNetworkAccessManager):
         self._limit_handler = RateLimitHandler(self)
 
         cache = QNetworkDiskCache(self)
+        cache.setMaximumCacheSize(512 * 1024 * 1024)
         cache.setCacheDirectory(
             QStandardPaths.standardLocations(
                 QStandardPaths.StandardLocation.CacheLocation
