@@ -72,13 +72,9 @@ class WebtoonView(BaseView):
     def _page_changed(self, page: int) -> None:
         if page > -1:
             scrollbar = self.reader.verticalScrollBar()
-            layout = self.layout()
-
-            widget = layout.itemAt(page).widget()
+            widget = self.layout().itemAt(page).widget()
             if not (widget.y() < scrollbar.value() < (widget.y() + widget.height())):
-                self.reader.verticalScrollBar().setValue(
-                    layout.itemAt(page).widget().y()
-                )
+                scrollbar.setValue(widget.y())
 
     def _set_surrent_page(self) -> None:
         layout = self.layout()

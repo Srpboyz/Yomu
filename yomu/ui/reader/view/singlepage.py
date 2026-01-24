@@ -10,6 +10,7 @@ from PyQt6.QtCore import (
     QPropertyAnimation,
     QRect,
     QSize,
+    Qt,
 )
 from PyQt6.QtWidgets import QMenu, QHBoxLayout, QStackedLayout, QWidget
 
@@ -20,6 +21,14 @@ from .base import BaseView
 
 if TYPE_CHECKING:
     from yomu.ui.reader import Reader
+
+
+class AnimationDirection(IntEnum):
+    LEFT_TO_RIGHT, RIGHT_TO_LEFT = range(2)
+
+
+class FitDirection(IntEnum):
+    Height, Width = range(2)
 
 
 class AnimationGroup(QParallelAnimationGroup):
@@ -48,13 +57,13 @@ class PageWidget(QWidget):
 
 
 class StackLayout(QStackedLayout):
-    class FitDirection(IntEnum):
-        Height, Width = range(2)
-
-    def __init__(self, view: SinglePageView) -> None:
+    def __init__(
+        self, view: SinglePageView, animation_direction: AnimationDirection
+    ) -> None:
         super().__init__(view)
         self.reader = view.reader
-        self.direction = StackLayout.FitDirection.Height
+        self.direction = FitDirection.Height
+        self.animation_direction = animation_direction
         self._animation = None
 
         self.setContentsMargins(0, 0, 0, 0)
@@ -92,7 +101,7 @@ class StackLayout(QStackedLayout):
     def calculate_target_geometry(self, widget: PageWidget) -> QRect:
         if widget.page_status == PageView.Status.LOADED:
             image_size = widget.image_size()
-            if self.direction == StackLayout.FitDirection.Width:
+            if self.direction == FitDirection.Width:
                 return self.fit_to_width(image_size)
             else:
                 return self.fit_to_height(image_size)
@@ -106,7 +115,14 @@ class StackLayout(QStackedLayout):
         if current_index == index:
             return QStackedLayout.setCurrentIndex(self, index)
 
-        right_to_left = index > current_index
+        is_next_page = index > current_index
+        animation_direction = (
+            is_next_page
+            and self.animation_direction == AnimationDirection.LEFT_TO_RIGHT
+        ) or (
+            not is_next_page
+            and self.animation_direction == AnimationDirection.RIGHT_TO_LEFT
+        )
 
         current_page = self.currentWidget()
         new_page = self.page_widget_at(index)
@@ -119,7 +135,7 @@ class StackLayout(QStackedLayout):
         current_page_animation.setStartValue(current_page.geometry())
         current_page_animation.setEndValue(
             QRect(
-                -current_page.width() if right_to_left else reader_width,
+                -current_page.width() if animation_direction else reader_width,
                 current_page.y(),
                 current_page.width(),
                 current_page.height(),
@@ -132,7 +148,7 @@ class StackLayout(QStackedLayout):
         new_page_animation.setEasingCurve(QEasingCurve.Type.Linear)
         new_page_animation.setStartValue(
             QRect(
-                reader_width if right_to_left else -new_page_geometry.width(),
+                reader_width if animation_direction else -new_page_geometry.width(),
                 new_page_geometry.y(),
                 new_page_geometry.width(),
                 new_page_geometry.height(),
@@ -166,7 +182,7 @@ class StackLayout(QStackedLayout):
         if current_widget is not None:
             if current_widget.page_status == PageView.Status.LOADED:
                 image_size = current_widget.image_size()
-                if self.direction == StackLayout.FitDirection.Width:
+                if self.direction == FitDirection.Width:
                     rect = self.fit_to_width(image_size)
                     view.setFixedSize(
                         self.reader.size()
@@ -189,12 +205,13 @@ class StackLayout(QStackedLayout):
 
 
 class SinglePageView(BaseView):
-    name = "Single Page"
+    name = "Single Page (Left-To-Right)"
+    animation_direction = AnimationDirection.LEFT_TO_RIGHT
 
     def __init__(self, reader: Reader) -> None:
         super().__init__(reader)
 
-        layout = StackLayout(self)
+        layout = StackLayout(self, self.animation_direction)
         layout.currentChanged.connect(self._current_changed)
         self.setLayout(layout)
 
@@ -241,9 +258,9 @@ class SinglePageView(BaseView):
     def change_direction(self):
         layout = self.layout()
         layout.direction = (
-            StackLayout.FitDirection.Height
-            if layout.direction == StackLayout.FitDirection.Width
-            else StackLayout.FitDirection.Width
+            FitDirection.Height
+            if layout.direction == FitDirection.Width
+            else FitDirection.Width
         )
         layout.update()
 
@@ -265,3 +282,8 @@ class SinglePageView(BaseView):
             layout.takeAt(0).widget().deleteLater()
         layout.blockSignals(False)
         self._current_index = -1
+
+
+class ReverseSinglePageView(SinglePageView):
+    name = "Single Page (Right-To-Left)"
+    animation_direction = AnimationDirection.RIGHT_TO_LEFT
