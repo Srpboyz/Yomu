@@ -69,7 +69,8 @@ class WebtoonView(BaseView):
 
     layout: Callable[[], QVBoxLayout]
 
-    def _page_changed(self, page: int) -> None:
+    def set_current_index(self, page: int) -> None:
+        super().set_current_index(page)
         if page > -1:
             scrollbar = self.reader.verticalScrollBar()
             widget = self.layout().itemAt(page).widget()
@@ -102,16 +103,6 @@ class WebtoonView(BaseView):
 
         self._loading = False
         self.scale_pages(self.scale_factor)
-
-    def take_page_views(self) -> list[PageView]:
-        scrollbar = self.reader.verticalScrollBar()
-        scrollbar.valueChanged.disconnect(self.mark_chapter_as_read)
-        scrollbar.valueChanged.disconnect(self._set_surrent_page)
-        self.zoomed.disconnect(self._set_surrent_page)
-        self.page_changed.disconnect(self._set_surrent_page)
-
-        layout = self.layout()
-        return [layout.takeAt(0).widget().page_view for _ in range(self.page_count)]
 
     def scale_pages(self, scaleFactor: float) -> None:
         layout = self.layout()
@@ -155,13 +146,9 @@ class WebtoonView(BaseView):
 
     def mark_chapter_as_read(self) -> None:
         scrollBar = self.reader.verticalScrollBar()
-        if (
-            not self._loading
-            and not self.chapter.read
-            and (
-                self.current_index == self.page_count - 1
-                or scrollBar.value() == scrollBar.maximum()
-            )
+        if not self._loading and (
+            self.current_index == self.page_count - 1
+            or scrollBar.value() == scrollBar.maximum()
         ):
             self.reader.mark_chapter_as_read()
 

@@ -7,8 +7,8 @@ from enum import IntEnum
 from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QRect, QSize, Qt, QUrl
-from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QResizeEvent, QWheelEvent
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QRect, Qt, QUrl
+from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
 
@@ -43,7 +43,6 @@ class Reader(QScrollArea, StackWidgetMixin):
     chapter_changed = pyqtSignal(Chapter)
     view_changed = pyqtSignal(str)
     status_changed = pyqtSignal(Status)
-    resized = pyqtSignal(QSize)
     menu_requested = pyqtSignal(QMenu)
     _cancel_request = pyqtSignal()
 
@@ -80,6 +79,7 @@ class Reader(QScrollArea, StackWidgetMixin):
             )
         ]
         self._current_chapter_index = 0
+        self._pages: list[PageView] = []
 
         self.setWidgetResizable(True)
         self.setWidget(self.current_view)
@@ -108,6 +108,10 @@ class Reader(QScrollArea, StackWidgetMixin):
     @property
     def chapter(self) -> Chapter:
         return self._chapters[self._current_chapter_index]
+
+    @property
+    def pages(self) -> list[PageView]:
+        return self._pages
 
     @property
     def status(self) -> Status:
@@ -225,10 +229,6 @@ class Reader(QScrollArea, StackWidgetMixin):
         drag.setHotSpot(pixmap.rect().center())
         drag.exec(Qt.DropAction.CopyAction)
 
-    def resizeEvent(self, a0: QResizeEvent) -> None:
-        super().resizeEvent(a0)
-        self.resized.emit(a0.size())
-
     def _range_changed(self, min: int, max: int) -> None:
         self.horizontalScrollBar().setValue(int((min + max) / 2))
 
@@ -303,6 +303,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self._set_pages(pages)
 
     def _set_pages(self, pages: list[PageView]) -> None:
+        self._pages = pages
         self.current_view.set_page_views(pages)
         self.page_bar.set_total_pages(self.current_view.page_count - 1)
         self.current_view.current_index = 0
@@ -320,6 +321,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self._cancel_request.emit()
 
         self.current_view.clear()
+        self._pages = []
         self.page_bar.set_total_pages(0)
 
         self._fetch_pages()
@@ -344,21 +346,22 @@ class Reader(QScrollArea, StackWidgetMixin):
         if name not in all_views or name == self.current_view.name:
             return
 
+        current_index = self.current_view.current_index
+        try:
+            self.current_view.unload()
+        except Exception as e:
+            logger.error(
+                f"{self.current_view.name} failed to unload correctly", exc_info=e
+            )
+
         self.current_view = all_views[name](self)
         self.current_view.page_changed.connect(self.page_bar.set_value)
 
-        original_view: BaseView = self.takeWidget()
-
-        current_index = original_view.current_index
-        pages = original_view.take_page_views()
-
-        self.current_view.set_page_views(pages)
+        self.current_view.set_page_views(self.pages)
         self.setWidget(self.current_view)
-
         self.current_view.current_index = current_index
 
         self.view_changed.emit(name)
-        original_view.deleteLater()
 
     def change_view(self) -> None:
         all_views = Reader.views
@@ -383,6 +386,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.chapter_changed.emit(chapter)
 
         self.current_view.clear()
+        self._pages = []
         self._fetch_pages()
 
     def set_chapters(self, chapters: list[Chapter], index: int) -> None:

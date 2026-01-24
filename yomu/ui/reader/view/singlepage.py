@@ -5,12 +5,12 @@ from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import (
     QEasingCurve,
+    QEvent,
     QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
     QRect,
     QSize,
-    Qt,
 )
 from PyQt6.QtWidgets import QMenu, QHBoxLayout, QStackedLayout, QWidget
 
@@ -210,12 +210,8 @@ class SinglePageView(BaseView):
 
     def __init__(self, reader: Reader) -> None:
         super().__init__(reader)
-
-        layout = StackLayout(self, self.animation_direction)
-        layout.currentChanged.connect(self._current_changed)
-        self.setLayout(layout)
-
-        self.reader.resized.connect(self._reader_resized)
+        self.setLayout(StackLayout(self, self.animation_direction))
+        reader.installEventFilter(self)
 
         self.addAction("Change Fit Direction").triggered.connect(self.change_direction)
         self.window().app.keybinds_changed.connect(self.set_keybinds)
@@ -223,18 +219,18 @@ class SinglePageView(BaseView):
 
     layout: Callable[[], StackLayout]
 
-    def _reader_resized(self, _) -> None:
-        self.layout().update()
+    def eventFilter(self, a0: QWidget, a1: QEvent) -> bool:
+        if a0 == self.reader and a1.type() == QEvent.Type.Resize:
+            self.layout().update()
+        return super().eventFilter(a0, a1)
 
-    def _current_changed(self, page: int):
-        self.current_index = page
-        if self.page_count > 0 and page == self.page_count - 1:
-            self.reader.mark_chapter_as_read()
-
-    def _page_changed(self, page: int) -> None:
+    def set_current_index(self, page: int) -> None:
+        super().set_current_index(page)
         if page > -1:
             self.layout().setCurrentIndex(page)
             self.reader.verticalScrollBar().setValue(0)
+            if self.page_count > 0 and page == self.page_count - 1:
+                self.reader.mark_chapter_as_read()
 
     def set_page_views(self, views: list[PageView]) -> None:
         layout = self.layout()
@@ -242,13 +238,6 @@ class SinglePageView(BaseView):
         for view in views:
             layout.addWidget(PageWidget(self, view))
         layout.blockSignals(False)
-
-    def take_page_views(self) -> list[PageView]:
-        layout = self.layout()
-        layout.blockSignals(True)
-        views = [layout.takeAt(0).widget().page_view for _ in range(layout.count())]
-        layout.blockSignals(False)
-        return views
 
     def context_menu(self) -> QMenu:
         menu = QMenu()
