@@ -21,7 +21,13 @@ from yomu.ui.stack import StackWidgetMixin
 from .page import PageView
 from .overlay import Overlay
 from .overlay.bar import NavigationBar, PageBar, BaseBar
-from .view import BaseView, ReverseSinglePageView, SinglePageView, WebtoonView
+from .view import (
+    BaseView,
+    HorizontalView,
+    ReverseSinglePageView,
+    SinglePageView,
+    WebtoonView,
+)
 
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
@@ -35,6 +41,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         NULL, LOADING, FAILED = range(3)
 
     views: dict[str, BaseView] = {
+        HorizontalView.name: HorizontalView,
         SinglePageView.name: SinglePageView,
         ReverseSinglePageView.name: ReverseSinglePageView,
         WebtoonView.name: WebtoonView,
