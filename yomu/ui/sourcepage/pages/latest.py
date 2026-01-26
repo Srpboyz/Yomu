@@ -5,7 +5,6 @@ from enum import IntEnum
 
 from PyQt6.QtCore import Qt
 
-from yomu.core.utils import sleep
 from yomu.core.network import Response, Request
 from yomu.source import MangaList
 
@@ -33,7 +32,7 @@ class LatestWidget(BasePage):
         layout.setSpacing(0)
 
         self.page_loaded.connect(
-            self._value_changed, Qt.ConnectionType.QueuedConnection
+            self._page_finished_loading, Qt.ConnectionType.QueuedConnection
         )
 
     @property
@@ -56,7 +55,14 @@ class LatestWidget(BasePage):
 
     def _value_changed(self):
         scrollbar = self.manga_list.verticalScrollBar()
-        if scrollbar.value() == scrollbar.maximum():
+        if scrollbar.value() == scrollbar.maximum() and self.is_current_widget():
+            self.load_page()
+
+    def _page_finished_loading(self):
+        if (
+            not self.manga_list.verticalScrollBar().maximum()
+            and self.is_current_widget()
+        ):
             self.load_page()
 
     def load_page(self) -> None:
@@ -79,11 +85,11 @@ class LatestWidget(BasePage):
         if (response := self.window().network.handle_request(request)) is None:
             return self._error_occured()
 
-        response.finished.connect(self._page_received)
+        response.finished.connect(self._page_data_received)
         self._cancel_request.connect(response.abort)
         self.status = LatestWidget.Status.LOADING
 
-    def _page_received(self) -> None:
+    def _page_data_received(self) -> None:
         response: Response = self.sender()
 
         error = response.error()
