@@ -101,6 +101,9 @@ class Stack(QWidget):
             return True
         return False
 
+    def remove_widget(self, widget: StackWidget) -> None:
+        self.layout().removeWidget(widget)
+
     def has_widget(self, widget: QWidget) -> bool:
         for i in range(self.count):
             if self.widget(i) == widget:

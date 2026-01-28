@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Callable, TYPE_CHECKING, overload
 
-from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtCore import QChildEvent, QEvent, Qt
 from PyQt6.QtGui import QFocusEvent, QIcon
 from PyQt6.QtWidgets import QFrame, QLabel, QToolButton, QVBoxLayout, QWidget
 
@@ -16,10 +16,12 @@ if TYPE_CHECKING:
 class MenuItem(QLabel):
     def __init__(self, parent: MenuWidget, widget: QWidget, name: str):
         super().__init__(name, parent)
+        self.widget = widget
+        widget.destroyed.connect(self.deleteLater)
+
         self.setMinimumWidth(300)
         self.installEventFilter(parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.widget = widget
 
 
 class MenuWidget(QFrame):
@@ -60,6 +62,12 @@ class MenuWidget(QFrame):
             else:
                 a0.widget.show()
         return super().eventFilter(a0, a1)
+
+    def childEvent(self, a0: QChildEvent) -> None:
+        super().childEvent(a0)
+        if a0.removed():
+            self.layout().activate()
+            self.adjustSize()
 
     def leaveEvent(self, a0: QEvent | None) -> None:
         super().leaveEvent(a0)
