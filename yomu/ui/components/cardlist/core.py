@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QScrollArea, QVBoxLayout, QWidget
 
 from .carditem import BaseCardItem
+from .selector import CardSelector
 
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
@@ -36,6 +37,8 @@ class CardList(QScrollArea):
         widget.setPalette(pallete)
 
         self.setWidget(widget)
+
+        self.selector = CardSelector(self)
 
     window: Callable[[], ReaderWindow]
     widget: Callable[[], QWidget]
