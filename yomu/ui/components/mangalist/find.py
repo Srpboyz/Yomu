@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtCore import QCoreApplication, QEvent, Qt
+from PyQt6.QtGui import QEnterEvent, QHoverEvent, QKeyEvent
 from PyQt6.QtWidgets import QInputDialog
 
 if TYPE_CHECKING:
-    from . import MangaList
+    from . import MangaList, MangaView
 
 
 class Find(QInputDialog):
@@ -28,28 +28,26 @@ class Find(QInputDialog):
             self.find(self.textValue())
         return super().keyPressEvent(a0)
 
-    def _find(self, name: str, start: int, end: int) -> bool:
+    def search_for(self, name: str, start: int, end: int) -> bool:
         for i in range(start, end):
             view = self.manga_list.manga_view_at(i)
             if view is not None and not view.isHidden():
                 index = view.manga.title.lower().find(name)
                 if index != -1:
                     self.setLabelText(f"Found Manga")
-                    view.title_widget.setSelection(index, len(name))
-                    self.manga_list.verticalScrollBar().setValue(view.y())
+                    self.set_selected(view, True)
                     self._current_index = i
                     return True
-
         return False
 
     def find(self, name: str) -> None:
-        previousText = self._text
+        previous_text = self._text
         self._text = name
 
         if self._current_index > -1:
             view = self.manga_list.manga_view_at(self._current_index)
             if view is not None:
-                view.title_widget.setSelection(0, 0)
+                self.set_selected(view, False)
 
         if not name:
             self._current_index = -1
@@ -57,11 +55,32 @@ class Find(QInputDialog):
             return self.setLabelText("Name to search")
 
         name = name.lower()
-        start = self._current_index + 1 if previousText == name else 0
+        start = self._current_index + 1 if previous_text == name else 0
 
-        if not self._find(name, start, self.manga_list.count) and not self._find(
-            name, 0, start
-        ):
+        if not self.search_for(
+            name, start, self.manga_list.count
+        ) and not self.search_for(name, 0, start):
             self._current_index = -1
             self.manga_list.verticalScrollBar().setValue(0)
             self.setLabelText("No manga found")
+
+    def set_selected(self, view: MangaView, selected: bool) -> None:
+        self.manga_list.verticalScrollBar().setValue(view.y())
+
+        center = view.geometry().center().toPointF()
+        if selected:
+            window = self.manga_list.window()
+            QCoreApplication.postEvent(
+                view,
+                QEnterEvent(
+                    window.mapFromGlobal(center), window.pos().toPointF(), center
+                ),
+            )
+            QCoreApplication.postEvent(
+                view, QHoverEvent(QEvent.Type.HoverEnter, center, center)
+            )
+        else:
+            QCoreApplication.postEvent(view, QEvent(QEvent.Type.Leave))
+            QCoreApplication.postEvent(
+                view, QHoverEvent(QEvent.Type.HoverLeave, center, center)
+            )
