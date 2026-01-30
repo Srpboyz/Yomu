@@ -25,6 +25,9 @@ if TYPE_CHECKING:
 class ChapterListItem(BaseCardItem):
     def __init__(self, parent: ChapterList, chapter: Chapter) -> None:
         super().__init__(parent)
+        self.installEventFilter(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.chapter = chapter
         self.selected = False
 

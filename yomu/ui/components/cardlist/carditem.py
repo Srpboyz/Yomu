@@ -12,19 +12,18 @@ if TYPE_CHECKING:
 
 
 class BaseCardItem(QFrame):
-    def __init__(self, parent: CardList):
+    def __init__(self, parent: CardList) -> None:
         super().__init__(parent)
-        self.installEventFilter(parent)
-        self.setAttribute(Qt.WidgetAttribute.WA_Hover)
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
 
 class CardItem(BaseCardItem):
     def __init__(self, parent: CardList, name: str) -> None:
         super().__init__(parent)
+        self.installEventFilter(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.name_widget = QLabel(name, self)
-
         layout = QHBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(self.name_widget)
@@ -45,3 +44,14 @@ class CardIconItem(CardItem):
         )
 
         self.layout().insertWidget(0, self.icon_widget)
+
+
+class CardSpacer(BaseCardItem):
+    def __init__(self, parent: CardList, text: str = "") -> None:
+        super().__init__(parent)
+
+        self.text_widget = QLabel(text, self)
+        layout = QHBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.text_widget)
+        self.setLayout(layout)

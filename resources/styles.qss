@@ -22,7 +22,7 @@ CardList CardItem::hover {
     background-color: #3D3D3D;
 }
 
-CardList CardItem > QLabel {
+CardList CardItem > QLabel, CardSpacer > QLabel {
     font-size: 25px;
     font-weight: bold;
 }

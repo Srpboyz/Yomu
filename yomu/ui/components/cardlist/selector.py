@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import QCoreApplication, QEvent, QObject, Qt
 from PyQt6.QtGui import QEnterEvent, QHoverEvent, QKeyEvent, QMouseEvent
 
+from .carditem import CardSpacer
+
 if TYPE_CHECKING:
     from .core import CardList
 
@@ -56,19 +58,25 @@ class CardSelector(QObject):
 
     def move_cursor_up(self) -> None:
         self.set_selected(self.cursor, False)
-        self.cursor = (
-            self.cursor - 1
-            if self.cursor - 1 >= 0
-            else self.card_list.layout().count() - 1
-        )
-        self.set_selected(self.cursor, True)
+        layout, current_index = self.card_list.layout(), self.cursor
+        self.cursor = self.cursor - 1 if self.cursor - 1 >= 0 else layout.count() - 1
+        while self.cursor != current_index:
+            card = layout.widgetAt(self.cursor)
+            if not isinstance(card, CardSpacer):
+                return self.set_selected(self.cursor, True)
+            self.cursor = (
+                self.cursor - 1 if self.cursor - 1 >= 0 else layout.count() - 1
+            )
 
     def move_cursor_down(self) -> None:
         self.set_selected(self.cursor, False)
-        self.cursor = (
-            self.cursor + 1 if self.cursor + 1 < self.card_list.layout().count() else 0
-        )
-        self.set_selected(self.cursor, True)
+        layout, current_index = self.card_list.layout(), self.cursor
+        self.cursor = self.cursor + 1 if self.cursor + 1 < layout.count() else 0
+        while self.cursor != current_index:
+            card = layout.widgetAt(self.cursor)
+            if not isinstance(card, CardSpacer):
+                return self.set_selected(self.cursor, True)
+            self.cursor = self.cursor + 1 if self.cursor + 1 < layout.count() else 0
 
     def set_selected(self, index: int, selected: bool) -> None:
         if (item := self.card_list.layout().itemAt(index)) is None:
