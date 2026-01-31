@@ -373,7 +373,7 @@ FilterDialog ListOptions > QListWidget::item:hover {
 }
 
 Settings > QTabWidget {
-    background-color: rgba(0, 0, 0, 0);
+    background-color: #1A1A1A;
     border: none;
 }
 
@@ -385,6 +385,13 @@ Settings > QTabWidget > QTabBar::tab {
 
 Settings QGroupBox {
     background-color: transparent;
+    margin-top: 6px;
+    padding: 5 5 5 5;
+}
+
+Settings QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top;
 }
 
 Settings QComboBox {
@@ -394,8 +401,4 @@ Settings QComboBox {
 Settings QTableWidget {
     background-color: rgba(0, 0, 0, 0);
     border: none;
-}
-
-Migrate MigrationItem > QLabel {
-    font-size: 22px;
 }

@@ -10,6 +10,8 @@ from hashlib import md5
 from logging import getLogger
 from typing import Self, TYPE_CHECKING
 
+from PyQt6.QtWidgets import QWidget
+
 from yomu.extension import YomuExtension
 from .utils import app_data_path
 
@@ -173,12 +175,13 @@ class ExtensionManager:
             return
 
         extension = wrapper.ext
-        try:
-            extension.unload()
-        except Exception:
-            ...
-        extension.deleteLater()
-        wrapper.ext = None
+        if extension is not None:
+            try:
+                extension.unload()
+            except Exception:
+                ...
+            extension.deleteLater()
+            wrapper.ext = None
 
         ext_info = wrapper.info
         if not ext_info.enabled:
@@ -190,6 +193,16 @@ class ExtensionManager:
             json.dump(ext_info.to_dict(), f, indent=4)
 
         self.app.extension_disabled.emit(ext_info)
+
+    def get_extension_settings(self, ext_id: int) -> QWidget:
+        wrapper = self._extensions.get(ext_id)
+        if wrapper is None:
+            return
+
+        if not wrapper.info.enabled:
+            return
+
+        return wrapper.ext.settings_widget()
 
     def request_settings(self, ext_id: int, window: ReaderWindow) -> None:
         wrapper = self._extensions.get(ext_id)

@@ -23,6 +23,7 @@ from yomu.core import utils
 from .reader import Reader
 
 if TYPE_CHECKING:
+    from yomu.core.extensionmanager import ExtensionInfo, ExtensionManager
     from yomu.source import Source
     from .window import ReaderWindow
 
@@ -82,22 +83,29 @@ class Settings(QDialog):
         self.settings = window.app.settings
         self.setContentsMargins(0, 0, 0, 0)
 
-        widget = QFrame()
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
+        tab_view = QTabWidget(self)
+        tab_view.setContentsMargins(0, 0, 0, 0)
+
+        widget = QFrame(tab_view)
+        layout = QVBoxLayout(widget)
         layout.addWidget(self._create_general_settings())
         layout.addWidget(
             self._create_library_settings(window.app.source_manager.sources)
         )
         layout.addWidget(self._create_reader_settings(window))
         widget.setLayout(layout)
+        tab_view.addTab(widget, "Settings")
+
+        extension_settings = QFrame(self)
+        layout = QVBoxLayout(extension_settings)
+        for ext_settings in self._create_extension_settings(
+            window.app.extension_manager
+        ):
+            layout.addWidget(ext_settings)
+        tab_view.addTab(extension_settings, "Extensions")
 
         keybinds_table = Keybinds(self)
         window.app.keybinds_changed.connect(keybinds_table.set_keybindings)
-
-        tab_view = QTabWidget(self)
-        tab_view.setContentsMargins(0, 0, 0, 0)
-        tab_view.addTab(widget, "Settings")
         tab_view.addTab(keybinds_table, "Keybinds")
 
         layout = QVBoxLayout(self)
@@ -108,11 +116,10 @@ class Settings(QDialog):
 
         self.resize(340, 350)
 
-    parent: Callable[..., ReaderWindow]
+    window: Callable[[], ReaderWindow]
 
     def _create_general_settings(self) -> QGroupBox:
-        general_settings_group = QGroupBox(self)
-        general_settings_group.setTitle(QWidget.tr("General"))
+        general_settings_group = QGroupBox(QWidget.tr("General"), self)
         general_group_layout = QVBoxLayout(general_settings_group)
 
         key = "offline_mode"
@@ -142,11 +149,10 @@ class Settings(QDialog):
     def _library_source_changed(self, index: int) -> None:
         combo_box: QComboBox = self.sender()
         source: Source | None = combo_box.itemData(index)
-        self.parent().library.set_source(source)
+        self.window().library.set_source(source)
 
     def _create_library_settings(self, sources: list[Source]) -> QGroupBox:
-        library_settings_group = QGroupBox(self)
-        library_settings_group.setTitle(QWidget.tr("Library"))
+        library_settings_group = QGroupBox(QWidget.tr("Library"), self)
         library_group_layout = QVBoxLayout(library_settings_group)
 
         combo_box = QComboBox()
@@ -166,8 +172,7 @@ class Settings(QDialog):
         return library_settings_group
 
     def _create_reader_settings(self, window: ReaderWindow) -> QGroupBox:
-        reader_settings_group = QGroupBox(self)
-        reader_settings_group.setTitle(QWidget.tr("Reader"))
+        reader_settings_group = QGroupBox(QWidget.tr("Reader"), self)
         reader_group_layout = QVBoxLayout(reader_settings_group)
 
         combo_box = QComboBox()
@@ -182,6 +187,40 @@ class Settings(QDialog):
         reader_group_layout.addWidget(combo_box)
         reader_group_layout.addWidget(combo_box_label)
         return reader_settings_group
+
+    def _create_extension_settings(
+        self, extension_manager: ExtensionManager
+    ) -> list[QGroupBox]:
+        def create_checkbox(extension: ExtensionInfo) -> QCheckBox:
+            def set_enabled(state: Qt.CheckState):
+                if state == Qt.CheckState.Checked:
+                    extension_manager.enable_extension(extension.id)
+                else:
+                    extension_manager.disable_extension(extension.id)
+
+            checkbox = QCheckBox("Enabled")
+            checkbox.setChecked(extension.enabled)
+            checkbox.checkStateChanged.connect(set_enabled)
+            return checkbox
+
+        settings = []
+        for ext in extension_manager.extensions:
+            ext_settings_group = QGroupBox(QWidget.tr(ext.name), self)
+            ext_group_layout = QVBoxLayout(ext_settings_group)
+            ext_group_layout.addWidget(create_checkbox(ext))
+            settings.append(ext_settings_group)
+
+            try:
+                settings_widget = extension_manager.get_extension_settings(ext.id)
+            except Exception as e:
+                continue
+
+            if settings_widget is None:
+                continue
+
+            ext_group_layout.addWidget(settings_widget)
+
+        return settings
 
     def _option_changed(self, key: str, new_value: bool) -> None:
         self.settings.setValue(key, new_value)

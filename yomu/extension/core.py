@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtWidgets import QWidget
 
 from yomu.ui import ReaderWindow
 
@@ -17,6 +18,8 @@ class YomuExtension(QObject):
     def __init__(self, app: YomuApp) -> None:
         super().__init__(app)
         self.app = app
+
+    def settings_widget(self) -> QWidget | None: ...
 
     def unload(self) -> None: ...
 
