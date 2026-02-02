@@ -122,11 +122,7 @@ class Stack(QWidget):
         if current_widget == window.sourcepage:
             return set_current_widget(window.sourcelist)
 
-        if current_widget in (
-            window.sourcelist,
-            window.extensionlist,
-            window.downloads,
-        ):
+        if current_widget in (window.sourcelist, window.downloads):
             return set_current_widget(window.library)
 
         return set_current_widget(page)

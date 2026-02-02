@@ -203,13 +203,3 @@ class ExtensionManager:
             return
 
         return wrapper.ext.settings_widget()
-
-    def request_settings(self, ext_id: int, window: ReaderWindow) -> None:
-        wrapper = self._extensions.get(ext_id)
-        if wrapper is None:
-            return
-
-        if not wrapper.info.enabled:
-            return
-
-        wrapper.ext.settings_requested.emit(window)

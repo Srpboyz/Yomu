@@ -10,7 +10,6 @@ from PyQt6.QtWidgets import QMessageBox, QScrollArea, QVBoxLayout, QWidget
 from yomu.core import utils
 from .components.autoscroll import AutoScroller
 from .downloads import Downloads
-from .extensionlist import ExtensionList
 from .library import Library
 from .mangacard import MangaCard
 from .menu import MenuWidget
@@ -51,12 +50,10 @@ class ReaderWindow(QWidget):
         self.mangacard = MangaCard(self)
         self.reader = Reader(self)
         self.downloads = Downloads(self)
-        self.extensionlist = ExtensionList(self)
         self.settings = Settings(self)
 
         self.menu.add_widget(self.library, "Library")
         self.menu.add_widget(self.sourcelist, "Sources")
-        self.menu.add_widget(self.extensionlist, "Extensions")
         self.menu.add_widget(self.downloads, "Downloads")
         self.menu.add_widget(self.settings, "Settings")
 
@@ -64,7 +61,6 @@ class ReaderWindow(QWidget):
         self.stack.add_widget(self.sourcelist)
         self.stack.add_widget(self.sourcepage)
         self.stack.add_widget(self.mangacard)
-        self.stack.add_widget(self.extensionlist)
         self.stack.add_widget(self.downloads)
         self.stack.add_widget(self.reader)
         self.library.set_current_widget()
