@@ -114,16 +114,19 @@ class Stack(QWidget):
         window = self.window()
         current_widget = self.current_widget
         set_current_widget = lambda w: self.set_current_widget(w, add_to_history=False)
+        page = self._history.pop() if self._history else window.library
 
         if current_widget == window.reader:
             return set_current_widget(window.mangacard)
 
-        if current_widget == window.mangacard:
-            while (page := self._history.pop()) == window.mangacard:
-                ...
-            return set_current_widget(page)
-
         if current_widget == window.sourcepage:
             return set_current_widget(window.sourcelist)
 
-        return set_current_widget(window.library)
+        if current_widget in (
+            window.sourcelist,
+            window.extensionlist,
+            window.downloads,
+        ):
+            return set_current_widget(window.library)
+
+        return set_current_widget(page)
