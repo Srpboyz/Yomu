@@ -116,7 +116,7 @@ class Settings(QDialog):
 
         self.resize(340, 350)
 
-    window: Callable[[], ReaderWindow]
+    parent: Callable[[], ReaderWindow]
 
     def _create_general_settings(self) -> QGroupBox:
         general_settings_group = QGroupBox(QWidget.tr("General"), self)
@@ -149,7 +149,7 @@ class Settings(QDialog):
     def _library_source_changed(self, index: int) -> None:
         combo_box: QComboBox = self.sender()
         source: Source | None = combo_box.itemData(index)
-        self.window().library.set_source(source)
+        self.parent().library.set_source(source)
 
     def _create_library_settings(self, sources: list[Source]) -> QGroupBox:
         library_settings_group = QGroupBox(QWidget.tr("Library"), self)
