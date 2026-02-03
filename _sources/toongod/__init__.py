@@ -1,4 +1,4 @@
-from _sources.base.madara import Madara
+from yomu.source.base import Madara
 
 
 class ToonGod(Madara):

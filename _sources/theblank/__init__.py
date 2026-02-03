@@ -1,6 +1,6 @@
 from yomu.core.network import Request
 from yomu.source import Manga, RateLimit
-from _sources.base.madara import Madara
+from yomu.source.base import Madara
 
 
 class TheBlank(Madara):

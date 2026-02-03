@@ -6,7 +6,7 @@ from PyQt6.QtNetwork import QSslConfiguration, QSslSocket
 
 from yomu.core import Request
 from yomu.source import *
-from _sources.base.madara import Madara
+from yomu.source.base import Madara
 
 
 class Manga18fx(Madara):

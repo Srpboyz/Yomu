@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup, Tag
 
 from yomu.core.network import Response, Request, Url
 from yomu.source import *
-from yomu.source.models import Chapter, Manga, Page
 
 
 class PhiliaScans(Source):

@@ -7,9 +7,8 @@ from yomu.core import Request
 from yomu.core.network import Response
 from yomu.source import *
 
-from _sources.base.mangathemesia import MangaThemesia
-from yomu.source import Chapter, Manga, MangaList, Page
-from yomu.source.models import Chapter, Manga
+from yomu.source import Chapter, MangaList, Page
+from yomu.source.base import MangaThemesia
 
 
 class KappaBeast(MangaThemesia):

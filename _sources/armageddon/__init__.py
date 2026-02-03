@@ -5,7 +5,7 @@ import json
 from bs4 import BeautifulSoup
 from yomu.core.network import Response
 from yomu.source import Chapter, Page
-from _sources.base.mangathemesia import MangaThemesia
+from yomu.source.base import MangaThemesia
 
 
 class Armageddon(MangaThemesia):

@@ -1,7 +1,7 @@
 from yomu.core import Request
 from yomu.source.models import *
 
-from _sources.base.madara import Madara
+from yomu.source.base import Madara
 
 
 class GalaxyDegenScans(Madara):

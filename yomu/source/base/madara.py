@@ -7,7 +7,6 @@ from PyQt6.QtCore import QUrl, QUrlQuery
 
 from yomu.core.network import Request, Response
 from yomu.source import *
-from yomu.source.models import Chapter, Manga, MangaList, Page
 
 
 class Madara(Source):

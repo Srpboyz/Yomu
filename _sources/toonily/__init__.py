@@ -6,10 +6,8 @@ from PyQt6.QtNetwork import QNetworkCookie
 
 from yomu.core import Request
 from yomu.core.network import Response
-from yomu.source import Chapter, FilterType, Page
-
-from _sources.base.madara import Madara
-from yomu.source.models import Chapter, Page
+from yomu.source import *
+from yomu.source.base import Madara
 
 
 class Toonily(Madara):

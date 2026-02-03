@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from logging import Logger, getLogger
+from logging import getLogger
 from copy import copy
 from collections.abc import Sequence
 from typing import TYPE_CHECKING

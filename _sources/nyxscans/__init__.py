@@ -7,7 +7,6 @@ from dateparser import parse
 
 from yomu.core.network import Response, Request, Url
 from yomu.source import *
-from yomu.source.models import Chapter, Manga, MangaList, Page
 
 from .types import *
 
