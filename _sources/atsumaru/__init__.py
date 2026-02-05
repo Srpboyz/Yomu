@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Atsumaru(Source):
-    BASE_URL = "http://atsu.moe"
+    BASE_URL = "https://atsu.moe"
     rate_limit = RateLimit(2)
 
     def get_latest(self, page: int) -> Request:
@@ -27,13 +27,13 @@ class Atsumaru(Source):
         return request
 
     def parse_latest_manga(self, data: MangaDto) -> None:
-        thumbnail = data["image"] if "image" in data else data["poster"]
-
-        return Manga(
-            title=data["title"],
-            thumbnail=f"{Atsumaru.BASE_URL}/static/{thumbnail}",
-            url=data["id"],
+        thumbnail = (
+            f"{Atsumaru.BASE_URL}/static/{data['image']}"
+            if "image" in data
+            else f"{Atsumaru.BASE_URL}{data['poster']}"
         )
+
+        return Manga(title=data["title"], thumbnail=thumbnail, url=data["id"])
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
         data: BrowseMangaDto = response.json()
