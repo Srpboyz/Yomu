@@ -194,7 +194,7 @@ class ExtensionManager:
 
         self.app.extension_disabled.emit(ext_info)
 
-    def get_extension_settings(self, ext_id: int) -> QWidget:
+    def get_extension_settings(self, ext_id: int) -> QWidget | None:
         wrapper = self._extensions.get(ext_id)
         if wrapper is None:
             return
@@ -202,4 +202,7 @@ class ExtensionManager:
         if not wrapper.info.enabled:
             return
 
-        return wrapper.ext.settings_widget()
+        widget = wrapper.ext.settings_widget()
+        if widget is not None:
+            wrapper.ext.destroyed.connect(widget.deleteLater)
+        return widget
