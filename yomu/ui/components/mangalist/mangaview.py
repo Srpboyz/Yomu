@@ -112,9 +112,8 @@ class MangaView(QFrame):
             return
 
         self._manga = copy(manga)
-        if not self.thumbnail_widget.pixmap().isNull():
-            self.thumbnail_widget.priority = QNetworkRequest.Priority.HighPriority
-            self.fetch_thumbnail()
+        self.thumbnail_widget.priority = QNetworkRequest.Priority.HighPriority
+        self.fetch_thumbnail()
 
     def fetch_thumbnail(self) -> None:
         self.thumbnail_widget.fetch_thumbnail()

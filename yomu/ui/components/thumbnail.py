@@ -65,6 +65,9 @@ class ThumbnailWidget(QLabel):
         if not self.manga.thumbnail:
             return self.setText("Thumbnail not found")
 
+        if self.status in (LoadingStatus.CACHE, LoadingStatus.NETWORK):
+            self._cancel_request.emit()
+
         window = self.window()
         network = window.network
         path = window.app.downloader.resolve_path(self.manga)
@@ -115,6 +118,7 @@ class ThumbnailWidget(QLabel):
             self.manga.source.thumbnail_request_error(
                 response, self.manga.to_source_manga()
             )
+            self.status = LoadingStatus.NULL
             return self.setText("Failed to load image")
 
     def _load_image(self, data: bytes) -> None:
@@ -122,6 +126,7 @@ class ThumbnailWidget(QLabel):
         if not thumbnail.loadFromData(data):
             if self.status == LoadingStatus.CACHE:
                 return self.fetch_thumbnail(force_network=True)
+            self.status = LoadingStatus.NULL
             return self.setText("Failed to load image")
 
         self.setPixmap(
