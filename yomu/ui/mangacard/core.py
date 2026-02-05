@@ -5,7 +5,7 @@ from copy import copy
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QSize, Qt, QUrl
-from PyQt6.QtGui import QDrag, QIcon, QMouseEvent, QPixmap
+from PyQt6.QtGui import QDrag, QIcon, QMouseEvent, QMovie, QPixmap
 from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -39,6 +39,20 @@ Artist: {artist}
 Source: {source}"""
 
 
+class Thumbnail(ThumbnailWidget):
+    def setMovie(self, movie: QMovie | None) -> None:
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        return super().setMovie(movie)
+
+    def setPixmap(self, a0: QPixmap) -> None:
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        return super().setPixmap(a0)
+
+    def setText(self, a0: str | None) -> None:
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        return super().setText(a0)
+
+
 class MangaCard(QFrame, StackWidgetMixin):
     manga_changed = pyqtSignal(Manga)
 
@@ -52,7 +66,7 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.details_widget.setReadOnly(True)
         self.details_widget.setOpenExternalLinks(True)
 
-        self.thumbnail_widget = ThumbnailWidget(self)
+        self.thumbnail_widget = Thumbnail(self)
         self.thumbnail_widget.setObjectName("Thumbnail")
         self.thumbnail_widget.setFixedSize(QSize(195, 279) * 1.2)
         self.thumbnail_widget.installEventFilter(self)

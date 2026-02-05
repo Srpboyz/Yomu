@@ -61,7 +61,6 @@ class ThumbnailWidget(QLabel):
         drag.exec(Qt.DropAction.CopyAction)
 
     def fetch_thumbnail(self, *, force_network: bool = False) -> None:
-        self.setCursor(Qt.CursorShape.ArrowCursor)
         if not self.manga.thumbnail:
             return self.setText("Thumbnail not found")
 
@@ -134,7 +133,6 @@ class ThumbnailWidget(QLabel):
                 self.height(), Qt.TransformationMode.SmoothTransformation
             )
         )
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.status = LoadingStatus.LOADED
 
     def clear(self):
