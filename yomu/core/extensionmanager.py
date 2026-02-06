@@ -10,6 +10,7 @@ from hashlib import md5
 from logging import getLogger
 from typing import Self, TYPE_CHECKING
 
+from PyQt6.QtCore import pyqtSignal, QObject
 from PyQt6.QtWidgets import QWidget
 
 from yomu.extension import YomuExtension
@@ -17,7 +18,6 @@ from .utils import app_data_path
 
 if TYPE_CHECKING:
     from typing import TypedDict
-    from yomu.ui import ReaderWindow
     from .app import YomuApp
 
     class BaseInfo(TypedDict):
@@ -74,8 +74,11 @@ class DependencyHandler:
             sys.modules.pop(mod, None)
 
 
-class ExtensionManager:
+class ExtensionManager(QObject):
+    extension_status_changed = pyqtSignal(ExtensionInfo)
+
     def __init__(self, app: YomuApp) -> None:
+        super().__init__(app)
         self.app = app
         self._extensions: dict[int, ExtensionWrapper] = {}
 
@@ -168,6 +171,7 @@ class ExtensionManager:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(ext_info.to_dict(), f, indent=4)
 
+        self.extension_status_changed.emit(copy.copy(ext_info))
         self.app.display_message("You must restart the app to reload the extension.")
 
     def disable_extension(self, ext_id: int) -> None:
@@ -192,7 +196,7 @@ class ExtensionManager:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(ext_info.to_dict(), f, indent=4)
 
-        self.app.extension_disabled.emit(ext_info)
+        self.extension_status_changed.emit(copy.copy(ext_info))
 
     def get_extension_settings(self, ext_id: int) -> QWidget | None:
         wrapper = self._extensions.get(ext_id)

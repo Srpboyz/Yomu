@@ -22,7 +22,7 @@ from yomu.source import Source
 from yomu.ui import ReaderWindow
 
 from .ipc import IPCServer
-from .extensionmanager import ExtensionInfo, ExtensionManager
+from .extensionmanager import ExtensionManager
 from .models import Category, Chapter, Manga
 from .nativeeventfilter import NativeEventFilter
 from . import utils
@@ -36,7 +36,7 @@ __all__ = ("YomuApp",)
 
 QApplication.setApplicationName("Yomu")
 QApplication.setApplicationDisplayName("Yomu")
-QApplication.setApplicationVersion("1.2.13")
+QApplication.setApplicationVersion("1.2.14")
 if sys.platform == "linux":
     QApplication.setDesktopFileName("yomu")
 
@@ -74,8 +74,6 @@ class YomuApp(QApplication):
 
     window_created = pyqtSignal(ReaderWindow)
     window_closed = pyqtSignal(ReaderWindow)
-
-    extension_disabled = pyqtSignal(ExtensionInfo)
 
     category_created = pyqtSignal(Category)
     category_deleted = pyqtSignal(Category)
@@ -202,7 +200,7 @@ class YomuApp(QApplication):
         return QApplication.instance()
 
     @staticmethod
-    def display_message(message: str):
+    def display_message(message: str) -> None:
         dialog = QMessageBox()
         dialog.setAttribute(Qt.WidgetAttribute.WA_NativeWindow)
         dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)

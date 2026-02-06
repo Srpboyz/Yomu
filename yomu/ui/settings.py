@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -26,6 +27,8 @@ if TYPE_CHECKING:
     from yomu.core.extensionmanager import ExtensionInfo, ExtensionManager
     from yomu.source import Source
     from .window import ReaderWindow
+
+logger = getLogger(__name__)
 
 
 class BoolOption(QCheckBox):
@@ -192,15 +195,26 @@ class Settings(QDialog):
         self, extension_manager: ExtensionManager
     ) -> list[QGroupBox]:
         def create_checkbox(extension: ExtensionInfo) -> QCheckBox:
-            def set_enabled(state: Qt.CheckState):
+            ext_id = extension.id
+
+            def set_ext_enabled(state: Qt.CheckState):
                 if state == Qt.CheckState.Checked:
-                    extension_manager.enable_extension(extension.id)
+                    extension_manager.enable_extension(ext_id)
                 else:
-                    extension_manager.disable_extension(extension.id)
+                    extension_manager.disable_extension(ext_id)
+
+            def update_checkbox(ext: ExtensionInfo):
+                if ext.id == ext_id:
+                    checkbox.setChecked(ext.enabled)
+
+            def checkbox_deleted():
+                extension_manager.extension_status_changed.disconnect(update_checkbox)
 
             checkbox = QCheckBox("Enabled")
             checkbox.setChecked(extension.enabled)
-            checkbox.checkStateChanged.connect(set_enabled)
+            checkbox.checkStateChanged.connect(set_ext_enabled)
+            extension_manager.extension_status_changed.connect(update_checkbox)
+            checkbox.destroyed.connect(checkbox_deleted)
             return checkbox
 
         settings = []
@@ -213,6 +227,9 @@ class Settings(QDialog):
             try:
                 settings_widget = extension_manager.get_extension_settings(ext.id)
             except Exception as e:
+                logger.exception(
+                    f"Failed to create settings widget for {ext.name}", exc_info=e
+                )
                 continue
 
             if settings_widget is None:
