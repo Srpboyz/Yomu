@@ -35,6 +35,22 @@
 
 Note: Sources may not be up to date
 
+## Screenshots
+
+<details>
+    <summary>Click to view images</summary>
+
+<center>
+<img src="./screenshots/Library.png" alt="Library" title="Library" width=470/>
+<img src="./screenshots/Sourcelist.png" alt="Sourcelist" title="Sourcelist" width=470/>
+<img src="./screenshots/Sourcepage.png" alt="Sourcepage" title="Sourcepage" width=470/>
+<img src="./screenshots/Mangacard.png" alt="Mangacard" title="Mangacard" width=470/>
+<img src="./screenshots/Downloads.png" alt="Downloads" title="Downloads" width=470/>
+<img src="./screenshots/Reader.png" alt="Reader" title="Reader" width=470/>
+<img src="./screenshots/Settings.png" alt="Settings" title="Settings" width=360/>
+
+</details>
+
 ## Usage
 
 ### Python
