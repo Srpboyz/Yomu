@@ -149,7 +149,8 @@ class YomuApp(QApplication):
         self.sql = Sql(self)
         self.extension_manager = ExtensionManager(self)
 
-        path = os.path.join(utils.app_data_path(), "fonts")
+        app_data_path = utils.app_data_path()
+        path = os.path.join(app_data_path, "fonts")
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -157,13 +158,11 @@ class YomuApp(QApplication):
             if font.is_file():
                 QFontDatabase.addApplicationFont(font.path)
 
-        def set_styles(file):
-            with open(file) as f:
+        try:
+            with open(os.path.join(utils.resource_path(), "styles.qss")) as f:
                 self.setStyleSheet(f.read())
-
-        path = os.path.join(utils.resource_path(), "styles.qss")
-        QFileSystemWatcher([path], self).fileChanged.connect(set_styles)
-        set_styles(path)
+        except FileNotFoundError as e:
+            logger.exception("Missing styles.qss file", exc_info=e)
 
         keybinds = utils.get_keybinds()
         shortcut = QShortcut(self)
@@ -180,7 +179,6 @@ class YomuApp(QApplication):
             )
             self.keybinds_changed.emit(keybinds)
 
-        app_data_path = utils.app_data_path()
         path = os.path.join(app_data_path, "keybinds.json")
         QFileSystemWatcher([path], self).fileChanged.connect(keybinds_updated)
 
