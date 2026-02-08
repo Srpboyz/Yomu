@@ -60,7 +60,10 @@ class MangaUpdate(BaseUpdate):
 
 
 class ChaptersUpdate(BaseUpdate):
-    success = pyqtSignal((Manga, list))
+    # ik it says object but pyqt will crash
+    # if you use Sequence instead. i want to work
+    # with any sequence objects
+    success = pyqtSignal((Manga, object))
 
     def _request_finished(self):
         response: Response = self.sender()
