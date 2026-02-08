@@ -2,7 +2,6 @@ import re
 from typing import Sequence
 
 from dateparser import parse
-from PyQt6.QtCore import QJsonDocument
 from PyQt6.QtNetwork import QHttpHeaders
 
 from yomu.core import Request
@@ -47,7 +46,7 @@ class MangaDex(Source):
         return Request(url)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
 
         can_load_more = json["offset"] + 7 < min(json["total"], 10000)
 
@@ -64,7 +63,7 @@ class MangaDex(Source):
         response = self.network.handle_request(request)  # fmt: skip
         self.network.wait_for_request(response)
 
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
         response.deleteLater()
 
         mangas = [
@@ -88,7 +87,7 @@ class MangaDex(Source):
         return Request(url)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
         mangas = list(
             dict.fromkeys(
                 Manga(title=title, url=url, thumbnail=thumbnail)
@@ -154,7 +153,7 @@ class MangaDex(Source):
         return Request(url)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
         total = json["total"]
 
         manga_id = re.match(Regex.CHAPTER, response.url().toString()).group(1)
@@ -205,7 +204,7 @@ class MangaDex(Source):
             if r.error() != Response.Error.NoError:
                 break
 
-            json = QJsonDocument.fromJson(r.read_all()).toVariant()
+            json = r.json()
             r.deleteLater()
 
         return chapters
@@ -218,7 +217,7 @@ class MangaDex(Source):
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
     ) -> Sequence[Page]:
-        json = QJsonDocument.fromJson(response.read_all()).toVariant()
+        json = response.json()
 
         url: str = MangaDex.UPLOAD_URL + "/data/" + json["chapter"]["hash"] + "/{0}"
         pages = [
