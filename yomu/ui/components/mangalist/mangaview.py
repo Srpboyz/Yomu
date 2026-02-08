@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from copy import copy
-import inspect
 import os
 
 from PyQt6.QtCore import QEvent, QObject, Qt
@@ -9,8 +8,9 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QApplication, QFrame, QLabel, QVBoxLayout, QWidget
 
-from yomu.core.models import Manga
 from yomu.core import utils
+from yomu.core.downloader import Downloader
+from yomu.core.models import Manga
 from yomu.ui.components.thumbnail import ThumbnailWidget
 
 
@@ -45,19 +45,17 @@ class MangaView(QFrame):
         self.library_icon.setVisible(manga.library)
         self.library_icon.move(2, 2)
 
-        source = self.manga.source
-        path = os.path.join(
-            os.path.dirname(os.path.abspath(inspect.getfile(source.__class__))),
-            "icon.ico",
-        )
+        source_icon_path = Downloader.resolve_path(self.manga.source)
+        if not os.path.exists(source_icon_path):
+            source_icon_path = os.path.join(utils.icon_path(), "webview.svg")
 
-        source_icon = QLabel(self.thumbnail_widget)
-        source_icon.setPixmap(
-            QPixmap(path).scaled(
+        self.source_icon = QLabel(self.thumbnail_widget)
+        self.source_icon.setPixmap(
+            QPixmap(source_icon_path).scaled(
                 20, 20, transformMode=Qt.TransformationMode.SmoothTransformation
             )
         )
-        source_icon.move(173, 2)
+        self.source_icon.move(173, 2)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 9, 0, 9)

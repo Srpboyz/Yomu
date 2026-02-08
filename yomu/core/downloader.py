@@ -2,18 +2,22 @@ from __future__ import annotations
 
 import os
 from copy import copy
-from typing import overload
+from datetime import datetime, timezone
+from email.utils import format_datetime
+from typing import overload, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QBuffer, QDir, QObject, Qt, QTimer, QFile
 from PyQt6.QtGui import QImage
 from PyQt6.QtNetwork import QNetworkInformation
 
-from .app import YomuApp
 from .models import Chapter, Manga
-from .network import Network, Request, Response
+from .network import Network, Request, Response, Url
 from . import utils
 
-from yomu.source.models import Page as SourcePage
+from yomu.source import Source, Page as SourcePage
+
+if TYPE_CHECKING:
+    from .app import YomuApp
 
 
 class DownloadChapter(QObject):
@@ -243,6 +247,31 @@ class Downloader(QObject):
         ):
             self.delete_chapter(chapter)
 
+    def handle_source_icon(self, source: Source) -> None:
+        url = Url("https://www.google.com/s2/favicons")
+        url.set_params({"domain": source.BASE_URL, "sz": 32})
+        request = Request(url=url)
+
+        path = Downloader.resolve_path(source)
+        if os.path.exists(path):
+            request.setRawHeader(
+                "If-Modified-Since".encode(),
+                format_datetime(
+                    datetime.fromtimestamp(os.path.getmtime(path), timezone.utc),
+                    usegmt=True,
+                ).encode(),
+            )
+
+        response = self.network.handle_request(request)
+        self.network.wait_for_request(response)
+
+        if response.error() == Response.Error.NoError:
+            image = QImage()
+            if image.loadFromData(response.read_all()):
+                image.save(Downloader.resolve_path(source))
+
+        response.deleteLater()
+
     def find_download_request(self, chapter: Chapter) -> DownloadChapter | None:
         for download in self.findChildren(
             DownloadChapter, options=Qt.FindChildOption.FindDirectChildrenOnly
@@ -274,9 +303,7 @@ class Downloader(QObject):
     def _save_chapter_page(
         self, chapter: Chapter, index: int, total: int, data: bytes
     ) -> None:
-        path = Downloader.resolve_path(chapter)
-        os.makedirs(path, exist_ok=True)
-        path = os.path.join(path, f"{index}.png")
+        path = os.path.join(Downloader.resolve_path(chapter), f"{index}.png")
 
         with open(path, "wb") as f:
             f.write(data)
@@ -310,14 +337,17 @@ class Downloader(QObject):
         request.thumbnail_downloaded.connect(self._thumbnail_downloaded)
 
     def _thumbnail_downloaded(self, manga: Manga, data: bytes) -> None:
-        path = Downloader.resolve_path(manga)
-        os.makedirs(path, exist_ok=True)
-
-        with open(os.path.join(path, "thumbnail.png"), "wb") as f:
+        with open(
+            os.path.join(Downloader.resolve_path(manga), "thumbnail.png"), "wb"
+        ) as f:
             f.write(data)
 
     def delete_thumbnail(self, manga: Manga) -> None:
         QFile.remove(os.path.join(Downloader.resolve_path(manga), "thumbnail.png"))
+
+    @overload
+    @staticmethod
+    def resolve_path(arg: Source) -> str: ...
 
     @overload
     @staticmethod
@@ -328,13 +358,19 @@ class Downloader(QObject):
     def resolve_path(arg: Chapter) -> str: ...
 
     @staticmethod
-    def resolve_path(arg: Manga | Chapter) -> str:
+    def resolve_path(arg: Source | Manga | Chapter) -> str:
+        if isinstance(arg, Source):
+            path = os.path.join(utils.app_data_path(), "downloads", "sources")
+            os.makedirs(path, exist_ok=True)
+            return os.path.join(path, f"{arg.id}.png")
+
         is_chapter = isinstance(arg, Chapter)
         manga = arg.manga if is_chapter else arg
 
         path = os.path.join(utils.app_data_path(), "downloads", str(manga.id))
         if is_chapter:
             path = os.path.join(path, str(arg.id))
+        os.makedirs(path, exist_ok=True)
         return path
 
     def is_downloading(self, chapter: Chapter) -> bool:

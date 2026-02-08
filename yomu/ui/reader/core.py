@@ -13,6 +13,7 @@ from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
 
 from yomu.core import utils as core_utils
+from yomu.core.downloader import Downloader
 from yomu.core.models import Chapter, Page
 from yomu.core.network import Response
 from yomu.source import Page as SourcePage
@@ -257,7 +258,7 @@ class Reader(QScrollArea, StackWidgetMixin):
             self._cancel_request.connect(response.abort)
             return response.finished.connect(self._pages_fetched)
 
-        path = self.window().app.downloader.resolve_path(self.chapter)
+        path = Downloader.resolve_path(self.chapter)
         pages = [
             PageView(
                 self.current_view,

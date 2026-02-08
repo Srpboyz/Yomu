@@ -9,6 +9,7 @@ from PyQt6.QtGui import QDrag, QPixmap, QMovie, QMouseEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QLabel, QWidget
 
+from yomu.core.downloader import Downloader
 from yomu.core.models import Manga
 from yomu.core.network import Request, Response
 from yomu.core import utils
@@ -69,7 +70,7 @@ class ThumbnailWidget(QLabel):
 
         window = self.window()
         network = window.network
-        path = window.app.downloader.resolve_path(self.manga)
+        path = Downloader.resolve_path(self.manga)
         if not force_network and self.manga.library and os.path.exists(path):
             request = Request(QUrl.fromLocalFile(os.path.join(path, "thumbnail.png")))
             self.status = LoadingStatus.CACHE

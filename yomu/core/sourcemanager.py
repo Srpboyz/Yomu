@@ -59,6 +59,7 @@ class SourceManager:
             return None
 
         self._sources[source.id] = source
+        self.app.downloader.handle_source_icon(source)
         return source
 
     def _load_sources(self) -> None:
@@ -68,8 +69,7 @@ class SourceManager:
         sys.path.append(appdata)
 
         source_folder = os.path.join(appdata, "sources")
-        if not os.path.exists(source_folder):
-            os.makedirs(source_folder)
+        os.makedirs(source_folder, exist_ok=True)
 
         source_cls = _default_sources()
         for source_dir in os.listdir(source_folder):
@@ -95,9 +95,7 @@ class SourceManager:
             try:
                 source = self.load_source(cls)
             except Exception as e:
-                logger.error(
-                    f"Failed to load source directory {source_dir}", exc_info=e
-                )
+                logger.error(f"Failed to load source", exc_info=e)
                 continue
 
             if source is None or str(source.id) not in source_filters:

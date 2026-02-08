@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import inspect
 import os
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, Qt
 from PyQt6.QtGui import QMouseEvent
 
+from yomu.core import utils
+from yomu.core.downloader import Downloader
 from yomu.source import Source
 from .components.cardlist import CardIconItem, CardList
 from .stack import StackWidgetMixin
@@ -17,10 +18,9 @@ if TYPE_CHECKING:
 
 class SourceItem(CardIconItem):
     def __init__(self, parent: SourceList, source: Source) -> None:
-        icon_path = os.path.join(
-            os.path.dirname(os.path.abspath(inspect.getfile(source.__class__))),
-            "icon.ico",
-        )
+        icon_path = Downloader.resolve_path(source)
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(utils.icon_path(), "webview.svg")
 
         super().__init__(parent, source.name, icon_path)
         self.source = source
