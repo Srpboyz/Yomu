@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from logging import getLogger
 from typing import TYPE_CHECKING
+from typing_extensions import deprecated
 
 from PyQt6.QtCore import pyqtSignal, QEventLoop, QJsonDocument, QStandardPaths
 from PyQt6.QtNetwork import (
@@ -158,6 +159,7 @@ class Network(QNetworkAccessManager):
         response.finished.connect(self._response_finished)
         self.response_sent.emit(response)
 
+    @deprecated("Use `Response.wait() instead`")
     def wait_for_request(self, response: Response) -> None:
         response.set_attribute(
             Request.Attribute.AutoDeleteReplyOnFinishAttribute, False

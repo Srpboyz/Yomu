@@ -61,7 +61,7 @@ class MangaDex(Source):
         request.source = self
 
         response = self.network.handle_request(request)  # fmt: skip
-        self.network.wait_for_request(response)
+        response.wait()
 
         json = response.json()
         response.deleteLater()
@@ -199,13 +199,13 @@ class MangaDex(Source):
             request.source = self
             request.setPriority(Request.Priority.HighPriority)
 
-            r = self.network.handle_request(request)
-            self.network.wait_for_request(r)
-            if r.error() != Response.Error.NoError:
+            response = self.network.handle_request(request)
+            response.wait()
+            if response.error() != Response.Error.NoError:
                 break
 
-            json = r.json()
-            r.deleteLater()
+            json = response.json()
+            response.deleteLater()
 
         return chapters
 

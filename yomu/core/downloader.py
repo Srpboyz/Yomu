@@ -263,7 +263,7 @@ class Downloader(QObject):
             )
 
         response = self.network.handle_request(request)
-        self.network.wait_for_request(response)
+        response.wait()
 
         if response.error() == Response.Error.NoError:
             image = QImage()

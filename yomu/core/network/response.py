@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 import json
 
-from PyQt6.QtCore import pyqtSignal, QByteArray, QObject, Qt
+from PyQt6.QtCore import pyqtSignal, QByteArray, QEventLoop, QObject
 from PyQt6.QtNetwork import QHttpHeaders, QNetworkReply
 
 from yomu.core.utils import MISSING
@@ -77,6 +77,7 @@ class Response(QObject):
             self._error = error
             self._error_string = reply.errorString()
 
+        self._is_finished = True
         self.finished.emit()
 
     def attribute(
@@ -112,9 +113,21 @@ class Response(QObject):
     def json(self) -> Any:
         return json.loads(self.read_all().data())
 
+    def wait(self) -> None:
+        if self.is_finished():
+            return
+
+        self.set_attribute(Request.Attribute.AutoDeleteReplyOnFinishAttribute, False)
+        loop = QEventLoop(self)
+        self.finished.connect(loop.quit)
+        loop.exec()
+        loop.deleteLater()
+
     def abort(self) -> None:
         if not self._is_finished:
             self.cancelled.emit()
+
+    cancel = abort
 
     def deleteLater(self) -> None:
         self.abort()

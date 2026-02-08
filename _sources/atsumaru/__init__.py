@@ -118,11 +118,13 @@ class Atsumaru(Source):
 
         chapters = [*result["chapters"]]
         while result["page"] + 1 < result["pages"]:
-            request = self.get_chapters(manga, result["page"] + 1)
-            response = self.network.handle_request(request)
-            self.network.wait_for_request(response)
+            response = self.network.handle_request(
+                self.get_chapters(manga, result["page"] + 1)
+            )
+            response.wait()
             result: ChapterListDto = response.json()
             chapters.extend(result["chapters"])
+            response.deleteLater()
 
         return [
             self.parse_chapter(chapter, manga.url, i)

@@ -160,9 +160,10 @@ class Comix(Source):
         )
         while current_page < last_page:
             current_page += 1
-            request = self.get_chapters(manga, current_page)
-            response = self.network.handle_request(request)
-            self.network.wait_for_request(response)
+            response = self.network.handle_request(
+                self.get_chapters(manga, current_page)
+            )
+            response.wait()
             result = response.json()["result"]
             chapters.extend(result["items"])
             response.deleteLater()
