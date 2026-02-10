@@ -5,18 +5,17 @@ from PyInstaller.utils.hooks import collect_submodules
 hiddenimports = ['asyncio', 'dataclasses', 'difflib', 'filecmp', 'packaging', 'psutil', 'pydoc', 'pywintypes', 'sqlite3', 'tzdata', 'uuid', 'zoneinfo', 'bs4', 'lxml', 'PIL']
 hiddenimports += collect_submodules('dateparser')
 hiddenimports += collect_submodules('PyQt6')
-hiddenimports += ['yomu.source.base']
 
 a = Analysis(
     ['yomu/__main__.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('resources', 'resources'), ('_sources', '_sources')],
+    datas=[('resources', 'resources')],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['_sources'],
+    excludes=[],
     noarchive=False,
     optimize=0,
 )

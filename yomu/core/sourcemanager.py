@@ -8,6 +8,7 @@ from logging import getLogger
 from typing import TYPE_CHECKING, overload
 
 from yomu.source import Source
+from yomu.source._internal import _default_sources
 from .utils import app_data_path
 
 if TYPE_CHECKING:
@@ -63,8 +64,6 @@ class SourceManager:
         return source
 
     def _load_sources(self) -> None:
-        from _sources import _default_sources
-
         appdata = app_data_path()
         sys.path.append(appdata)
 
