@@ -4,7 +4,7 @@ import os
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QSize, Qt
+from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QSignalBlocker, QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton, QSlider
 
@@ -100,20 +100,18 @@ class PageSlider(QFrame):
         self.setLayout(layout)
 
     def set_total_pages(self, a0: int) -> None:
-        self.slider.blockSignals(True)
-        self.slider.setMaximum(a0)
-        self.page_num.setText(f"{self.slider.value() + 1}/{a0 + 1}")
-        self.slider.blockSignals(False)
+        with QSignalBlocker(self):
+            self.slider.setMaximum(a0)
+            self.page_num.setText(f"{self.slider.value() + 1}/{a0 + 1}")
 
     def _value_changed(self, value: int) -> None:
         self.page_num.setText(f"{value + 1}/{self.slider.maximum() + 1}")
         self.value_changed.emit(value)
 
     def set_value(self, a0: int) -> None:
-        self.slider.blockSignals(True)
-        self.slider.setValue(a0)
-        self.page_num.setText(f"{a0 + 1}/{self.slider.maximum() + 1}")
-        self.slider.blockSignals(False)
+        with QSignalBlocker(self):
+            self.slider.setValue(a0)
+            self.page_num.setText(f"{a0 + 1}/{self.slider.maximum() + 1}")
 
     def previous_page(self) -> None:
         value = self.slider.value() - 1
@@ -126,11 +124,10 @@ class PageSlider(QFrame):
             self.slider.setValue(value)
 
     def reset(self) -> None:
-        self.slider.blockSignals(True)
-        self.slider.setValue(0)
-        self.slider.setMaximum(0)
-        self.page_num.setText(f"0/0")
-        self.slider.blockSignals(False)
+        with QSignalBlocker(self):
+            self.slider.setValue(0)
+            self.slider.setMaximum(0)
+            self.page_num.setText(f"0/0")
 
 
 class PageBar(BaseBar):

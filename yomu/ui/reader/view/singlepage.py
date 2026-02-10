@@ -10,6 +10,7 @@ from PyQt6.QtCore import (
     QPoint,
     QPropertyAnimation,
     QRect,
+    QSignalBlocker,
     QSize,
 )
 from PyQt6.QtWidgets import QMenu, QHBoxLayout, QStackedLayout, QWidget
@@ -234,10 +235,9 @@ class SinglePageView(BaseView):
 
     def set_page_views(self, views: list[PageView]) -> None:
         layout = self.layout()
-        layout.blockSignals(True)
-        for view in views:
-            layout.addWidget(PageWidget(self, view))
-        layout.blockSignals(False)
+        with QSignalBlocker(self):
+            for view in views:
+                layout.addWidget(PageWidget(self, view))
 
     def context_menu(self) -> QMenu:
         menu = QMenu()
@@ -266,10 +266,9 @@ class SinglePageView(BaseView):
 
     def clear(self) -> None:
         layout = self.layout()
-        layout.blockSignals(True)
-        while layout.count():
-            layout.takeAt(0).widget().deleteLater()
-        layout.blockSignals(False)
+        with QSignalBlocker(self):
+            while layout.count():
+                layout.takeAt(0).widget().deleteLater()
         self._current_index = -1
 
 
