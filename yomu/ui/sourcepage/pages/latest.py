@@ -122,6 +122,7 @@ class LatestWidget(BasePage):
             else LatestWidget.Status.FINISHED
         )
 
+        self.manga_list.widget().updateGeometry()
         self.manga_list.show()
         self.page_loaded.emit()
 
