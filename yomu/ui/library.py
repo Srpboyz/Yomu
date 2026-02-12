@@ -276,11 +276,13 @@ class Library(QWidget, StackWidgetMixin):
                 )
 
     def set_current_widget(self) -> None:
+        super().set_current_widget()
         window = self.window()
         window.setWindowTitle("Library")
         window.titlebar.refresh_button.pressed.connect(self._refresh_button_clicked)
 
     def clear_widget(self) -> None:
+        super().clear_widget()
         self.window().titlebar.refresh_button.pressed.disconnect(
             self._refresh_button_clicked
         )

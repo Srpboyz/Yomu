@@ -150,7 +150,7 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self._filter_dialog.exec(deepcopy(self.source.filters))
 
     def reset(self, *, new_source: bool = False) -> None:
-        if self.window().current_widget == self:
+        if self.is_current_widget:
             self.latest.clear_widget()
             self.search.clear_widget()
             self.currentWidget().set_current_widget()
@@ -165,6 +165,7 @@ class SourcePage(QTabWidget, StackWidgetMixin):
                     break
 
     def set_current_widget(self) -> None:
+        super().set_current_widget()
         window = self.window()
         if not window.network.is_online:
             window.display_message(
@@ -182,6 +183,7 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self._filter_button.setVisible(self._filter_button.isEnabled())
 
     def clear_widget(self) -> None:
+        super().clear_widget()
         self.window().titlebar.refresh_button.released.disconnect(self.reset)
         self._web_view_button.hide()
         self._filter_button.hide()

@@ -441,4 +441,5 @@ class Reader(QScrollArea, StackWidgetMixin):
             self.sql.mark_chapters_read_status([self.chapter], read=True)
 
     def set_current_widget(self) -> None:
+        super().set_current_widget()
         self.window().setWindowTitle(self.chapter.manga.title)

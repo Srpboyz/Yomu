@@ -11,8 +11,18 @@ from yomu.core import utils
 
 
 class StackWidgetMixin:
-    def set_current_widget(self) -> None: ...
-    def clear_widget(self) -> None: ...
+    def __init__(self) -> None:
+        self._is_current_widget = False
+
+    @property
+    def is_current_widget(self) -> bool:
+        return self._is_current_widget
+
+    def set_current_widget(self) -> None:
+        self._is_current_widget = True
+
+    def clear_widget(self) -> None:
+        self._is_current_widget = False
 
 
 if TYPE_CHECKING:

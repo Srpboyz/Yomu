@@ -245,10 +245,6 @@ Downloads DownloadItem > .QFrame {
     background-color: #0067F8;
 }
 
-ExtensionList ExtensionItem[extEnabled="false"] > QLabel {
-    color: #888888;
-}
-
 SourcePage {
     border: none;
     outline: 0;

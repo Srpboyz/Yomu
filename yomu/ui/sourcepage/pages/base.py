@@ -22,7 +22,7 @@ class BasePage(QWidget):
     page_loaded = pyqtSignal()
     _cancel_request = pyqtSignal()
 
-    def __init__(self, parent: QWidget, app: YomuApp) -> None:
+    def __init__(self, parent: SourcePage, app: YomuApp) -> None:
         super().__init__(parent)
         self.sql = app.sql
         self._manga_list = MangaList(self, app)
@@ -54,10 +54,7 @@ class BasePage(QWidget):
         return self._manga_list
 
     def is_current_widget(self) -> bool:
-        return (
-            self.window().current_widget == self.parent()
-            and self.parent().currentWidget() == self
-        )
+        return self.parent().is_current_widget and self.parent().currentWidget() == self
 
     def insert_mangas(self, sourceMangas: list[SourceManga]) -> None:
         mangas = self.sql.add_and_get_mangas(self.parent().source, sourceMangas)

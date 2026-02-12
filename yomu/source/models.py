@@ -58,7 +58,9 @@ class Manga(Base):
             )
 
         if self.thumbnail is not None and not isinstance(self.thumbnail, str):
-            raise TypeError(f"humbnail must be of type str, not {type(self.thumbnail)}")
+            raise TypeError(
+                f"Thumbnail must be of type str, not {type(self.thumbnail)}"
+            )
 
         return Base.__post_init__(self)
 

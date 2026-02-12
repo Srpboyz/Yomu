@@ -185,7 +185,7 @@ class MangaCard(QFrame, StackWidgetMixin):
             return None
 
         self._manga.library = manga.library
-        if self.window().current_widget == self:
+        if self.is_current_widget:
             if manga.library:
                 self._plus_button.hide()
                 self._minus_button.show()
@@ -272,6 +272,7 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.window().app.sql.set_library(self.manga, library=False)
 
     def set_current_widget(self) -> None:
+        super().set_current_widget()
         window = self.window()
         window.setWindowTitle(self.manga.title)
         window.titlebar.refresh_button.clicked.connect(self._refresh_button_pressed)
@@ -281,6 +282,7 @@ class MangaCard(QFrame, StackWidgetMixin):
             self._plus_button.show()
 
     def clear_widget(self) -> None:
+        super().clear_widget()
         window = self.window()
         window.titlebar.refresh_button.clicked.disconnect(self._refresh_button_pressed)
         self._plus_button.hide()

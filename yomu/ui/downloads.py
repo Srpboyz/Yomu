@@ -99,9 +99,11 @@ class Downloads(CardList, StackWidgetMixin):
                 return widget.deleteLater()
 
     def set_current_widget(self) -> None:
+        super().set_current_widget()
         window = self.window()
         window.setWindowTitle("Downloads")
         window.titlebar.refresh_button.hide()
 
     def clear_widget(self) -> None:
+        super().clear_widget()
         self.window().titlebar.refresh_button.show()
