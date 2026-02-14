@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QCoreApplication, QEvent, QObject, Qt
 from PyQt6.QtGui import QEnterEvent, QHoverEvent, QKeyEvent, QMouseEvent
+from PyQt6.QtWidgets import QBoxLayout
 
 from .carditem import CardSpacer
 
@@ -27,11 +28,23 @@ class CardSelector(QObject):
         key = event.key()
         if event.modifiers() != Qt.KeyboardModifier.ControlModifier:
             if key == Qt.Key.Key_Up:
-                self.move_cursor_up()
+                if (
+                    self.card_list.layout().direction()
+                    == QBoxLayout.Direction.TopToBottom
+                ):
+                    self.move_cursor_up()
+                else:
+                    self.move_cursor_down()
                 return True
 
             if key == Qt.Key.Key_Down:
-                self.move_cursor_down()
+                if (
+                    self.card_list.layout().direction()
+                    == QBoxLayout.Direction.TopToBottom
+                ):
+                    self.move_cursor_down()
+                else:
+                    self.move_cursor_up()
                 return True
 
         if key == Qt.Key.Key_Left:
