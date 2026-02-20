@@ -52,7 +52,7 @@ class TitleBar(QFrame):
             The window that holds all widgets
         """
         super().__init__(window)
-        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setSizePolicy(
             QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Maximum
         )
