@@ -184,6 +184,18 @@ class Comix(Source):
             for i, image in enumerate(response.json()["result"]["images"])
         ]
 
+    def get_page(self, page: Page) -> Request:
+        url = Url(page.url)
+
+        headers = QHttpHeaders()
+        headers.replaceOrAppend(
+            QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/"
+        )
+
+        request = Request(url)
+        request.setHeaders(headers)
+        return request
+
     def update_filters(self, filters: dict[str, int | str | bool]) -> bool:
         new_value = filters.get("nsfw", False)
         if new_value == self.is_nsfw:
