@@ -1,6 +1,6 @@
 # Yomu
 
-**Yomu** is a manga reader for Windows and Linux.
+**Yomu** is a manga reader for Windows and Linux using PyQt6.
 
 ## License
 
@@ -11,7 +11,11 @@
 * Reading using sources
 * Downloading chapters locally for offline reading
     * Automatic deletion on read
-* Webtoon and Right-To-Left reading modes
+* Various reading modes
+    * Horizontal
+    * Left-To-Right
+    * Right-To-Left
+    * Webtoon
 * Library categories
 * Extendibility via extensions
 
