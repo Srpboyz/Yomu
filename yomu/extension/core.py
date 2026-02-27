@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+from logging import Logger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import QObject
@@ -21,12 +22,19 @@ class YomuExtension(QObject):
     def unload(self) -> None: ...
 
 
-def pyqtSlot(func: Callable):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except Exception:
-            ...
+def pyqtSlot(logger: Logger | None = None):
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as e:
+                if logger is not None:
+                    logger.exception(
+                        f"An exception occured while running {func.__name__}",
+                        exc_info=e,
+                    )
 
-    return wrapper
+        return wrapper
+
+    return decorator
