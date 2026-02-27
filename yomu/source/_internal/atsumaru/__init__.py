@@ -151,8 +151,7 @@ class Atsumaru(Source):
         pages: PageDto = response.json()["readChapter"]
 
         return [
-            Page(number=i, url=Atsumaru.BASE_URL + page["image"])
-            for i, page in enumerate(pages["pages"])
+            Page(number=i, url=page["image"]) for i, page in enumerate(pages["pages"])
         ]
 
     def get_page(self, page: Page) -> Request:
