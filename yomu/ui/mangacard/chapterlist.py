@@ -165,6 +165,7 @@ class ChapterSelector(QObject):
 
 
 class ChapterList(CardList):
+    items_changed = pyqtSignal()
     item_clicked = pyqtSignal(int)
     _mark_as_read_request = pyqtSignal((list, bool))
     _download_chapters_request = pyqtSignal((list, bool))
@@ -314,6 +315,7 @@ class ChapterList(CardList):
         self.loading_icon.hide()
         self.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
         self._chapters = chapters
+        self.items_changed.emit()
 
     def flip_direction(self) -> None:
         self.layout().setDirection(
