@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from typing import TYPE_CHECKING
 
@@ -164,7 +162,7 @@ class ChapterSelector(QObject):
         self.current_index = 0
 
 
-class ChapterList(CardList):
+class ChapterList(CardList[ChapterListItem]):
     items_changed = pyqtSignal()
     item_clicked = pyqtSignal(int)
     _mark_as_read_request = pyqtSignal((list, bool))

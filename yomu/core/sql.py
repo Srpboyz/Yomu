@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from datetime import datetime
 from logging import getLogger
@@ -549,7 +547,7 @@ class Sql:
         query = self.create_query()
         query.prepare("UPDATE chapters SET read = :read WHERE id = :id;")
 
-        for chapter in filter(lambda chapter: (chapter.read != read), chapters):
+        for chapter in filter(lambda chapter: chapter.read != read, chapters):
             query.bindValue(":id", chapter.id)
             query.bindValue(":read", read)
 

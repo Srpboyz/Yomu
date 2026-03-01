@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from copy import copy
 from typing import Callable, TYPE_CHECKING

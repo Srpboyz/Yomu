@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, Qt

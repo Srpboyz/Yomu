@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from functools import wraps
 from logging import Logger
 from typing import Callable, TYPE_CHECKING

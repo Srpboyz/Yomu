@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, Qt
@@ -53,7 +51,7 @@ class DownloadItem(BaseCardItem):
         self.progress_bar.show()
 
 
-class Downloads(CardList, StackWidgetMixin):
+class Downloads(CardList[DownloadItem], StackWidgetMixin):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
         self.downloader = window.app.downloader
@@ -87,14 +85,14 @@ class Downloads(CardList, StackWidgetMixin):
     def update_chapter(self, chapter: Chapter, page: int, total: int) -> None:
         layout = self.layout()
         for i in range(layout.count()):
-            widget: DownloadItem = layout.itemAt(i).widget()
+            widget = layout.widgetAt(i)
             if widget.chapter == chapter:
                 return widget.download_update(page, total)
 
     def remove_chapter(self, chapter: Chapter, _=...) -> None:
         layout = self.layout()
         for i in range(layout.count()):
-            widget: DownloadItem = layout.widgetAt(i)
+            widget = layout.widgetAt(i)
             if widget.chapter == chapter:
                 return widget.deleteLater()
 

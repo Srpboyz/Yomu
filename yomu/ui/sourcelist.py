@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from typing import TYPE_CHECKING
 
@@ -26,7 +24,7 @@ class SourceItem(CardIconItem):
         self.source = source
 
 
-class SourceList(CardList, StackWidgetMixin):
+class SourceList(CardList[SourceItem], StackWidgetMixin):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
         for source in sorted(

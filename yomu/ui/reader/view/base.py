@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import ABC, ABCMeta, abstractmethod
 from typing import Callable, TYPE_CHECKING
 

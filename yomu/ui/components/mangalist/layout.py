@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from PyQt6.QtCore import QPoint, QRect, QSize
 from PyQt6.QtWidgets import QLayout, QLayoutItem, QWidget, QWidgetItem
 
