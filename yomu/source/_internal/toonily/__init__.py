@@ -23,6 +23,7 @@ class Toonily(Madara):
 
     request_sub_string = "serie"
     manga_search_selector = "div.page-item-detail.manga"
+    manga_details_selector = "div.summary__content p"
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
