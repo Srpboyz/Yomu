@@ -136,10 +136,18 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self._web_view.show()
 
     def _add_web_view_cookie(self, cookie: QNetworkCookie) -> None:
-        if cookie.name() == "cf_clearance":
-            self.window().network.cookieJar().setCookiesFromUrl(
-                [QNetworkCookie(cookie)], self.source.BASE_URL
+        if cookie.name() != "cf_clearance":
+            return
+
+        jar = self.window().network.cookieJar()
+        cookies = list(
+            filter(
+                lambda c: c.name() != "cf_clearance",
+                jar.cookiesForUrl(QUrl(self.source.BASE_URL)),
             )
+        )
+        cookies.append(QNetworkCookie(cookie))
+        jar.setCookiesFromUrl(cookies, self.source.BASE_URL)
 
     def _source_filters_updated(self, filters: dict[str, FilterOption]) -> None:
         self.window().app.source_manager.update_source_filters(self.source, filters)

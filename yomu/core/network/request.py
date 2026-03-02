@@ -1,5 +1,5 @@
 from enum import IntEnum
-from typing import Any, TYPE_CHECKING
+from typing import Any, overload, TYPE_CHECKING
 
 from PyQt6.QtCore import QUrl, QUrlQuery
 from PyQt6.QtNetwork import QNetworkRequest
@@ -13,6 +13,17 @@ __all__ = ("Request", "Url")
 
 
 class Url(QUrl):
+    @overload
+    def __init__(self, url: str) -> None: ...
+
+    @overload
+    def __init__(self, url: str, *, params: dict) -> None: ...
+
+    def __init__(self, url: str, *, params: dict = None) -> None:
+        super().__init__(url)
+        if params is not None:
+            self.set_params(params)
+
     def query(
         self,
         options: QUrl.ComponentFormattingOption = QUrl.ComponentFormattingOption.PrettyDecoded,
