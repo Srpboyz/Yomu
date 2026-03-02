@@ -35,47 +35,33 @@ class Comix(Source):
         self.filters["nsfw"]["value"] = is_nsfw
 
     def get_latest(self, page: int) -> Request:
-        url = Url(f"{Comix.API_URL}/manga")
-        url.add_params(
-            {
-                "order[chapter_updated_at]": "desc",
-                "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
-                "limit": 100,
-                "page": page,
-            }
+        return Request(
+            Url(
+                f"{Comix.API_URL}/manga",
+                params={
+                    "order[chapter_updated_at]": "desc",
+                    "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
+                    "limit": 100,
+                    "page": page,
+                },
+            )
         )
-
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(
-            QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/"
-        )
-
-        request = Request(url)
-        request.setHeaders(headers)
-        return request
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
         return self.parse_search_results(response, "")
 
     def search_for_manga(self, query: str) -> Request:
-        url = Url(f"{Comix.API_URL}/manga")
-        url.add_params(
-            {
-                "order[relevance]": "desc",
-                "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
-                "limit": 100,
-                "keyword": query,
-            }
+        return Request(
+            Url(
+                f"{Comix.API_URL}/manga",
+                params={
+                    "order[relevance]": "desc",
+                    "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
+                    "limit": 100,
+                    "keyword": query,
+                },
+            )
         )
-
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(
-            QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/"
-        )
-
-        request = Request(url)
-        request.setHeaders(headers)
-        return request
 
     def _parse_search_data(self, data: MangaDto) -> Manga:
         return Manga(
@@ -94,17 +80,9 @@ class Comix(Source):
         )
 
     def get_manga_info(self, manga: Manga) -> Manga:
-        url = Url(Comix.API_URL + manga.url)
-        url.add_params({"includes[]": ["author", "artist"]})
-
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(
-            QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/"
+        return Request(
+            Url(Comix.API_URL + manga.url, params={"includes[]": ["author", "artist"]})
         )
-
-        request = Request(url)
-        request.setHeaders(headers)
-        return request
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         data: MangaDto = response.json()["result"]
@@ -117,17 +95,12 @@ class Comix(Source):
         return manga
 
     def get_chapters(self, manga: Manga, page: int = 1) -> Request:
-        url = Url(Comix.API_URL + manga.url + "/chapters")
-        url.set_params({"limit": 100, "order[number]": "desc", "page": page})
-
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(
-            QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/"
+        return Request(
+            Url(
+                Comix.API_URL + manga.url + "/chapters",
+                params={"limit": 100, "order[number]": "desc", "page": page},
+            )
         )
-
-        request = Request(url)
-        request.setHeaders(headers)
-        return request
 
     def _parse_chapter(self, data: ChapterDto, number: int) -> Chapter:
         title_parts = []
@@ -169,12 +142,7 @@ class Comix(Source):
         return [self._parse_chapter(data, i) for i, data in enumerate(chapters)]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
-        headers = QHttpHeaders()
-        headers.append(QHttpHeaders.WellKnownHeader.Referer, Comix.BASE_URL + "/")
-
-        request = Request(Comix.API_URL + chapter.url)
-        request.setHeaders(headers)
-        return request
+        return Request(Comix.API_URL + chapter.url)
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
