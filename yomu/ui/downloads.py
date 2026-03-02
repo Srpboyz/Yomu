@@ -83,16 +83,12 @@ class Downloads(CardList[DownloadItem], StackWidgetMixin):
         self.add_card(DownloadItem(self, chapter))
 
     def update_chapter(self, chapter: Chapter, page: int, total: int) -> None:
-        layout = self.layout()
-        for i in range(layout.count()):
-            widget = layout.widgetAt(i)
+        for widget in self:
             if widget.chapter == chapter:
                 return widget.download_update(page, total)
 
-    def remove_chapter(self, chapter: Chapter, _=...) -> None:
-        layout = self.layout()
-        for i in range(layout.count()):
-            widget = layout.widgetAt(i)
+    def remove_chapter(self, chapter: Chapter) -> None:
+        for widget in self:
             if widget.chapter == chapter:
                 return widget.deleteLater()
 

@@ -6,6 +6,7 @@ from PyQt6.QtGui import QFocusEvent, QIcon
 from PyQt6.QtWidgets import QFrame, QLabel, QToolButton, QVBoxLayout, QWidget
 
 from yomu.core import utils
+from yomu.ui.components.iterator import LayoutIterator
 
 if TYPE_CHECKING:
     from .window import ReaderWindow
@@ -22,7 +23,7 @@ class MenuItem(QLabel):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
 
-class MenuWidget(QFrame):
+class MenuWidget(QFrame, LayoutIterator[MenuItem]):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
 
@@ -99,9 +100,7 @@ class MenuWidget(QFrame):
         )
 
     def remove_widget(self, widget: QWidget) -> None:
-        layout = self.layout()
-        for i in range(layout.count()):
-            item: MenuItem = layout.itemAt(i).widget()
+        for item in self:
             if item.widget == widget:
                 return item.deleteLater()
 

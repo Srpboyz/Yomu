@@ -5,6 +5,7 @@ from PyQt6.QtGui import QMouseEvent
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar, QWidget
 
 from yomu.core import utils
+from yomu.ui.components.iterator import LayoutIterator
 
 from .find import Find
 from .layout import FlowLayout
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
 
 
-class MangaList(QScrollArea):
+class MangaList(QScrollArea, LayoutIterator[MangaView]):
     view_added = pyqtSignal(MangaView)
     view_removed = pyqtSignal((int, MangaView))
 
@@ -122,11 +123,8 @@ class MangaList(QScrollArea):
         return view
 
     def remove_manga(self, manga: Manga) -> None:
-        layout = self.layout()
-        for i in range(layout.count()):
-            view = self.manga_view_at(i)
+        for i, view in enumerate(self):
             if view is not None and view.manga == manga:
-                layout.takeAt(i)
                 self.view_removed.emit(i, view)
                 return view.deleteLater()
 

@@ -1,9 +1,10 @@
-from typing import Callable, TYPE_CHECKING
+from typing import Any, Callable, Generator, TYPE_CHECKING
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QScrollArea, QVBoxLayout, QWidget
 
+from yomu.ui.components.iterator import LayoutIterator
 from .carditem import BaseCardItem, CardSpacer
 from .selector import CardSelector
 
@@ -35,7 +36,7 @@ class VerticalBoxLayout[T: BaseCardItem](QVBoxLayout):
         return super().removeWidget(w)
 
 
-class CardList[T: BaseCardItem = BaseCardItem](QScrollArea):
+class CardList[T: BaseCardItem = BaseCardItem](QScrollArea, LayoutIterator[T]):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)

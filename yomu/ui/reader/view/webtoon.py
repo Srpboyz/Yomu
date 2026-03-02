@@ -3,6 +3,7 @@ from typing import Callable, TYPE_CHECKING
 from PyQt6.QtCore import QPoint, QSizeF, Qt
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
+from yomu.ui.components.iterator import LayoutIterator
 from yomu.ui.reader.page import PageView
 
 from .base import BaseView
@@ -43,7 +44,7 @@ class WebtoonPage(QWidget):
         self.scale *= factor
 
 
-class WebtoonView(BaseView):
+class WebtoonView(BaseView, LayoutIterator[WebtoonPage]):
     name = "Webtoon"
     supports_zoom = True
 
@@ -102,15 +103,13 @@ class WebtoonView(BaseView):
         self._loading = False
         self.scale_pages(self.scale_factor)
 
-    def scale_pages(self, scaleFactor: float) -> None:
-        layout = self.layout()
-        for i in range(layout.count()):
-            layout.itemAt(i).widget().scale_page(scaleFactor)
+    def scale_pages(self, scale_factor: float) -> None:
+        for page in self:
+            page.scale_page(scale_factor)
 
     def page_at(self, pos: QPoint) -> PageView | None:
-        pos, layout = self.mapFromParent(pos), self.layout()
-        for i in range(layout.count()):
-            page_widget: WebtoonPage = layout.itemAt(i).widget()
+        pos = self.mapFromParent(pos)
+        for page_widget in self:
             if page_widget.geometry().contains(pos):
                 return page_widget.page_view
 

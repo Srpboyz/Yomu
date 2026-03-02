@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import QEvent, QPoint, QRect, Qt
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
+from yomu.ui.components.iterator import LayoutIterator
 from yomu.ui.reader.page import PageView
 from .base import BaseView
 
@@ -44,7 +45,7 @@ class HorizontalLayout(QHBoxLayout):
         self.parentWidget().setFixedWidth(left)
 
 
-class HorizontalView(BaseView):
+class HorizontalView(BaseView, LayoutIterator[HorizontalPage]):
     name = "Horizontal"
 
     def __init__(self, reader: Reader) -> None:
@@ -116,9 +117,8 @@ class HorizontalView(BaseView):
             layout.takeAt(0).widget().deleteLater()
 
     def page_at(self, pos: QPoint) -> PageView | None:
-        pos, layout = self.mapFromParent(pos), self.layout()
-        for i in range(layout.count()):
-            page_widget: HorizontalPage = layout.itemAt(i).widget()
+        pos = self.mapFromParent(pos)
+        for page_widget in self:
             if page_widget.geometry().contains(pos):
                 return page_widget.page_view
 

@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 )
 
 from yomu.source import FilterOption, FilterType
+from yomu.ui.components.iterator import iter_layout
 
 if TYPE_CHECKING:
     from .core import SourcePage
@@ -103,9 +104,8 @@ class FilterDialog(QDialog):
     def accept(self) -> None:
         new_filters = {}
 
-        layout = self.widget.layout()
-        for _ in range(layout.count()):
-            widget: CheckBox | ListOptions = layout.takeAt(0).widget()
+        widget: CheckBox | ListOptions
+        for widget in iter_layout(self.widget.layout()):
             new_filters[widget.key] = widget.get_new_value()
             widget.deleteLater()
 
@@ -113,15 +113,14 @@ class FilterDialog(QDialog):
         return super().accept()
 
     def reject(self):
-        layout = self.widget.layout()
-        for _ in range(layout.count()):
-            layout.takeAt(0).widget().deleteLater()
+        for widget in iter_layout(self.widget.layout()):
+            widget.deleteLater()
         return super().reject()
 
     def exec(self, filters: dict[str, FilterOption]) -> None:
         layout: QVBoxLayout = self.widget.layout()
-        for _ in range(layout.count()):
-            layout.takeAt(0).widget().deleteLater()
+        for widget in iter_layout(layout):
+            widget.deleteLater()
 
         for key, filter in filters.items():
             name = filter.get("display_name", key)
