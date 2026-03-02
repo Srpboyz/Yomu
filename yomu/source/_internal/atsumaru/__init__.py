@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Sequence
+import re
+from typing import TYPE_CHECKING
 
 from dateparser import parse as parse_date
 from PyQt6.QtNetwork import QHttpHeaders
@@ -112,7 +113,7 @@ class Atsumaru(Source):
             url=f"{manga_id}/{data['id']}",
         )
 
-    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
         result: ChapterListDto = response.json()
 
         chapters = [*result["chapters"]]
@@ -144,18 +145,28 @@ class Atsumaru(Source):
 
         return request
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
+    def parse_chatper_page(self, i: int, url: str) -> Page:
+        if url.startswith("//"):
+            url = f"https:{url}"
+        elif not url.startswith("http"):
+            url = (
+                f"{Atsumaru.BASE_URL}/static/" 
+                + url.removeprefix("/").removeprefix("static/")
+            )  # fmt: skip
+        url = re.sub(r"^https?:?//", "https://", url, count=1)
+        return Page(number=i, url=url)
+
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         pages: PageDto = response.json()["readChapter"]
 
         return [
-            Page(number=i, url=page["image"]) for i, page in enumerate(pages["pages"])
+            self.parse_chatper_page(i, page["image"])
+            for i, page in enumerate(pages["pages"])
         ]
 
     def get_page(self, page: Page) -> Request:
         url = Url(page.url)
-        request = Request(page.url)
+        request = Request(url)
 
         headers = QHttpHeaders()
         headers.replaceOrAppend(
