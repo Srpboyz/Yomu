@@ -136,13 +136,13 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         self._web_view.show()
 
     def _add_web_view_cookie(self, cookie: QNetworkCookie) -> None:
-        if cookie.name() != "cf_clearance":
+        if cookie.name() not in ("cf_clearance", "__ddg2_"):
             return
 
         jar = self.window().network.cookieJar()
         cookies = list(
             filter(
-                lambda c: c.name() != "cf_clearance",
+                lambda c: c.name() not in ("cf_clearance", "__ddg2_"),
                 jar.cookiesForUrl(QUrl(self.source.BASE_URL)),
             )
         )
