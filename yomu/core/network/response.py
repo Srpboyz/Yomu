@@ -25,6 +25,7 @@ class Response(QObject):
     def __init__(self, parent: QObject, request: Request):
         super().__init__(parent)
         self._request = request
+        self._url = request.url()
 
         self._data = QByteArray()
         self._error_string = ""
@@ -62,11 +63,12 @@ class Response(QObject):
 
     def _reply_finished(self) -> None:
         reply: QNetworkReply = self.sender()
+        self._url = Url(reply.url())
+        self._headers = reply.headers()
         self._attributes = {
             attr: value if (value := reply.attribute(attr)) is not None else MISSING
             for attr in Request.Attribute
         }
-        self._headers = reply.headers()
 
         error = reply.error()
         if reply.error() == Response.Error.NoError:
@@ -93,7 +95,7 @@ class Response(QObject):
         return self._is_finished
 
     def url(self) -> Url:
-        return self.request.url()
+        return self._url
 
     def error(self) -> Error:
         return self._error
