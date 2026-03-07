@@ -31,6 +31,7 @@ class MangaThemesia(Source):
         "div.bxcl li, div.cl li, #chapterlist li, ul li:has(div.chbox):has(div.eph-num)"
     )
     page_selector: str = "div#readerarea img"
+    image_attr: str = "src"
 
     def _build_request(
         self,
@@ -60,7 +61,7 @@ class MangaThemesia(Source):
         a = element.select_one("a")
 
         title = a.attrs["title"]
-        thumbnail = element.select_one("img").attrs["src"]
+        thumbnail = element.select_one("img").attrs[self.image_attr]
         url = self.url_to_slug(a.attrs["href"])
 
         return Manga(title=title, thumbnail=thumbnail, url=url)
@@ -90,7 +91,7 @@ class MangaThemesia(Source):
         author = getattr(html.select_one(self.author_selector), "text", None)
         artist = getattr(html.select_one(self.artist_selector), "text", None)
 
-        thumbnail = html.select_one(self.thumbnail_selector).attrs["src"]
+        thumbnail = html.select_one(self.thumbnail_selector).attrs[self.image_attr]
         url = self.url_to_slug(response.url().toString())
 
         info = Manga(
@@ -131,7 +132,7 @@ class MangaThemesia(Source):
         html = BeautifulSoup(response.read_all().data(), features="lxml")
         pages = html.select(self.page_selector)
         return [
-            Page(number=number, url=page.attrs["src"])
+            Page(number=number, url=page.attrs[self.image_attr])
             for number, page in enumerate(pages)
         ]
 
