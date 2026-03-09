@@ -266,7 +266,7 @@ if sys.platform == "win32":
         jumplist.AddUserTasks(collection)
         jumplist.CommitList()
 
-    if os.path.basename(sys.executable) not in ("python.exe", "pythonw.exe"):
+    if not int(os.getenv("YOMU_DEV", "0")):
         __create_jumplist()
     del __create_jumplist
 

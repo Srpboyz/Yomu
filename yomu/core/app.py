@@ -32,15 +32,21 @@ if TYPE_CHECKING:
 __all__ = ("YomuApp",)
 
 
-QApplication.setApplicationName("Yomu")
-QApplication.setApplicationDisplayName("Yomu")
+YOMU_DEV = int(os.getenv("YOMU_DEV", "0"))
+
+if YOMU_DEV:
+    QApplication.setApplicationName("Yomu-Dev")
+    QApplication.setApplicationDisplayName("Yomu-Dev")
+else:
+    QApplication.setApplicationName("Yomu")
+    QApplication.setApplicationDisplayName("Yomu")
 QApplication.setApplicationVersion("1.3.9.2")
 if sys.platform == "linux":
     QApplication.setDesktopFileName("yomu")
 
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG if YOMU_DEV else logging.INFO,
     filename=os.path.join(utils.app_data_path(), "yomu.log"),
     format="%(levelname)s:%(asctime)s:%(name)s - %(lineno)d: %(message)s",
 )
@@ -247,7 +253,8 @@ class YomuApp(QApplication):
         self.splash_screen.finish(window)
         window.showMaximized()
 
-        sys.excepthook = self.__excepthook__
+        if not YOMU_DEV:
+            sys.excepthook = self.__excepthook__
 
         self.aboutToStart.emit()
         exit_code = super().exec()

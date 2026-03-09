@@ -1,13 +1,8 @@
 from enum import IntEnum
 from typing import NotRequired, TypedDict
 import os
-import sys
 
-IPC_NAME = (
-    "yomu-ipc-dev"
-    if os.path.basename(sys.executable) in ("python", "python.exe", "pythonw.exe")
-    else "yomu-ipc"
-)
+IPC_NAME = "yomu-ipc-dev" if int(os.getenv("YOMU_DEV", "0")) else "yomu-ipc"
 
 
 class Command(IntEnum):
