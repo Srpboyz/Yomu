@@ -87,7 +87,7 @@ class ChapterSelector(QObject):
         super().__init__(chapter_list)
         self.chapter_list = chapter_list
         self.selected_chapters: set[ChapterListItem] = set()
-        self.current_index = 0
+        self.current_index = -1
 
     def eventFilter(self, a0: ChapterListItem, a1: QEvent):
         event_type = a1.type()
@@ -99,7 +99,10 @@ class ChapterSelector(QObject):
             if modifiers == Qt.KeyboardModifier.ControlModifier:
                 self.handle_ctrl_select(a0)
             elif modifiers == Qt.KeyboardModifier.ShiftModifier:
-                self.handle_shift_select(a0)
+                if self.current_index != -1:
+                    self.handle_shift_select(a0)
+                else:
+                    self.handle_ctrl_select(a0)
             elif (
                 modifiers
                 == Qt.KeyboardModifier.ControlModifier
@@ -141,7 +144,7 @@ class ChapterSelector(QObject):
             func(layout.itemAt(i).widget())
 
         if not self.selected_chapters:
-            self.current_index = 0
+            self.current_index = -1
         else:
             self.current_index = layout.count() - 1
 
@@ -159,7 +162,7 @@ class ChapterSelector(QObject):
                 chapter.set_selected(False)
 
         self.selected_chapters.clear()
-        self.current_index = 0
+        self.current_index = -1
 
 
 class ChapterList(CardList[ChapterListItem]):
