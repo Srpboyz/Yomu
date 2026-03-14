@@ -8,7 +8,7 @@ from dateparser import parse
 from yomu.core.network import Response, Request, Url
 from yomu.source import *
 
-from .types import *
+from .dto import *
 
 
 class NyxScans(Source):
@@ -19,17 +19,26 @@ class NyxScans(Source):
     per_page = 18
 
     def get_latest(self, page: int) -> Request:
-        return Request(
-            f"{NyxScans.API_URL}/query?page={page}&perPage={NyxScans.per_page}"
-        )
+        return self.search_for_manga("", page)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        return self.parse_search_results(response, "")
+        return self.parse_search_results(response, "", page)
 
-    def search_for_manga(self, query: str) -> Request:
-        return Request(f"{NyxScans.API_URL}/query?page=1&perPage=18&searchTerm={query}")
+    def search_for_manga(self, query: str, page: int = 1) -> Request:
+        return Request(
+            Url(
+                NyxScans.API_URL + "/query",
+                params={
+                    "page": page,
+                    "per_page": NyxScans.per_page,
+                    "searchTerm": query,
+                },
+            )
+        )
 
-    def parse_search_results(self, response: Response, query: str) -> MangaList:
+    def parse_search_results(
+        self, response: Response, query: str, page: int = 1
+    ) -> MangaList:
         data: MangaListDto = response.json()
 
         mangas = [
@@ -41,8 +50,7 @@ class NyxScans(Source):
             for manga in filter(lambda manga: not manga["isNovel"], data["posts"])
         ]
 
-        page = int(response.url().query().queryItemValue("page"))
-        has_next_page = (page * NyxScans.per_page) > data["totalCount"]
+        has_next_page = (page * NyxScans.per_page) < data["totalCount"]
 
         return MangaList(mangas=mangas, has_next_page=has_next_page)
 
