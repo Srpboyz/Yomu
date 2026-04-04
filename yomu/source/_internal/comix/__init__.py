@@ -1,13 +1,12 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from PyQt6.QtNetwork import QHttpHeaders
 
 from yomu.core.network import Response, Request, Url
 from yomu.source import Chapter, Manga, MangaList, Page, RateLimit, Source, FilterType
 
-if TYPE_CHECKING:
-    from .dto import *
+from .dto import *
+from .hash import generate_hash
 
 
 class Comix(Source):
@@ -95,10 +94,17 @@ class Comix(Source):
         return manga
 
     def get_chapters(self, manga: Manga, page: int = 1) -> Request:
+        path = manga.url + "/chapters"
         return Request(
             Url(
-                Comix.API_URL + manga.url + "/chapters",
-                params={"limit": 100, "order[number]": "desc", "page": page},
+                Comix.API_URL + path,
+                params={
+                    "limit": 100,
+                    "order[number]": "desc",
+                    "page": page,
+                    "time": 1,
+                    "_": generate_hash(path),
+                },
             )
         )
 
