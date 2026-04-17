@@ -273,6 +273,8 @@ if sys.platform == "win32":
 elif sys.platform == "linux":
 
     class LinuxReaderWindow(ReaderWindow):
+        EDGE_OFFSET = 3
+
         def __init__(self, app: YomuApp) -> None:
             super().__init__(app)
             self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
@@ -305,38 +307,40 @@ elif sys.platform == "linux":
                     self.handle_resize(pos)
 
         def update_cursor(self, pos: QPointF) -> None:
-            x, y, offset = pos.x(), pos.y(), 7
-            if x < offset:
-                if y < offset:
+            x, y = pos.x(), pos.y()
+            if x < LinuxReaderWindow.EDGE_OFFSET:
+                if y < LinuxReaderWindow.EDGE_OFFSET:
                     return self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-                if y > self.height() - offset:
+                if y > self.height() - LinuxReaderWindow.EDGE_OFFSET:
                     return self.setCursor(Qt.CursorShape.SizeBDiagCursor)
                 return self.setCursor(Qt.CursorShape.SizeHorCursor)
 
-            if x > self.width() - offset:
-                if y < offset:
+            if x > self.width() - LinuxReaderWindow.EDGE_OFFSET:
+                if y < LinuxReaderWindow.EDGE_OFFSET:
                     return self.setCursor(Qt.CursorShape.SizeBDiagCursor)
-                if y > self.height() - offset:
+                if y > self.height() - LinuxReaderWindow.EDGE_OFFSET:
                     return self.setCursor(Qt.CursorShape.SizeFDiagCursor)
                 return self.setCursor(Qt.CursorShape.SizeHorCursor)
 
-            if y < offset or y > self.height() - offset:
+            if (
+                y < LinuxReaderWindow.EDGE_OFFSET
+                or y > self.height() - LinuxReaderWindow.EDGE_OFFSET
+            ):
                 return self.setCursor(Qt.CursorShape.SizeVerCursor)
 
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
         def handle_resize(self, pos: QPointF) -> None:
-            x, y = (pos.x(), pos.y())
-            offset, edge = 7, 0
+            x, y, edge = pos.x(), pos.y(), 0
 
-            if x < offset:
+            if x < LinuxReaderWindow.EDGE_OFFSET:
                 edge |= Qt.Edge.LeftEdge.value
-            elif x > (self.width() - offset):
+            elif x > (self.width() - LinuxReaderWindow.EDGE_OFFSET):
                 edge |= Qt.Edge.RightEdge.value
 
-            if y < offset:
+            if y < LinuxReaderWindow.EDGE_OFFSET:
                 edge |= Qt.Edge.TopEdge.value
-            elif y > (self.height() - offset):
+            elif y > (self.height() - LinuxReaderWindow.EDGE_OFFSET):
                 edge |= Qt.Edge.BottomEdge.value
 
             if edge > 0:
