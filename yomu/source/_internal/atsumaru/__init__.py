@@ -1,7 +1,7 @@
 import re
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from dateparser import parse as parse_date
 from PyQt6.QtNetwork import QHttpHeaders
 from yomu.core.network import Request, Response, Url
 from yomu.source import *
@@ -12,11 +12,12 @@ if TYPE_CHECKING:
 
 class Atsumaru(Source):
     BASE_URL = "https://atsu.moe"
+    API_URL = f"{BASE_URL}/api"
     rate_limit = RateLimit(2)
 
     def get_latest(self, page: int) -> Request:
         request = Request(
-            f"{Atsumaru.BASE_URL}/api/infinite/recentlyUpdated?page={page - 1}&types=Manga,Manwha,Manhua,OEL"
+            f"{Atsumaru.API_URL}/infinite/recentlyUpdated?page={page - 1}&types=Manga,Manwha,Manhua,OEL"
         )
 
         headers = QHttpHeaders()
@@ -73,7 +74,7 @@ class Atsumaru(Source):
         )
 
     def get_manga_info(self, manga: Manga) -> Request:
-        request = Request(f"{Atsumaru.BASE_URL}/api/manga/page?id={manga.url}")
+        request = Request(f"{Atsumaru.API_URL}/manga/page?id={manga.url}")
 
         headers = QHttpHeaders()
         headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Accept, "*/*")
@@ -93,10 +94,8 @@ class Atsumaru(Source):
             url=data["id"],
         )
 
-    def get_chapters(self, manga: Manga, page: int = 0) -> Request:
-        request = Request(
-            f"{Atsumaru.BASE_URL}/api/manga/chapters?id={manga.url}&filter=all&sort=desc&page={page}"
-        )
+    def get_chapters(self, manga: Manga) -> Request:
+        request = Request(f"{Atsumaru.API_URL}/manga/allChapters?mangaId={manga.url}")
 
         headers = QHttpHeaders()
         headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Accept, "*/*")
@@ -109,31 +108,20 @@ class Atsumaru(Source):
         return Chapter(
             title=data["title"],
             number=number,
-            uploaded=parse_date(data["createdAt"]),
+            uploaded=datetime.fromtimestamp(data["createdAt"] / 1000),
             url=f"{manga_id}/{data['id']}",
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
         result: ChapterListDto = response.json()
-
-        chapters = [*result["chapters"]]
-        while result["page"] + 1 < result["pages"]:
-            response = self.network.handle_request(
-                self.get_chapters(manga, result["page"] + 1)
-            )
-            response.wait()
-            result: ChapterListDto = response.json()
-            chapters.extend(result["chapters"])
-            response.deleteLater()
-
         return [
             self.parse_chapter(chapter, manga.url, i)
-            for i, chapter in enumerate(chapters[::-1])
+            for i, chapter in enumerate(result["chapters"][::-1])
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         manga_id, chapter_id = chapter.url.split("/")
-        url = Url(f"{Atsumaru.BASE_URL}/api/read/chapter")
+        url = Url(f"{Atsumaru.API_URL}/read/chapter")
         url.set_params({"mangaId": manga_id, "chapterId": chapter_id})
 
         request = Request(url)
