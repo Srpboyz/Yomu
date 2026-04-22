@@ -42,14 +42,16 @@ class Stack(QWidget):
         super().__init__(window)
         self._history = []
 
-        self._back_button = QToolButton(self)
-        self._back_button.setToolTip("Back")
-        path = os.path.join(utils.resource_path(), "icons", "back.svg")
-        self._back_button.setIcon(QIcon(path))
-        self._back_button.pressed.connect(self.previous_widget)
-        self._back_button.setEnabled(False)
+        button = self._back_button = QToolButton(self)
+        button.setToolTip("Back")
+        button.setIcon(QIcon(os.path.join(utils.resource_path(), "icons", "back.svg")))
+        button.setEnabled(False)
+        button.pressed.connect(self.previous_widget)
+        button.addAction("Go Back").triggered.connect(button.click)
 
-        window.titlebar.insert_button(self._back_button, index=1)
+        window.titlebar.insert_button(button, index=1)
+        window.app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(utils.get_keybinds())
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setLayout(StackLayout(self))
@@ -69,6 +71,12 @@ class Stack(QWidget):
         if a0.button() == Qt.MouseButton.BackButton:
             self.previous_widget()
         return super().mouseReleaseEvent(a0)
+
+    def on_keybinds_changed(self, keybinds):
+        data = keybinds.get("Go Back", {"keybinds": []})
+        self._back_button.actions()[0].setShortcuts(
+            data["keybinds"] if data is not None else []
+        )
 
     def widget(self, a0: int) -> StackWidget:
         return self.layout().widget(a0)

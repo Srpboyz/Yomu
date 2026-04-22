@@ -213,8 +213,8 @@ class SinglePageView(BaseView):
         reader.installEventFilter(self)
 
         self.addAction("Change Fit Direction").triggered.connect(self.change_direction)
-        self.window().app.keybinds_changed.connect(self.set_keybinds)
-        self.set_keybinds(core_utils.get_keybinds())
+        self.window().app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(core_utils.get_keybinds())
 
     layout: Callable[[], StackLayout]
 
@@ -251,11 +251,9 @@ class SinglePageView(BaseView):
         )
         layout.update()
 
-    def set_keybinds(self, keybinds):
-        keybindingData = keybinds.get("Change Fit Direction", {"keybinds": []})
-        self.actions()[0].setShortcuts(
-            keybindingData["keybinds"] if keybindingData is not None else []
-        )
+    def on_keybinds_changed(self, keybinds):
+        data = keybinds.get("Change Fit Direction", {"keybinds": []})
+        self.actions()[0].setShortcuts(data["keybinds"] if data is not None else [])
 
     def page_at(self, pos: QPoint) -> PageView | None:
         page_widget = self.layout().currentWidget()

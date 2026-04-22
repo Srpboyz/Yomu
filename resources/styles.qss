@@ -200,6 +200,10 @@ ReaderWindow > TitleBar > QToolButton:hover {
     background-color: #3D3D3D; 
 }
 
+ReaderWindow > TitleBar > QToolButton::menu-indicator {
+    image: none;
+}
+
 MenuWidget {
     background-color: #202020;
     padding-bottom: 1px;

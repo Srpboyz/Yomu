@@ -17,6 +17,18 @@
             "F11"
         ]
     },
+    "Toggle Menu": {
+        "description": "Show or hide the menu",
+        "keybinds": [
+            "Escape"
+        ]
+    },
+    "Go Back": {
+        "description": "Go back a page",
+        "keybinds": [
+            "Backspace"
+        ]
+    },
     "Refresh": {
         "description": "Reload Page if supported by current tab",
         "keybinds": [

@@ -6,6 +6,8 @@ from PyQt6.QtGui import QFocusEvent, QIcon
 from PyQt6.QtWidgets import QFrame, QLabel, QToolButton, QVBoxLayout, QWidget
 
 from yomu.core import utils
+from yomu.ui.components.cardlist.core import VerticalBoxLayout
+from yomu.ui.components.cardlist.selector import CardSelector
 from yomu.ui.components.iterator import LayoutIterator
 
 if TYPE_CHECKING:
@@ -27,21 +29,23 @@ class MenuWidget(QFrame, LayoutIterator[MenuItem]):
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
 
-        layout = QVBoxLayout(self)
+        layout = VerticalBoxLayout(self)
         layout.setSizeConstraint(QVBoxLayout.SizeConstraint.SetMinAndMaxSize)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         layout.setContentsMargins(0, 3, 0, 3)
         layout.setSpacing(0)
         self.setLayout(layout)
+        CardSelector(self)
 
-        self._menu_button = QToolButton(self)
-        self._menu_button.setToolTip("Menu")
-        self._menu_button.setIcon(
-            QIcon(os.path.join(utils.resource_path(), "icons", "menu.svg"))
-        )
-        self._menu_button.pressed.connect(self._menu_button_pressed)
+        button = self._menu_button = QToolButton(self)
+        button.setToolTip("Menu")
+        button.setIcon(QIcon(os.path.join(utils.resource_path(), "icons", "menu.svg")))
+        button.pressed.connect(self.toggle_visibility)
+        button.addAction("Toggle Menu").triggered.connect(button.click)
 
         window.titlebar.insert_button(self._menu_button, index=0)
+        window.app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(utils.get_keybinds())
 
         self.move(0, window.titlebar.height() - 2)
         self.hide()
@@ -76,7 +80,13 @@ class MenuWidget(QFrame, LayoutIterator[MenuItem]):
         super().focusOutEvent(a0)
         self.hide()
 
-    def _menu_button_pressed(self):
+    def on_keybinds_changed(self, keybinds):
+        data = keybinds.get("Toggle Menu", {"keybinds": []})
+        self._menu_button.actions()[0].setShortcuts(
+            data["keybinds"] if data is not None else []
+        )
+
+    def toggle_visibility(self):
         self.show() if self.isHidden() else self.hide()
 
     @overload
