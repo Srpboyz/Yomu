@@ -17,7 +17,7 @@ class MangaSelector(QObject):
         manga_list.view_removed.connect(self._offset_cursor)
 
     def eventFilter(self, a0: MangaList, a1: QEvent) -> bool:
-        if a1.type() == QEvent.Type.KeyPress:
+        if a1.type() == QEvent.Type.KeyPress and self.manga_list.count:
             return self.key_event(a1.clone())
         return super().eventFilter(a0, a1)
 
