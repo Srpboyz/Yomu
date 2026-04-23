@@ -3,7 +3,15 @@ from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import QPointF, QRect, Qt
 from PyQt6.QtGui import QContextMenuEvent, QIcon, QMouseEvent
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMenu, QSizePolicy, QToolButton
+from PyQt6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMenu,
+    QSizePolicy,
+    QToolButton,
+    QWidget,
+)
 
 from yomu.core import utils
 
@@ -105,6 +113,11 @@ class TitleBar(QFrame):
         self.setLayout(layout)
 
         window.window_state_changed.connect(self._window_state_changed)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        for child in self.findChildren(
+            QWidget, options=Qt.FindChildOption.FindChildrenRecursively
+        ):
+            child.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     window: Callable[[], ReaderWindow]
     layout: Callable[[], QHBoxLayout]
@@ -181,3 +194,4 @@ class TitleBar(QFrame):
         if index < 0:
             index = layout.indexOf(self._title_widget)
         layout.insertWidget(index, button)
+        button.setFocusPolicy(Qt.FocusPolicy.NoFocus)

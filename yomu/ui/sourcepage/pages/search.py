@@ -26,6 +26,7 @@ class SearchWidget(BasePage):
         layout = self.layout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.insertWidget(0, self.line_edit)
+        self.setTabOrder(self.line_edit, self.manga_list)
 
     def search(self) -> None:
         window = self.window()
