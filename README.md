@@ -24,6 +24,7 @@
 * Armageddon
 * Atsumaru
 * Comick (Removed)
+* Comix
 * Firescans
 * Galaxy Degen Scans
 * Kappa Beast
