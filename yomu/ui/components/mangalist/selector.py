@@ -19,6 +19,29 @@ class MangaSelector(QObject):
     def eventFilter(self, a0: MangaList, a1: QEvent) -> bool:
         if a1.type() == QEvent.Type.KeyPress and self.manga_list.count:
             return self.key_event(a1.clone())
+
+        if (
+            a1.type() == QEvent.Type.FocusIn
+            and a1.reason()
+            in (Qt.FocusReason.TabFocusReason, Qt.FocusReason.BacktabFocusReason)
+            and self.manga_list.count > 0
+        ):
+            if self.cursor == -1:
+                self.cursor = 1
+
+            if view := self.manga_list.manga_view_at(self.cursor):
+                window = self.manga_list.window()
+                center = view.geometry().center().toPointF()
+                QCoreApplication.postEvent(
+                    view,
+                    QEnterEvent(
+                        window.mapFromGlobal(center), window.pos().toPointF(), center
+                    ),
+                )
+                QCoreApplication.postEvent(
+                    view, QHoverEvent(QEvent.Type.HoverEnter, center, center)
+                )
+
         return super().eventFilter(a0, a1)
 
     def key_event(self, event: QKeyEvent) -> None:
