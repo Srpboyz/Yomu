@@ -74,6 +74,7 @@ class ReaderWindow(QWidget):
 
         self.addAction("Refresh").triggered.connect(self.titlebar.refresh_button.click)
         self.addAction("Close Window").triggered.connect(self.close)
+        self.addAction("Toggle Menu").triggered.connect(self.menu.toggle_visibility)
 
         fullscreen = self.addAction("Toggle Fullscreen")
         fullscreen.triggered.connect(self.toggle_fullscreen)
@@ -149,13 +150,15 @@ class ReaderWindow(QWidget):
 
     def windowHandleEvent(self, event: QEvent) -> bool:
         if event.type() == QEvent.Type.MouseMove and self.isFullScreen():
-            (
+            if (
+                event.position().y() > 8
+                and not self.titlebar.underMouse()
+                and not self.menu.underMouse()
+            ):
+                self.titlebar.hide()
+                self.menu.hide()
+            else:
                 self.titlebar.show()
-                if event.position().y() <= 8
-                or self.titlebar.underMouse()
-                or self.menu.underMouse()
-                else self.titlebar.hide()
-            )
 
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.closed.emit()

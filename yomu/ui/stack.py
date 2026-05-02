@@ -47,7 +47,7 @@ class Stack(QWidget):
         button.setIcon(QIcon(os.path.join(utils.resource_path(), "icons", "back.svg")))
         button.setEnabled(False)
         button.pressed.connect(self.previous_widget)
-        button.addAction("Go Back").triggered.connect(button.click)
+        self.addAction("Go Back").triggered.connect(self.previous_widget)
 
         window.titlebar.insert_button(button, index=1)
         window.app.keybinds_changed.connect(self.on_keybinds_changed)
@@ -74,9 +74,7 @@ class Stack(QWidget):
 
     def on_keybinds_changed(self, keybinds):
         data = keybinds.get("Go Back", {"keybinds": []})
-        self._back_button.actions()[0].setShortcuts(
-            data["keybinds"] if data is not None else []
-        )
+        self.actions()[0].setShortcuts(data["keybinds"] if data is not None else [])
 
     def widget(self, a0: int) -> StackWidget:
         return self.layout().widget(a0)

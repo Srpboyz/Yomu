@@ -2,7 +2,7 @@ import os
 from typing import Callable, TYPE_CHECKING, overload
 
 from PyQt6.QtCore import QChildEvent, QEvent, Qt
-from PyQt6.QtGui import QFocusEvent, QIcon
+from PyQt6.QtGui import QFocusEvent, QHideEvent, QIcon, QShowEvent
 from PyQt6.QtWidgets import QFrame, QLabel, QToolButton, QVBoxLayout, QWidget
 
 from yomu.core import utils
@@ -41,11 +41,8 @@ class MenuWidget(QFrame, LayoutIterator[MenuItem]):
         button.setToolTip("Menu")
         button.setIcon(QIcon(os.path.join(utils.resource_path(), "icons", "menu.svg")))
         button.pressed.connect(self.toggle_visibility)
-        button.addAction("Toggle Menu").triggered.connect(button.click)
 
         window.titlebar.insert_button(self._menu_button, index=0)
-        window.app.keybinds_changed.connect(self.on_keybinds_changed)
-        self.on_keybinds_changed(utils.get_keybinds())
 
         self.move(0, window.titlebar.height() - 2)
         self.hide()
@@ -80,14 +77,20 @@ class MenuWidget(QFrame, LayoutIterator[MenuItem]):
         super().focusOutEvent(a0)
         self.hide()
 
-    def on_keybinds_changed(self, keybinds):
-        data = keybinds.get("Toggle Menu", {"keybinds": []})
-        self._menu_button.actions()[0].setShortcuts(
-            data["keybinds"] if data is not None else []
-        )
-
     def toggle_visibility(self):
         self.show() if self.isHidden() else self.hide()
+
+    def showEvent(self, a0: QShowEvent | None) -> None:
+        window = self.window()
+        if window.isFullScreen():
+            window.titlebar.show()
+
+    def hideEvent(self, a0: QHideEvent | None) -> None:
+        window = self.window()
+        if window.isFullScreen() and (
+            self.cursor().pos().isNull() or not window.titlebar.underMouse()
+        ):
+            window.titlebar.hide()
 
     @overload
     def add_widget(self, widget: QWidget) -> None: ...
