@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from typing import Sequence
 from bs4 import BeautifulSoup, Tag
 
@@ -92,7 +90,7 @@ class PhiliaScans(Source):
             return None
 
         title = tag.select_one("zebi").get_text(" ", True)
-        return Chapter(title=title, number=number, uploaded=datetime.now(), url=url)
+        return Chapter(title=title, number=number, url=url)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
         document = BeautifulSoup(response.read_all().data(), features="lxml")

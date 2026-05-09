@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 from typing import Sequence
 
@@ -91,7 +90,7 @@ class NyxScans(Source):
     def _parse_chapter(self, chapter: ChapterDto) -> Chapter:
         number = chapter["number"]
         slug = f"{chapter['mangaPost']['slug']}/{chapter['slug']}"
-        uploaded = parse(chapter["createdAt"]) or datetime.now()
+        uploaded = parse(chapter["createdAt"])
 
         title = f"Chapter {number}"
         if chapter["title"]:

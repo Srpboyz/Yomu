@@ -121,7 +121,7 @@ class Comix(Source):
         uploaded = (
             datetime.fromtimestamp(updated_at)
             if (updated_at := data.get("updated_at")) is not None
-            else datetime.now()
+            else None
         )
         url = f"/chapters/{data['chapter_id']}"
 
