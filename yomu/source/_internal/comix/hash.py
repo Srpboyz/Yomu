@@ -2,37 +2,35 @@ import base64
 import urllib.parse
 
 KEYS = [
-    "13YDu67uDgFczo3DnuTIURqas4lfMEPADY6Jaeqky+w=",
-    "yEy7wBfBc+gsYPiQL/4Dfd0pIBZFzMwrtlRQGwMXy3Q=",
-    "yrP+EVA1Dw==",
-    "vZ23RT7pbSlxwiygkHd1dhToIku8SNHPC6V36L4cnwM=",
-    "QX0sLahOByWLcWGnv6l98vQudWqdRI3DOXBdit9bxCE=",
-    "WJwgqCmf",
-    "BkWI8feqSlDZKMq6awfzWlUypl88nz65KVRmpH0RWIc=",
-    "v7EIpiQQjd2BGuJzMbBA0qPWDSS+wTJRQ7uGzZ6rJKs=",
-    "1SUReYlCRA==",
-    "RougjiFHkSKs20DZ6BWXiWwQUGZXtseZIyQWKz5eG34=",
-    "LL97cwoDoG5cw8QmhI+KSWzfW+8VehIh+inTxnVJ2ps=",
-    "52iDqjzlqe8=",
-    "U9LRYFL2zXU4TtALIYDj+lCATRk/EJtH7/y7qYYNlh8=",
-    "e/GtffFDTvnw7LBRixAD+iGixjqTq9kIZ1m0Hj+s6fY=",
-    "xb2XwHNB",
+    "JxTcdyiA5GZxnbrmthXBQfU2IMTKcY1+3nNhbq98Sgo=",
+    "3PordjODbhqla382Cxapmo/1JiABJQcjiJj1+48gTJ4=",
+    "OaKvnI5ARA==",
+    "MHNBHYWA7lvy867fXgvGcJwWDk79KqUJUVFsh3RwnnI=",
+    "8i0Cru/VJBSVB2Y1GcMDVpzx2WepOcfnWdd81yxICl4=",
+    "Fyskubz8VvA=",
+    "B46L1x+UeWP+19cRpQ+OZvdLAK9EHID8g3mSgn57tew=",
+    "DTSTmUt6LpDUw9r1lSQqyb3YlFTzruT8tk8wUGkwehQ=",
+    "vY/meeI=",
+    "7xWfIF5THL5LAnRgAARg+4mjWHPU9n3PQwvzbaMNi+Q=",
+    "bewtiTuV+HJk56xxkf2iCljLgruCpBmN9BgE8i6gc9M=",
+    "/Xcb2zAu8AU=",
+    "WgeCQ3T8R51uTwVSiVa7Zy0dN6JOg6Z5JleMS+HV8Aw=",
+    "yXayUVFrrcW56jQCEfZzuCidjpnWKjTDUNT7XeX9i7k=",
+    "tSLco2w=",
 ]
 
 
-def get_key_bytes(index):
+def get_key_bytes(index: int) -> list[int]:
     try:
-        b64 = KEYS[index]
-        decoded = base64.b64decode(b64)
+        decoded = base64.b64decode(KEYS[index])
         return [b & 0xFF for b in decoded]
     except Exception:
         return []
 
 
-def rc4(key, data):
+def rc4(key: list[int], data: list[int]) -> list[int]:
     if not key:
-        return data[:]
-
+        return data
     s = list(range(256))
     j = 0
 
@@ -53,234 +51,163 @@ def rc4(key, data):
 
 
 # Mutation functions
-def mutS(e):
-    return (e + 143) % 256
-
-
-def mutL(e):
-    return ((e >> 1) | (e << 7)) & 255
-
-
-def mutC(e):
-    return (e + 115) % 256
-
-
-def mutM(e):
-    return e ^ 177
-
-
-def mutF(e):
-    return (e - 188 + 256) % 256
-
-
-def mutG(e):
-    return ((e << 2) | (e >> 6)) & 255
-
-
-def mutH(e):
-    return (e - 42 + 256) % 256
-
-
-def mutDollar(e):
-    return ((e << 4) | (e >> 4)) & 255
-
-
-def mutB(e):
-    return (e - 12 + 256) % 256
-
-
-def mutUnderscore(e):
-    return (e - 20 + 256) % 256
-
-
-def mutY(e):
-    return ((e >> 1) | (e << 7)) & 255
-
-
-def mutK(e):
-    return (e - 241 + 256) % 256
-
-
-def get_mut_key(mk, idx):
+def get_mut_key(mk: list[int], idx: int) -> int:
     return mk[idx % 32] if mk and (idx % 32) < len(mk) else 0
 
 
-def round1(data):
-    enc = rc4(get_key_bytes(0), data)
-    mut_key = get_key_bytes(1)
-    pref_key = get_key_bytes(2)
+def op_shift_right7_left1(e: int) -> int:
+    return ((e >> 7) | (e << 1)) & 255
 
+
+def op_shift_left1_right7(e: int) -> int:
+    return ((e << 1) | (e >> 7)) & 255
+
+
+def op_shift_right2_left6(e: int) -> int:
+    return ((e >> 2) | (e << 6)) & 255
+
+
+def op_shift_left4_right4(e: int) -> int:
+    return ((e << 4) | (e >> 4)) & 255
+
+
+def op_shift_right4_left4(e: int) -> int:
+    return ((e >> 4) | (e << 4)) & 255
+
+
+def mutate(
+    data: list[int],
+    mut_key: list[int],
+    pref_key: list[int],
+    pref_key_limit: int,
+    round_num: int,
+) -> list[int]:
     out = []
-    for i, val in enumerate(enc):
-        if i < 7 and i < len(pref_key):
-            out.append(pref_key[i])
-
-        v = val ^ get_mut_key(mut_key, i)
-
-        mod = i % 10
-        if mod in (0, 9):
-            v = mutC(v)
-        elif mod == 1:
-            v = mutB(v)
-        elif mod == 2:
-            v = mutY(v)
-        elif mod == 3:
-            v = mutDollar(v)
-        elif mod in (4, 6):
-            v = mutH(v)
-        elif mod == 5:
-            v = mutS(v)
-        elif mod == 7:
-            v = mutK(v)
-        elif mod == 8:
-            v = mutL(v)
-
-        out.append(v & 255)
-
+    for o, byte in enumerate(data):
+        if o < pref_key_limit and o < len(pref_key):
+            out.append(pref_key[o])
+        n = byte ^ get_mut_key(mut_key, o)
+        pos = o % 10
+        if round_num == 1:
+            if pos == 0:
+                n = op_shift_right7_left1(n)
+            elif pos == 1:
+                n = n ^ 37
+            elif pos == 2:
+                n = n ^ 81
+            elif pos == 3:
+                n = n ^ 147
+            elif pos == 4:
+                n = op_shift_right2_left6(n)
+            elif pos in (5, 8):
+                n = op_shift_right4_left4(n)
+            elif pos == 6:
+                n = n ^ 218
+            elif pos == 7:
+                n = (n + 159) & 255
+            elif pos == 9:
+                n = n ^ 180
+        elif round_num == 2:
+            if pos in (0, 9):
+                n = n ^ 180
+            elif pos == 1:
+                n = op_shift_left1_right7(n)
+            elif pos == 2:
+                n = n ^ 147
+            elif pos == 3:
+                n = op_shift_right7_left1(n)
+            elif pos == 4:
+                n = op_shift_right2_left6(n)
+            elif pos == 5:
+                n = op_shift_right4_left4(n)
+            elif pos in (6, 8):
+                n = (n + 159) & 255
+            elif pos == 7:
+                n = (n + 34) & 255
+        elif round_num == 3:
+            if pos == 0:
+                n = n ^ 81
+            elif pos == 1:
+                n = op_shift_right4_left4(n)
+            elif pos in (2, 9):
+                n = op_shift_left4_right4(n)
+            elif pos == 3:
+                n = n ^ 37
+            elif pos == 4:
+                n = (n + 159) & 255
+            elif pos == 5:
+                n = op_shift_left1_right7(n)
+            elif pos == 6:
+                n = n ^ 180
+            elif pos == 7:
+                n = (n + 34) & 255
+            elif pos == 8:
+                n = op_shift_right2_left6(n)
+        elif round_num == 4:
+            if pos in (0, 7):
+                n = n ^ 218
+            elif pos in (1, 4):
+                n = op_shift_left1_right7(n)
+            elif pos == 2:
+                n = op_shift_right7_left1(n)
+            elif pos == 3:
+                n = (n + 159) & 255
+            elif pos in (5, 8):
+                n = n ^ 180
+            elif pos == 6:
+                n = n ^ 147
+            elif pos == 9:
+                n = n ^ 37
+        elif round_num == 5:
+            if pos == 0:
+                n = op_shift_left4_right4(n)
+            elif pos in (1, 3):
+                n = n ^ 147
+            elif pos == 2:
+                n = (n + 34) & 255
+            elif pos in (4, 9):
+                n = n ^ 218
+            elif pos in (5, 7):
+                n = op_shift_left1_right7(n)
+            elif pos == 6:
+                n = n ^ 180
+            elif pos == 8:
+                n = op_shift_right2_left6(n)
+        out.append(n & 255)
     return out
 
 
-def round2(data):
-    enc = rc4(get_key_bytes(3), data)
-    mut_key = get_key_bytes(4)
-    pref_key = get_key_bytes(5)
-
-    out = []
-    for i, val in enumerate(enc):
-        if i < 6 and i < len(pref_key):
-            out.append(pref_key[i])
-
-        v = val ^ get_mut_key(mut_key, i)
-
-        mod = i % 10
-        if mod in (0, 8):
-            v = mutC(v)
-        elif mod == 1:
-            v = mutB(v)
-        elif mod in (2, 6):
-            v = mutDollar(v)
-        elif mod == 3:
-            v = mutH(v)
-        elif mod in (4, 9):
-            v = mutS(v)
-        elif mod == 5:
-            v = mutK(v)
-        elif mod == 7:
-            v = mutUnderscore(v)
-
-        out.append(v & 255)
-
-    return out
+def round1(data: list[int]) -> list[int]:
+    return rc4(get_key_bytes(0), mutate(data, get_key_bytes(1), get_key_bytes(2), 7, 1))
 
 
-def round3(data):
-    enc = rc4(get_key_bytes(6), data)
-    mut_key = get_key_bytes(7)
-    pref_key = get_key_bytes(8)
-
-    out = []
-    for i, val in enumerate(enc):
-        if i < 7 and i < len(pref_key):
-            out.append(pref_key[i])
-
-        v = val ^ get_mut_key(mut_key, i)
-
-        mod = i % 10
-        if mod == 0:
-            v = mutC(v)
-        elif mod == 1:
-            v = mutF(v)
-        elif mod in (2, 8):
-            v = mutS(v)
-        elif mod == 3:
-            v = mutG(v)
-        elif mod == 4:
-            v = mutY(v)
-        elif mod == 5:
-            v = mutM(v)
-        elif mod == 6:
-            v = mutDollar(v)
-        elif mod == 7:
-            v = mutK(v)
-        elif mod == 9:
-            v = mutB(v)
-
-        out.append(v & 255)
-
-    return out
+def round2(data: list[int]) -> list[int]:
+    return rc4(get_key_bytes(3), mutate(data, get_key_bytes(4), get_key_bytes(5), 8, 2))
 
 
-def round4(data):
-    enc = rc4(get_key_bytes(9), data)
-    mut_key = get_key_bytes(10)
-    pref_key = get_key_bytes(11)
-
-    out = []
-    for i, val in enumerate(enc):
-        if i < 8 and i < len(pref_key):
-            out.append(pref_key[i])
-
-        v = val ^ get_mut_key(mut_key, i)
-
-        mod = i % 10
-        if mod == 0:
-            v = mutB(v)
-        elif mod in (1, 9):
-            v = mutM(v)
-        elif mod in (2, 7):
-            v = mutL(v)
-        elif mod in (3, 5):
-            v = mutS(v)
-        elif mod in (4, 6):
-            v = mutUnderscore(v)
-        elif mod == 8:
-            v = mutY(v)
-
-        out.append(v & 255)
-
-    return out
+def round3(data: list[int]) -> list[int]:
+    return rc4(get_key_bytes(6), mutate(data, get_key_bytes(7), get_key_bytes(8), 5, 3))
 
 
-def round5(data):
-    enc = rc4(get_key_bytes(12), data)
-    mut_key = get_key_bytes(13)
-    pref_key = get_key_bytes(14)
-
-    out = []
-    for i, val in enumerate(enc):
-        if i < 6 and i < len(pref_key):
-            out.append(pref_key[i])
-
-        v = val ^ get_mut_key(mut_key, i)
-
-        mod = i % 10
-        if mod == 0:
-            v = mutUnderscore(v)
-        elif mod in (1, 7):
-            v = mutS(v)
-        elif mod == 2:
-            v = mutC(v)
-        elif mod in (3, 5):
-            v = mutM(v)
-        elif mod == 4:
-            v = mutB(v)
-        elif mod == 6:
-            v = mutF(v)
-        elif mod == 8:
-            v = mutDollar(v)
-        elif mod == 9:
-            v = mutG(v)
-
-        out.append(v & 255)
-
-    return out
+def round4(data: list[int]) -> list[int]:
+    return rc4(
+        get_key_bytes(9), mutate(data, get_key_bytes(10), get_key_bytes(11), 8, 4)
+    )
 
 
-def generate_hash(path: str):
-    base_string = f"{path}:0:1"
+def round5(data: list[int]) -> list[int]:
+    return rc4(
+        get_key_bytes(12), mutate(data, get_key_bytes(13), get_key_bytes(14), 5, 5)
+    )
 
-    encoded = urllib.parse.quote(base_string, safe="~")
-    encoded = encoded.replace("+", "%20").replace("*", "%2A")
+
+def generate_hash(path: str) -> str:
+    encoded = (
+        urllib.parse.quote(path, safe="~")
+        .replace("+", "%20")
+        .replace("*", "%2A")
+        .replace("%7E", "~")
+    )
 
     initial_bytes = [b & 0xFF for b in encoded.encode("ascii")]
 
@@ -290,6 +217,4 @@ def generate_hash(path: str):
     r4 = round4(r3)
     r5 = round5(r4)
 
-    final_bytes = bytes(r5)
-
-    return base64.urlsafe_b64encode(final_bytes).rstrip(b"=").decode("ascii")
+    return base64.urlsafe_b64encode(bytes(r5)).rstrip(b"=").decode("ascii")

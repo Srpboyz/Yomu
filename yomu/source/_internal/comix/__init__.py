@@ -1,4 +1,6 @@
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from PyQt6.QtNetwork import QHttpHeaders
 
@@ -8,13 +10,47 @@ from yomu.source import Chapter, Manga, MangaList, Page, RateLimit, Source, Filt
 from .dto import *
 from .hash import generate_hash
 
+DATE_REGEX = re.compile(
+    r"^(\d+)\s*(s|m|h|d|w|mo|mos|y|yr|yrs|min|mins|sec|secs|hr|hrs|day|days|week|weeks|month|months|year|years)$"
+)
+
+
+def parse_date(date_str: str) -> datetime | None:
+    trimmed = date_str.strip().lower().removesuffix(" ago")
+    match = DATE_REGEX.search(trimmed)
+    if not match:
+        return None
+
+    try:
+        amount = int(match.group(1))
+    except (ValueError, TypeError):
+        return None
+    unit = match.group(2)
+
+    now = datetime.now()
+    if unit in ("s", "sec", "secs"):
+        return now - timedelta(seconds=amount)
+    if unit in ("m", "min", "mins"):
+        return now - timedelta(minutes=amount)
+    if unit in ("h", "hr", "hrs"):
+        return now - timedelta(hours=amount)
+    if unit in ("d", "day", "days"):
+        return now - timedelta(days=amount)
+    if unit in ("w", "week", "weeks"):
+        return now - timedelta(weeks=amount)
+    if unit in ("mo", "mos", "month", "months"):
+        return now - relativedelta(months=amount)
+    if unit in ("y", "yr", "yrs", "year", "years"):
+        return now - relativedelta(years=amount)
+    return None
+
 
 class Comix(Source):
     BASE_URL = "https://comix.to"
-    API_URL = "https://comix.to/api/v2"
+    API_URL = "https://comix.to/api/v1"
     rate_limit = RateLimit(5)
 
-    NSFW_IDS = ["-87264", "-8", "-87265", "-13", "-87266", "-87268"]
+    NSFW_IDS = ["87264", "8", "87265", "13", "87266", "87268"]
 
     has_filters = True
     filters = {
@@ -39,7 +75,7 @@ class Comix(Source):
                 f"{Comix.API_URL}/manga",
                 params={
                     "order[chapter_updated_at]": "desc",
-                    "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
+                    "genres_ex[]": Comix.NSFW_IDS if not self.is_nsfw else [],
                     "limit": 100,
                     "page": page,
                 },
@@ -55,7 +91,7 @@ class Comix(Source):
                 f"{Comix.API_URL}/manga",
                 params={
                     "order[relevance]": "desc",
-                    "genres[]": Comix.NSFW_IDS if not self.is_nsfw else [],
+                    "genres_ex[]": Comix.NSFW_IDS if not self.is_nsfw else [],
                     "limit": 100,
                     "keyword": query,
                 },
@@ -65,17 +101,22 @@ class Comix(Source):
     def _parse_search_data(self, data: MangaDto) -> Manga:
         return Manga(
             title=data["title"],
-            thumbnail=data["poster"]["large"],
-            url=f"/manga/{data['hash_id']}",
+            thumbnail=(data.get("poster") or {}).get("large"),
+            url=f"/manga/{data['hid']}",
         )
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
         data: ItemsDto = response.json()["result"]
+        has_next_page = (
+            data["meta"]["page"] < data["meta"]["lastPage"]
+            if "meta" in data
+            else data["pagination"]["current_page"] < data["pagination"]["last_page"]
+            if "pagination" in data
+            else False
+        )
         return MangaList(
             mangas=list(map(self._parse_search_data, data["items"])),
-            has_next_page=(
-                data["pagination"]["current_page"] < data["pagination"]["last_page"]
-            ),
+            has_next_page=has_next_page,
         )
 
     def get_manga_info(self, manga: Manga) -> Manga:
@@ -88,8 +129,12 @@ class Comix(Source):
 
         manga = self._parse_search_data(data)
         manga.description = data["synopsis"]
-        manga.author = next((author["title"] for author in data["author"]), None)
-        manga.artist = next((artist["title"] for artist in data["artist"]), None)
+        manga.author = (
+            ", ".join((author["title"] for author in data["authors"])) or None
+        )
+        manga.artist = (
+            ", ".join((artist["title"] for artist in data["artists"])) or None
+        )
 
         return manga
 
@@ -102,7 +147,6 @@ class Comix(Source):
                     "limit": 100,
                     "order[number]": "desc",
                     "page": page,
-                    "time": 1,
                     "_": generate_hash(path),
                 },
             )
@@ -119,11 +163,11 @@ class Comix(Source):
 
         title = " - ".join(title_parts)
         uploaded = (
-            datetime.fromtimestamp(updated_at)
-            if (updated_at := data.get("updated_at")) is not None
+            parse_date(created_at)
+            if (created_at := data.get("createdAtFormatted")) is not None
             else None
         )
-        url = f"/chapters/{data['chapter_id']}"
+        url = f"/chapters/{data['id']}"
 
         return Chapter(title=title, number=number, uploaded=uploaded, url=url)
 
@@ -131,10 +175,15 @@ class Comix(Source):
         result = response.json()["result"]
         chapters = result["items"]
 
-        current_page, last_page = (
-            result["pagination"]["current_page"],
-            result["pagination"]["last_page"],
-        )
+        if "meta" in result:
+            current_page = result["meta"]["page"]
+            last_page = result["meta"]["lastPage"]
+        elif "pagination" in result:
+            current_page = result["pagination"]["current_page"]
+            last_page = result["pagination"]["last_page"]
+        else:
+            current_page, last_page = 1, 0
+
         while current_page < last_page:
             current_page += 1
             response = self.network.handle_request(
@@ -148,12 +197,14 @@ class Comix(Source):
         return [self._parse_chapter(data, i) for i, data in enumerate(chapters)]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
-        return Request(Comix.API_URL + chapter.url)
+        return Request(
+            Url(Comix.API_URL + chapter.url, params={"_": generate_hash(chapter.url)})
+        )
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
             Page(number=i, url=image["url"])
-            for i, image in enumerate(response.json()["result"]["images"])
+            for i, image in enumerate(response.json()["result"]["pages"])
         ]
 
     def get_page(self, page: Page) -> Request:

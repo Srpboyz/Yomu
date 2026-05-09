@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 
 class MangaDto(TypedDict):
@@ -7,17 +7,23 @@ class MangaDto(TypedDict):
         medium: str
         large: str
 
-    hash_id: str
+    hid: str
     title: str
     synopsis: str | None
     poster: Poster
 
 
 class ChapterDto(TypedDict):
-    chapter_id: int
+    id: int
     number: float
     name: str
-    updated_at: int
+    createdAtFormatted: str
+
+
+class MetaDto(TypedDict):
+    page: int
+    lastPage: int
+    hasNext: int
 
 
 class PaginationDto(TypedDict):
@@ -27,7 +33,8 @@ class PaginationDto(TypedDict):
 
 class ItemsDto(TypedDict):
     items: list[MangaDto]
-    pagination: PaginationDto
+    meta: NotRequired[MetaDto]
+    pagination: NotRequired[PaginationDto]
 
 
 class SearchResponse(TypedDict):
