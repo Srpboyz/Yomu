@@ -24,10 +24,10 @@
 * Armageddon
 * Atsumaru
 * Comick (Removed)
-* Comix
+* Comix (Broken)
 * Firescans
 * Galaxy Degen Scans
-* Kappa Beast
+* Kappa Beast (Broken)
 * Manga18fx
 * Mangadex
 * Mangafire (Removed)
@@ -37,6 +37,7 @@
 * ToonGod
 * Toonily
 * WebtoonXYZ
+* Weeb Central
 
 Note: Sources may not be up to date
 

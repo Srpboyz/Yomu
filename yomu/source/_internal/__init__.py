@@ -13,6 +13,7 @@ from .theblank import TheBlank
 from .toongod import ToonGod
 from .toonily import Toonily
 from .webtoonxyz import WebtoonXYZ
+from .weebcentral import WeebCentral
 
 
 def _default_sources() -> list:
@@ -32,4 +33,5 @@ def _default_sources() -> list:
         ToonGod,
         Toonily,
         WebtoonXYZ,
+        WeebCentral,
     ]
