@@ -374,7 +374,8 @@ class Sql:
             id = query.value("id")
             number = query.value("number")
             title = query.value("title")
-            uploaded = datetime.fromtimestamp(query.value("uploaded"))
+            uploaded = query.value("uploaded")
+            uploaded = datetime.fromtimestamp(uploaded) if uploaded != -1 else None
             url = query.value("url")
             downloaded = bool(query.value("downloaded"))
             read = bool(query.value("read"))
@@ -428,12 +429,15 @@ class Sql:
             initialized=bool(query.value("mangas.initialized")),
         )
 
+        uploaded = query.value("chapters.uploaded")
+        uploaded = datetime.fromtimestamp(uploaded) if uploaded != -1 else None
+
         return Chapter(
             id=query.value("chapters.id"),
             number=query.value("chapters.number"),
             manga=manga,
             title=query.value("chapters.title"),
-            uploaded=datetime.fromtimestamp(query.value("chapters.uploaded")),
+            uploaded=uploaded,
             url=query.value("chapters.url"),
             downloaded=bool(query.value("chapters.downloaded")),
             read=bool(query.value("chapters.read")),
@@ -448,12 +452,14 @@ class Sql:
 
         saved_chapters: set[Chapter] = set()
         while query.next():
+            uploaded = query.value("uploaded")
+            uploaded = datetime.fromtimestamp(uploaded) if uploaded != -1 else None
             saved_chapters.add(
                 SourceChapter(
                     number=query.value("number"),
                     title=query.value("title"),
                     url=query.value("url"),
-                    uploaded=datetime.fromtimestamp(query.value("uploaded")),
+                    uploaded=uploaded,
                 )
             )
 
@@ -464,8 +470,16 @@ class Sql:
                 source_chapter.number != saved_chapter.number
                 or source_chapter.title != saved_chapter.title
                 or (
-                    source_chapter.uploaded.timestamp()
-                    != saved_chapter.uploaded.timestamp()
+                    (
+                        None
+                        if source_chapter.uploaded is None
+                        else source_chapter.uploaded.timestamp()
+                    )
+                    != (
+                        None
+                        if saved_chapter.uploaded is None
+                        else saved_chapter.uploaded.timestamp()
+                    )
                 )
             )
 
@@ -513,7 +527,10 @@ class Sql:
             query.addBindValue([chapter.number for chapter in chapters_to_add])
             query.addBindValue([chapter.title for chapter in chapters_to_add])
             query.addBindValue(
-                [chapter.uploaded.timestamp() for chapter in chapters_to_add],
+                [
+                    chapter.uploaded.timestamp() if chapter.uploaded is not None else -1
+                    for chapter in chapters_to_add
+                ],
             )
             query.addBindValue([chapter.url for chapter in chapters_to_add])
             chapters_added = query.execBatch()
@@ -531,7 +548,10 @@ class Sql:
             query.addBindValue([chapter.title for chapter in chapters_to_update])
             query.addBindValue([chapter.number for chapter in chapters_to_update])
             query.addBindValue(
-                [chapter.uploaded.timestamp() for chapter in chapters_to_update],
+                [
+                    chapter.uploaded.timestamp() if chapter.uploaded is not None else -1
+                    for chapter in chapters_to_update
+                ],
             )
             query.addBindValue([manga.id] * len(chapters_to_update))
             query.addBindValue([chapter.url for chapter in chapters_to_update])

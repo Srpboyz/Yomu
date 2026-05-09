@@ -79,7 +79,7 @@ class Manga(Base):
 class Chapter(Base):
     number: int
     manga: Manga
-    uploaded: datetime
+    uploaded: datetime | None
     downloaded: bool
     read: bool
 

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal
@@ -38,7 +39,12 @@ class ChapterListItem(BaseCardItem):
         self.title_widget = QLabel(chapter.title, self)
         self.title_widget.setObjectName("Title")
 
-        self.timestamp_widget = QLabel(chapter.uploaded.strftime("%m/%d/%y"), self)
+        self.timestamp_widget = QLabel(
+            chapter.uploaded.strftime("%m/%d/%y")
+            if chapter.uploaded is not None
+            else datetime.now().strftime("%m/%d/%y"),
+            self,
+        )
         self.timestamp_widget.setObjectName("Timestamp")
 
         self.downloaded_icon = QLabel(self)

@@ -40,7 +40,7 @@ if YOMU_DEV:
 else:
     QApplication.setApplicationName("Yomu")
     QApplication.setApplicationDisplayName("Yomu")
-QApplication.setApplicationVersion("1.3.9.2")
+QApplication.setApplicationVersion("1.3.10")
 if sys.platform == "linux":
     QApplication.setDesktopFileName("yomu")
 

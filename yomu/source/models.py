@@ -66,12 +66,12 @@ class Manga(Base):
 @dataclass(repr=True, eq=False, kw_only=True, slots=True)
 class Chapter(Base):
     number: int
-    uploaded: datetime
+    uploaded: datetime | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.uploaded, datetime):
+        if self.uploaded is not None and not isinstance(self.uploaded, datetime):
             raise TypeError(
-                f"Variable uploaded must be of type datetime, not {type(self.uploaded)}"
+                f"Variable uploaded must be of type datetime or None, not {type(self.uploaded)}"
             )
 
         return Base.__post_init__(self)
