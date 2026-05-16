@@ -3,6 +3,7 @@ import importlib
 import json
 import os
 import sys
+from contextlib import suppress as suppress_exception
 from dataclasses import dataclass
 from hashlib import md5
 from logging import getLogger
@@ -79,6 +80,7 @@ class ExtensionManager(QObject):
         super().__init__(app)
         self.app = app
         self._extensions: dict[int, ExtensionWrapper] = {}
+        app.aboutToQuit.connect(self.on_app_quit)
 
     def handle_dependency(self, path: str) -> DependencyHandler:
         return DependencyHandler(path)
@@ -178,10 +180,8 @@ class ExtensionManager(QObject):
 
         extension = wrapper.ext
         if extension is not None:
-            try:
+            with suppress_exception(Exception):
                 extension.unload()
-            except Exception:
-                ...
             extension.deleteLater()
             wrapper.ext = None
 
@@ -208,3 +208,10 @@ class ExtensionManager(QObject):
         if widget is not None:
             wrapper.ext.destroyed.connect(widget.deleteLater)
         return widget
+
+    def on_app_quit(self) -> None:
+        for wrapper in self._extensions.values():
+            extension = wrapper.ext
+            if extension is not None:
+                with suppress_exception(Exception):
+                    extension.unload()
