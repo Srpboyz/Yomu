@@ -17,19 +17,22 @@ class MangaSelector(QObject):
         manga_list.view_removed.connect(self._offset_cursor)
 
     def eventFilter(self, a0: MangaList, a1: QEvent) -> bool:
-        if a1.type() == QEvent.Type.KeyPress and self.manga_list.count:
+        if (
+            a1.type() == QEvent.Type.KeyPress 
+            and self.manga_list.count(include_hidden=False)
+        ):  # fmt: skip
             return self.key_event(a1.clone())
 
         if (
             a1.type() == QEvent.Type.FocusIn
             and a1.reason()
             in (Qt.FocusReason.TabFocusReason, Qt.FocusReason.BacktabFocusReason)
-            and self.manga_list.count > 0
+            and self.manga_list.count(include_hidden=False) > 0
         ):
             if self.cursor == -1:
-                self.cursor = 1
+                self.cursor = 0
 
-            if view := self.manga_list.manga_view_at(self.cursor):
+            if view := self.manga_list.manga_view_at(self.cursor, include_hidden=False):
                 window = self.manga_list.window()
                 center = view.geometry().center().toPointF()
                 QCoreApplication.postEvent(
@@ -63,7 +66,7 @@ class MangaSelector(QObject):
             self.clear_selected()
 
         elif key in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
-            if view := self.manga_list.manga_view_at(self.cursor):
+            if view := self.manga_list.manga_view_at(self.cursor, include_hidden=False):
                 mouse_event = QMouseEvent(
                     QEvent.Type.MouseButtonRelease,
                     view.geometry().center().toPointF(),
@@ -81,17 +84,24 @@ class MangaSelector(QObject):
     def move_cursor_up(self) -> None:
         self.set_selected(self.cursor, False)
         if self.cursor == -1:
-            self.cursor = self.manga_list.count - 1
+            self.cursor = self.manga_list.count(include_hidden=False) - 1
             return self.set_selected(self.cursor, True)
 
         layout = self.manga_list.layout()
-        row = int(layout.row_count * self.cursor / self.manga_list.count) - 1
+        row = (
+            int(
+                layout.row_count
+                * self.cursor
+                / self.manga_list.count(include_hidden=False)
+            )
+            - 1
+        )
         if row >= layout.row_count or row < 0:
             row = 0
         offset = layout.col_counts[row]
 
         self.cursor = (
-            self.manga_list.count + self.cursor - offset
+            self.manga_list.count(include_hidden=False) + self.cursor - offset
             if self.cursor - offset < 0
             else self.cursor - offset
         )
@@ -105,14 +115,21 @@ class MangaSelector(QObject):
             return self.set_selected(self.cursor, True)
 
         layout = self.manga_list.layout()
-        row = int(layout.row_count * self.cursor / self.manga_list.count) - 1
+        row = (
+            int(
+                layout.row_count
+                * self.cursor
+                / self.manga_list.count(include_hidden=False)
+            )
+            - 1
+        )
         if row >= layout.row_count or row < 0:
             row = 0
         offset = layout.col_counts[row]
 
         self.cursor = (
-            offset - (self.manga_list.count - self.cursor)
-            if self.cursor + offset >= self.manga_list.count
+            offset - (self.manga_list.count(include_hidden=False) - self.cursor)
+            if self.cursor + offset >= self.manga_list.count(include_hidden=False)
             else self.cursor + offset
         )
 
@@ -121,17 +138,23 @@ class MangaSelector(QObject):
     def move_cursor_left(self) -> None:
         self.set_selected(self.cursor, False)
         self.cursor = (
-            self.cursor - 1 if self.cursor - 1 >= 0 else self.manga_list.count - 1
+            self.cursor - 1
+            if self.cursor - 1 >= 0
+            else self.manga_list.count(include_hidden=False) - 1
         )
         self.set_selected(self.cursor, True)
 
     def move_cursor_right(self) -> None:
         self.set_selected(self.cursor, False)
-        self.cursor = self.cursor + 1 if self.cursor + 1 < self.manga_list.count else 0
+        self.cursor = (
+            self.cursor + 1
+            if self.cursor + 1 < self.manga_list.count(include_hidden=False)
+            else 0
+        )
         self.set_selected(self.cursor, True)
 
     def set_selected(self, index: int, selected: bool) -> None:
-        if (view := self.manga_list.manga_view_at(index)) is None:
+        if (view := self.manga_list.manga_view_at(index, include_hidden=False)) is None:
             return
 
         if view.visibleRegion().isNull():

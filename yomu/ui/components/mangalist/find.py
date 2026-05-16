@@ -28,7 +28,7 @@ class Find(QInputDialog):
 
     def search_for(self, name: str, start: int, end: int) -> bool:
         for i in range(start, end):
-            view = self.manga_list.manga_view_at(i)
+            view = self.manga_list.manga_view_at(i, include_hidden=False)
             if view is not None and not view.isHidden():
                 index = view.manga.title.lower().find(name)
                 if index != -1:
@@ -56,7 +56,7 @@ class Find(QInputDialog):
         start = self._current_index + 1 if previous_text == name else 0
 
         if not self.search_for(
-            name, start, self.manga_list.count
+            name, start, self.manga_list.count(include_hidden=False)
         ) and not self.search_for(name, 0, start):
             self._current_index = -1
             self.manga_list.verticalScrollBar().setValue(0)

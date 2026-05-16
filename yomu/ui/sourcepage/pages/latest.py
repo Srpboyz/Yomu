@@ -133,7 +133,7 @@ class LatestWidget(BasePage):
 
     def set_current_widget(self) -> None:
         if (
-            not self.manga_list.count
+            not self.manga_list.count()
             or not self.manga_list.verticalScrollBar().maximum()
         ):
             self.load_page()

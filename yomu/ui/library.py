@@ -72,10 +72,6 @@ class Library(QWidget, StackWidgetMixin):
 
     window: Callable[[], ReaderWindow]
 
-    @property
-    def manga_count(self) -> int:
-        return self._manga_list.count
-
     def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
         if isinstance(a0, MangaView):
             return self.mangaViewEvent(a0, a1)
@@ -174,7 +170,7 @@ class Library(QWidget, StackWidgetMixin):
 
     def _library_status_changed(self, manga: Manga) -> None:
         if manga.library:
-            for i in range(self.manga_count):
+            for i in range(self._manga_list.count()):
                 manga_view = self.manga_view_at(i)
                 if manga_view is not None and manga_view.manga.id > manga.id:
                     view = self._manga_list.insert_manga(i, manga)
@@ -188,7 +184,7 @@ class Library(QWidget, StackWidgetMixin):
                 view.hide()
             return view.fetch_thumbnail()
 
-        for i in range(self.manga_count):
+        for i in range(self._manga_list.count()):
             view = self.manga_view_at(i)
             if view is not None and view.manga == manga:
                 return view.deleteLater()
@@ -211,28 +207,28 @@ class Library(QWidget, StackWidgetMixin):
 
     def _category_manga_added(self, category: Category, manga: Manga) -> None:
         if self.tab_bar.tabText(self.tab_bar.currentIndex()) == category.name:
-            for i in range(self.manga_count):
+            for i in range(self._manga_list.count()):
                 view = self.manga_view_at(i)
                 if view is not None and view.manga == manga:
                     return view.show()
 
     def _category_manga_removed(self, category: Category, manga: Manga) -> None:
         if self.tab_bar.tabText(self.tab_bar.currentIndex()) == category.name:
-            for i in range(self.manga_count):
+            for i in range(self._manga_list.count()):
                 view = self.manga_view_at(i)
                 if view is not None and view.manga == manga:
                     return view.hide()
 
     def _tab_changed(self, index: int) -> None:
         if index == 0:
-            for i in range(self.manga_count):
+            for i in range(self._manga_list.count()):
                 if (view := self.manga_view_at(i)) is not None:
                     view.show()
             return None
 
         category = self._categories[self.tab_bar.tabText(index)]
         mangas = self.sql.get_category_mangas(category)
-        for i in range(self.manga_count):
+        for i in range(self._manga_list.count()):
             view = self.manga_view_at(i)
             if view is not None:
                 view.setVisible(view.manga in mangas)
@@ -242,8 +238,10 @@ class Library(QWidget, StackWidgetMixin):
             data = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(data["keybinds"] if data is not None else [])
 
-    def manga_view_at(self, index: int) -> MangaView | None:
-        return self._manga_list.manga_view_at(index)
+    def manga_view_at(
+        self, index: int, include_hidden: bool = True
+    ) -> MangaView | None:
+        return self._manga_list.manga_view_at(index, include_hidden=include_hidden)
 
     def add_category(self) -> None:
         name, ok = QInputDialog.getText(
@@ -256,14 +254,14 @@ class Library(QWidget, StackWidgetMixin):
 
     def set_source(self, source: Source | None) -> None:
         show_all = source is None
-        for i in range(self.manga_count):
+        for i in range(self._manga_list.count()):
             if (view := self.manga_view_at(i)) is not None:
                 view.setVisible(show_all or view.manga.source == source)
         self.current_source = source
 
     def update_all_manga(self) -> None:
         updater = self.window().app.updater
-        for i in range(self.manga_count):
+        for i in range(self._manga_list.count()):
             if (view := self.manga_view_at(i)) is not None:
                 manga = view.manga
                 updater.update_manga_details(

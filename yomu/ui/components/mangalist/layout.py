@@ -3,15 +3,15 @@ from PyQt6.QtWidgets import QLayout, QLayoutItem, QWidget, QWidgetItem
 
 
 class FlowLayout(QLayout):
-    def __init__(self, parent: QWidget = None) -> None:
+    def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        self.__itemList: list[QLayoutItem] = []
+        self._items: list[QLayoutItem] = []
 
         self.row_count = 0
         self.col_counts = []
 
-        self.__horizontalSpacing = 0
-        self.__verticalSpacing = 0
+        self.horizontal_spacing = 0
+        self.vertical_spacing = 0
 
         self.setContentsMargins(*(0 for _ in range(4)))
         self.setSpacing(5, 10)
@@ -22,36 +22,38 @@ class FlowLayout(QLayout):
 
     @property
     def spacing(self) -> tuple[int, int]:
-        return self.horizontalSpacing, self.verticalSpacing
-
-    @property
-    def horizontalSpacing(self) -> int:
-        return self.__horizontalSpacing
-
-    @property
-    def verticalSpacing(self) -> int:
-        return self.__verticalSpacing
+        return self.horizontal_spacing, self.vertical_spacing
 
     def setSpacing(self, horizontal: int, vertical: int) -> None:
-        self.__horizontalSpacing = horizontal
-        self.__verticalSpacing = vertical
+        self.horizontal_spacing = horizontal
+        self.vertical_spacing = vertical
 
-    def count(self) -> int:
-        return len(self.__itemList)
+    def count(self, *, include_hidden: bool = True) -> int:
+        return len(
+            self._items
+            if include_hidden
+            else tuple(filter(lambda item: item.widget().isVisible(), self._items))
+        )
 
-    def itemAt(self, index: int) -> QLayoutItem | None:
-        if index >= 0 and index < self.count():
-            return self.__itemList[index]
+    def itemAt(self, index: int, *, include_hidden: bool = True) -> QLayoutItem | None:
+        items = (
+            self._items
+            if include_hidden
+            else tuple(filter(lambda item: item.widget().isVisible(), self._items))
+        )
+        if index >= 0 and index < len(items):
+            return items[index]
 
-    def addItem(self, a0: QLayoutItem | None) -> None:
-        self.__itemList.append(a0)
+    def addItem(self, a0: QLayoutItem) -> None:
+        self._items.append(a0)
 
-    def insertItem(self, index: int, a0: QLayoutItem | None) -> None:
-        self.__itemList.insert(index, a0)
+    def insertItem(self, index: int, a0: QLayoutItem) -> None:
+        self._items.insert(index, a0)
 
     def takeAt(self, index: int) -> QLayoutItem | None:
-        if index >= 0 and index < self.count():
-            return self.__itemList.pop(index)
+        if index >= 0 and index < self.count(include_hidden=True):
+            return self._items.pop(index)
+        return None
 
     def insertWidget(self, index: int, widget: QWidget) -> None:
         self.addChildWidget(widget)
@@ -72,7 +74,7 @@ class FlowLayout(QLayout):
 
     def minimumSize(self) -> QSize:
         size = QSize()
-        for item in self.__itemList:
+        for item in self._items:
             size = size.expandedTo(item.minimumSize())
 
         margin = self.contentsMargins()
@@ -82,21 +84,21 @@ class FlowLayout(QLayout):
 
     def __doLayout(self, rect: QRect, testOnly: bool) -> int:
         x, y = rect.x(), rect.y()
-        spaceX, spaceY = self.horizontalSpacing, self.verticalSpacing
-        lineHeight = 0
+        space_x, spaceY = self.horizontal_spacing, self.vertical_spacing
+        line_height = 0
         items: list[list[QLayoutItem]] = []
         subitems: list[QLayoutItem] = []
 
-        for item in self.__itemList:
+        for item in self._items:
             if item.widget().isHidden():
                 continue
 
-            nextX = x + item.sizeHint().width() + spaceX
-            if nextX - spaceX > rect.right() and lineHeight > 0:
+            nextX = x + item.sizeHint().width() + space_x
+            if nextX - space_x > rect.right() and line_height > 0:
                 x = rect.x()
-                y += lineHeight + spaceY
-                nextX = x + item.sizeHint().width() + spaceX
-                lineHeight = 0
+                y += line_height + spaceY
+                nextX = x + item.sizeHint().width() + space_x
+                line_height = 0
                 items.append(subitems)
                 subitems = []
 
@@ -105,7 +107,7 @@ class FlowLayout(QLayout):
                 subitems.append(item)
 
             x = nextX
-            lineHeight = max(lineHeight, item.sizeHint().height())
+            line_height = max(line_height, item.sizeHint().height())
         items.append(subitems)
 
         width = self.parentWidget().width()
@@ -115,11 +117,11 @@ class FlowLayout(QLayout):
 
             size = (
                 sum(item.geometry().width() for item in subitems)
-                + (len(subitems) - 1) * self.horizontalSpacing
+                + (len(subitems) - 1) * space_x
             )
 
             newSize = (width - size) // 2
-            if newSize > self.horizontalSpacing:
+            if newSize > space_x:
                 for item in subitems:
                     geometry = item.geometry()
                     x = geometry.x() + newSize
@@ -129,8 +131,8 @@ class FlowLayout(QLayout):
             self.row_count = len(items)
             self.col_counts = [len(row) for row in items]
 
-        return y + lineHeight - rect.y()
+        return y + line_height - rect.y()
 
     def clear(self) -> None:
-        while self.count():
-            self.takeAt(0).widget().deleteLater()
+        while self._items:
+            self._items.pop().widget().deleteLater()

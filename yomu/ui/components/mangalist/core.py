@@ -48,9 +48,8 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
     def layout(self) -> FlowLayout:
         return self.widget().layout()
 
-    @property
-    def count(self) -> int:
-        return self.widget().layout().count()
+    def count(self, include_hidden: bool = True) -> int:
+        return self.layout().count(include_hidden=include_hidden)
 
     def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
         if isinstance(a0, MangaView):
@@ -79,7 +78,7 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
         return super().eventFilter(a0, a1)
 
     def mousePressEvent(self, event: QMouseEvent | None) -> None:
-        for i in range(self.count):
+        for i in range(self.count()):
             self.manga_view_at(i).title_widget.setSelection(0, 0)
         return super().mousePressEvent(event)
 
@@ -88,14 +87,16 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
             data = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(data["keybinds"] if data is not None else [])
 
-    def item_at(self, index: int):
-        return self.layout().itemAt(index)
+    def item_at(self, index: int, *, include_hidden: bool = True):
+        return self.layout().itemAt(index, include_hidden=include_hidden)
 
     def take_at(self, index: int):
         return self.layout().takeAt(index)
 
-    def manga_view_at(self, index: int) -> MangaView | None:
-        if (item := self.item_at(index)) is not None:
+    def manga_view_at(
+        self, index: int, *, include_hidden: bool = True
+    ) -> MangaView | None:
+        if (item := self.item_at(index, include_hidden=include_hidden)) is not None:
             widget = item.widget()
             if isinstance(widget, MangaView):
                 return widget

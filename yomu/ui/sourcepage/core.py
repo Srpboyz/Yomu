@@ -6,7 +6,12 @@ from PyQt6.QtCore import pyqtSignal, QEvent, QObject, Qt, QUrl
 from PyQt6.QtGui import QIcon, QMouseEvent
 from PyQt6.QtNetwork import QNetworkCookie
 from PyQt6.QtWidgets import QTabWidget, QToolButton
-from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
+from PyQt6.QtWebEngineCore import (
+    QWebEngineProfile,
+    QWebEnginePage,
+    QWebEngineUrlRequestInfo,
+    QWebEngineUrlRequestInterceptor,
+)
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 from yomu.core import utils
@@ -20,6 +25,17 @@ from .pages.search import SearchWidget
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
     from .pages import BasePage
+
+
+YOMU_DEV = int(os.getenv("YOMU_DEV", "0"))
+
+if YOMU_DEV:
+
+    class Interceptor(QWebEngineUrlRequestInterceptor):
+        def interceptRequest(self, info: QWebEngineUrlRequestInfo) -> None:
+            print(info.requestMethod().data().decode(), info.requestUrl().toString())
+            print(info.requestBody())
+            print()
 
 
 class SourcePage(QTabWidget, StackWidgetMixin):
@@ -127,6 +143,8 @@ class SourcePage(QTabWidget, StackWidgetMixin):
         profile.cookieStore().cookieAdded.connect(self._add_web_view_cookie)
 
         page = QWebEnginePage(profile, self._web_view)
+        if YOMU_DEV:
+            page.setUrlRequestInterceptor(Interceptor(page))
         profile.setParent(page)
 
         self._web_view.setPage(page)
