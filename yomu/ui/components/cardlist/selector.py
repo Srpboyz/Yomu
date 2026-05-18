@@ -54,7 +54,7 @@ class CardSelector(QObject):
 
         elif key in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
             if (item := self.card_list.layout().itemAt(self.cursor)) is None:
-                return
+                return False
 
             card = item.widget()
             mouse_event = QMouseEvent(
