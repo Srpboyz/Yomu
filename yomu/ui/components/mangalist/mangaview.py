@@ -63,6 +63,7 @@ class MangaView(QFrame):
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setToolTip(manga.title)
 
     @property
     def manga(self) -> Manga:
