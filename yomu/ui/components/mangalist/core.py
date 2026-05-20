@@ -1,7 +1,7 @@
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, Qt
-from PyQt6.QtGui import QMouseEvent
+from PyQt6.QtGui import QFocusEvent, QMouseEvent
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar, QWidget
 
 from yomu.core import utils
@@ -81,6 +81,11 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
         for i in range(self.count()):
             self.manga_view_at(i).title_widget.setSelection(0, 0)
         return super().mousePressEvent(event)
+
+    def focusInEvent(self, a0: QFocusEvent | None) -> None:
+        if not self.count(include_hidden=False):
+            self.focusNextChild()
+        return super().focusInEvent(a0)
 
     def _set_keybinds(self, keybinds: dict[str, utils.Keybind]) -> None:
         for action in self.actions():
