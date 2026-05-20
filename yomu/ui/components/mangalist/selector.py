@@ -60,12 +60,16 @@ class MangaSelector(QObject):
 
         if key == Qt.Key.Key_Left:
             self.move_cursor_left()
-        if key == Qt.Key.Key_Right:
+        elif key == Qt.Key.Key_Right:
             self.move_cursor_right()
-        if key == Qt.Key.Key_Escape:
+        elif key == Qt.Key.Key_Escape:
             self.clear_selected()
 
         elif key in (Qt.Key.Key_Enter, Qt.Key.Key_Return):
+            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                self.toggle_library(self.cursor)
+                return False
+
             if view := self.manga_list.manga_view_at(self.cursor, include_hidden=False):
                 mouse_event = QMouseEvent(
                     QEvent.Type.MouseButtonRelease,
@@ -177,6 +181,11 @@ class MangaSelector(QObject):
             QCoreApplication.postEvent(
                 view, QHoverEvent(QEvent.Type.HoverLeave, center, center)
             )
+
+    def toggle_library(self, index: int) -> None:
+        if (view := self.manga_list.manga_view_at(index, include_hidden=False)) is None:
+            return
+        self.manga_list.app.sql.set_library(view.manga, library=not view.manga.library)
 
     def clear_selected(self) -> None:
         self.set_selected(self.cursor, False)
