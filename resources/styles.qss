@@ -61,14 +61,21 @@ QTabBar::tab {
     outline: 0;
 }
 
+QTabBar::tab:selected {
+    border-bottom-color: #FFFFFF;
+}
+
 QTabBar::tab:!selected:hover {
     background-color: #303030;
 }
 
-QTabBar::tab:selected {
+QTabBar::tab:selected:focus {
     color: #90CAF9;
     border-bottom-color: #90CAF9;
-    outline: 0;
+}
+
+QTabBar::tab:selected:!focus {
+    border-bottom-color: #FFFFFF;
 }
 
 /* Used for non kde linux */

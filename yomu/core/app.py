@@ -10,11 +10,21 @@ from PyQt6.QtGui import (
     QFontDatabase,
     QIcon,
     QMouseEvent,
+    QPainter,
     QPalette,
     QPixmap,
     QShortcut,
 )
-from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMessageBox,
+    QProxyStyle,
+    QSplashScreen,
+    QStyle,
+    QStyleHintReturn,
+    QStyleOption,
+    QWidget,
+)
 
 from yomu.source import Source
 from yomu.ui import ReaderWindow
@@ -70,6 +80,32 @@ class AppSettings(QSettings):
 
 class YomuSplashScreen(QSplashScreen):
     def mousePressEvent(self, a0: QMouseEvent | None) -> None: ...
+
+
+class ToolTipDelayStyle(QProxyStyle):
+    def styleHint(
+        self,
+        hint: QStyle.StyleHint,
+        option: QStyleOption | None = None,
+        widget: QWidget | None = None,
+        returnData: QStyleHintReturn | None = None,
+    ) -> int:
+        if hint == QProxyStyle.StyleHint.SH_ToolTip_WakeUpDelay:
+            return 500
+        if hint == QProxyStyle.StyleHint.SH_ToolTip_FallAsleepDelay:
+            return 0
+        return super().styleHint(hint, option, widget, returnData)
+
+    def drawPrimitive(
+        self,
+        element: QStyle.PrimitiveElement,
+        option: QStyleOption | None,
+        painter: QPainter | None,
+        widget: QWidget | None = None,
+    ) -> None:
+        if element == QProxyStyle.PrimitiveElement.PE_FrameFocusRect:
+            return
+        return super().drawPrimitive(element, option, painter, widget)
 
 
 class YomuApp(QApplication):
@@ -136,6 +172,7 @@ class YomuApp(QApplication):
         palette.setColor(QPalette.ColorRole.Accent, QColor(0, 120, 212))
         palette.setColor(QPalette.ColorRole.NoRole, QColor(0, 0, 0))
         self.setPalette(palette)
+        self.setStyle(ToolTipDelayStyle(self.style()))
 
         self._windows: list[ReaderWindow] = []
 
