@@ -1,6 +1,7 @@
 from .armageddon import Armageddon
 from .atsumaru import Atsumaru
 from .comix import Comix
+from .divascans import DivaScans
 from .firescans import FireScans
 from .galaxydegenscans import GalaxyDegenScans
 from .kappabeast import KappaBeast
@@ -21,6 +22,7 @@ def _default_sources() -> list:
         Armageddon,
         Atsumaru,
         Comix,
+        DivaScans,
         FireScans,
         GalaxyDegenScans,
         KappaBeast,
