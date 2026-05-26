@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 
 class MangaDto(TypedDict):
@@ -9,7 +9,7 @@ class MangaDto(TypedDict):
     author: str
     artist: str
     featuredImage: str
-    isNovel: bool
+    isNovel: NotRequired[bool]
 
 
 class MangaListDto(TypedDict):

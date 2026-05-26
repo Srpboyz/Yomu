@@ -10,11 +10,8 @@ from yomu.source import *
 from .dto import *
 
 
-class NyxScans(Source):
-    name = "Nyx Scans"
-    BASE_URL = "https://nyxscans.com"
-    API_URL = "https://api.nyxscans.com/api"
-
+class Iken(Source):
+    API_URL: str
     per_page = 18
 
     def get_latest(self, page: int) -> Request:
@@ -26,10 +23,10 @@ class NyxScans(Source):
     def search_for_manga(self, query: str, page: int = 1) -> Request:
         return Request(
             Url(
-                NyxScans.API_URL + "/query",
+                self.API_URL + "/query",
                 params={
                     "page": page,
-                    "per_page": NyxScans.per_page,
+                    "per_page": self.per_page,
                     "searchTerm": query,
                 },
             )
@@ -46,45 +43,34 @@ class NyxScans(Source):
                 thumbnail=manga["featuredImage"],
                 url=f"{manga['slug']}#{manga['id']}",
             )
-            for manga in filter(lambda manga: not manga["isNovel"], data["posts"])
+            for manga in filter(
+                lambda manga: not manga.get("isNovel", False), data["posts"]
+            )
         ]
 
-        has_next_page = (page * NyxScans.per_page) < data["totalCount"]
-
+        has_next_page = (page * self.per_page) < data["totalCount"]
         return MangaList(mangas=mangas, has_next_page=has_next_page)
 
     def get_manga_info(self, manga: Manga) -> Request:
-        return Request(f"{NyxScans.BASE_URL}/series/{manga.url}")
+        manga_id = Url(manga.url).fragment()
+        return Request(f"{self.API_URL}/post?postId={manga_id}")
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        script = html.find_all("script", type="application/ld+json")[-1]
-
-        data = json.loads(script.get_text(strip=True))
-        for manga_data in data["@graph"][::-1]:
-            if manga_data["@type"] == "Article":
-                break
-        else:
-            raise TypeError("Couldn't get manga data")
-
-        title = manga_data["name"]
-        description = manga_data["description"]
-        author = manga_data["author"]["name"]
-        thumbnail = manga_data["image"]["@id"]
-        url = response.url().toString().replace(f"{NyxScans.BASE_URL}/series/", "")
+        data: MangaDto = response.json()["post"]
 
         return Manga(
-            title=title,
-            description=description,
-            author=author,
-            thumbnail=thumbnail,
-            url=url,
+            title=data["postTitle"],
+            description=data.get("postContent"),
+            author=data.get("author"),
+            artist=data.get("artist"),
+            thumbnail=data.get("featuredImage"),
+            url=manga.url,
         )
 
     def get_chapters(self, manga: Manga) -> Request:
         manga_id = Url(manga.url).fragment()
         return Request(
-            f"{NyxScans.API_URL}/chapters?postId={manga_id}&skip=0&take=999&order=desc&userId=undefined"
+            f"{self.API_URL}/chapters?postId={manga_id}&skip=0&take=999&order=desc&userId=undefined"
         )
 
     def _parse_chapter(self, chapter: ChapterDto) -> Chapter:
@@ -110,7 +96,7 @@ class NyxScans(Source):
         )
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
-        return Request(f"{NyxScans.BASE_URL}/series/{chapter.url}")
+        return Request(f"{self.BASE_URL}/series/{chapter.url}")
 
     def parse_chapter_pages(
         self, response: Response, chapter: Chapter
