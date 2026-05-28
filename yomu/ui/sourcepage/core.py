@@ -15,6 +15,7 @@ from PyQt6.QtWebEngineCore import (
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 from yomu.core import utils
+from yomu.core.network import Request
 from yomu.source import Source, FilterOption
 from yomu.ui.stack import StackWidgetMixin
 
@@ -141,6 +142,7 @@ class SourcePage(QTabWidget, StackWidgetMixin):
 
         profile = QWebEngineProfile()
         profile.cookieStore().cookieAdded.connect(self._add_web_view_cookie)
+        profile.setHttpUserAgent(Request.DEFAULT_USER_AGENT)
 
         page = QWebEnginePage(profile, self._web_view)
         if YOMU_DEV:
