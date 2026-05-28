@@ -5,7 +5,7 @@ from enum import IntEnum
 from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QObject, QRect, Qt, QUrl
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QRect, Qt, QUrl
 from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
@@ -19,14 +19,8 @@ from yomu.ui.stack import StackWidgetMixin
 
 from .page import PageView
 from .overlay import Overlay
-from .overlay.bar import NavigationBar, PageBar, BaseBar
-from .view import (
-    BaseView,
-    HorizontalView,
-    ReverseSinglePageView,
-    SinglePageView,
-    WebtoonView,
-)
+from .overlay.bar import NavigationBar, PageBar
+from .view import *
 
 if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
@@ -42,7 +36,9 @@ class Reader(QScrollArea, StackWidgetMixin):
     views: dict[str, BaseView] = {
         HorizontalView.name: HorizontalView,
         SinglePageView.name: SinglePageView,
+        SinglePageViewFTW.name: SinglePageViewFTW,
         ReverseSinglePageView.name: ReverseSinglePageView,
+        ReverseSinglePageViewFTW.name: ReverseSinglePageViewFTW,
         WebtoonView.name: WebtoonView,
     }
 

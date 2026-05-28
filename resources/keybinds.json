@@ -59,12 +59,6 @@
             "Alt+V"
         ]
     },
-    "Change Fit Direction": {
-        "description": "Change between fit to width or height. Only works in single page mode",
-        "keybinds": [
-            "Alt+Shift+V"
-        ]
-    },
     "Zoom Out": {
         "description": "Zoom out of a page. Only works in the reader",
         "keybinds": [

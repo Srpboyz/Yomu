@@ -57,11 +57,14 @@ class PageWidget(QWidget):
 
 class StackLayout(QStackedLayout):
     def __init__(
-        self, view: SinglePageView, animation_direction: AnimationDirection
+        self,
+        view: SinglePageView,
+        fit_direction: FitDirection,
+        animation_direction: AnimationDirection,
     ) -> None:
         super().__init__(view)
         self.reader = view.reader
-        self.direction = FitDirection.Height
+        self.fit_direction = fit_direction
         self.animation_direction = animation_direction
         self._animation = None
 
@@ -100,7 +103,7 @@ class StackLayout(QStackedLayout):
     def calculate_target_geometry(self, widget: PageWidget) -> QRect:
         if widget.page_status == PageView.Status.LOADED:
             image_size = widget.image_size()
-            if self.direction == FitDirection.Width:
+            if self.fit_direction == FitDirection.Width:
                 return self.fit_to_width(image_size)
             else:
                 return self.fit_to_height(image_size)
@@ -181,7 +184,7 @@ class StackLayout(QStackedLayout):
         if current_widget is not None:
             if current_widget.page_status == PageView.Status.LOADED:
                 image_size = current_widget.image_size()
-                if self.direction == FitDirection.Width:
+                if self.fit_direction == FitDirection.Width:
                     rect = self.fit_to_width(image_size)
                     view.setFixedSize(
                         self.reader.size()
@@ -204,17 +207,14 @@ class StackLayout(QStackedLayout):
 
 
 class SinglePageView(BaseView):
-    name = "Single Page (Left-To-Right)"
+    name = "Single Page (Left-To-Right) (Fit To Height)"
+    fit_direction = FitDirection.Height
     animation_direction = AnimationDirection.LEFT_TO_RIGHT
 
     def __init__(self, reader: Reader) -> None:
         super().__init__(reader)
-        self.setLayout(StackLayout(self, self.animation_direction))
+        self.setLayout(StackLayout(self, self.fit_direction, self.animation_direction))
         reader.installEventFilter(self)
-
-        self.addAction("Change Fit Direction").triggered.connect(self.change_direction)
-        self.window().app.keybinds_changed.connect(self.on_keybinds_changed)
-        self.on_keybinds_changed(core_utils.get_keybinds())
 
     layout: Callable[[], StackLayout]
 
@@ -237,24 +237,6 @@ class SinglePageView(BaseView):
             for view in views:
                 layout.addWidget(PageWidget(self, view))
 
-    def context_menu(self) -> QMenu:
-        menu = QMenu()
-        menu.addAction("Change Fit Direction").triggered.connect(self.change_direction)
-        return menu
-
-    def change_direction(self):
-        layout = self.layout()
-        layout.direction = (
-            FitDirection.Height
-            if layout.direction == FitDirection.Width
-            else FitDirection.Width
-        )
-        layout.update()
-
-    def on_keybinds_changed(self, keybinds):
-        data = keybinds.get("Change Fit Direction", {"keybinds": []})
-        self.actions()[0].setShortcuts(data["keybinds"] if data is not None else [])
-
     def page_at(self, pos: QPoint) -> PageView | None:
         page_widget = self.layout().currentWidget()
         if page_widget and page_widget.geometry().contains(self.mapFromParent(pos)):
@@ -268,6 +250,16 @@ class SinglePageView(BaseView):
         self._current_index = -1
 
 
+class SinglePageViewFTW(SinglePageView):
+    name = "Single Page (Left-To-Right) (Fit To Width)"
+    fit_direction = FitDirection.Width
+
+
 class ReverseSinglePageView(SinglePageView):
-    name = "Single Page (Right-To-Left)"
+    name = "Single Page (Right-To-Left) (Fit To Height)"
     animation_direction = AnimationDirection.RIGHT_TO_LEFT
+
+
+class ReverseSinglePageViewFTW(ReverseSinglePageView):
+    name = "Single Page (Right-To-Left) (Fit To Width)"
+    fit_direction = FitDirection.Width
