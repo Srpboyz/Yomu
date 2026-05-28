@@ -68,7 +68,7 @@ class Overlay(QFrame):
     def _animation_finished(self) -> None:
         shown = bool(self._animation.currentValue())
         self._state = Overlay.State.SHOWN if shown else Overlay.State.HIDDEN
-        self.setEnabled(shown)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not shown)
 
     def add_overlay(self, widget: OverlayWidget) -> None:
         if isinstance(widget, OverlayWidgetMixin) and isinstance(widget, QWidget):
