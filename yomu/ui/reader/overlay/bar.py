@@ -72,8 +72,8 @@ class NavigationBar(BaseBar):
         self.title_widget = QLabel(self)
         self.layout().insertWidget(1, self.title_widget)
 
-    def overlay_resized(self, _) -> None:
-        self.setFixedWidth(self.parent().width())
+    def overlay_resized(self, size: QSize) -> None:
+        self.setFixedWidth(size.width())
 
     def set_title(self, title: str | None) -> None:
         self.title_widget.setText(title)

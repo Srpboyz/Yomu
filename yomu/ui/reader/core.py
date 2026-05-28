@@ -141,11 +141,6 @@ class Reader(QScrollArea, StackWidgetMixin):
     def remove_view(cls, name: str) -> bool:
         cls.views.pop(name, None)
 
-    def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
-        if isinstance(a0, BaseBar) and a1.type() == QEvent.Type.Wheel and a0.isHidden():
-            self.window().app.postEvent(self.viewport(), a1.clone())
-        return super().eventFilter(a0, a1)
-
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         if a0.button() == Qt.MouseButton.BackButton:
             a0.ignore()
