@@ -137,7 +137,7 @@ class YomuApp(QApplication):
         self.installNativeEventFilter(self._native_event_filter)
 
         icons = os.path.join(utils.resource_path(), "icons")
-        self.setWindowIcon(QIcon(os.path.join(icons, "app.ico")))
+        self.setWindowIcon(QIcon(os.path.join(icons, "app.png")))
 
         pixmap = QPixmap(os.path.join(icons, "splashscreen.png"))
         self.splash_screen = YomuSplashScreen(pixmap)

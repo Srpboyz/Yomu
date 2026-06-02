@@ -4,6 +4,8 @@ from typing import TypedDict
 
 from PyQt6.QtCore import QCoreApplication, QEventLoop, QTimer, QStandardPaths
 
+RESOURCES_DIR = os.getenv("RESOURCES_DIR")
+
 
 def app_data_path() -> str:
     """Returns the app data path
@@ -40,10 +42,26 @@ def temp_dir_path() -> str:
 
 
 def resource_path() -> str:
+    """Returns the resource dir path
+
+    Returns
+    -------
+    str
+        The path
+    """
+    if RESOURCES_DIR is not None:
+        path = os.path.join(RESOURCES_DIR, "yomu", "resources")
+        if os.path.exists(path):
+            return path
+
     path = __file__
     for _ in range(3):
         path = os.path.dirname(path)
-    return os.path.join(path, "resources")
+
+    path = os.path.join(path, "resources")
+    if not os.path.exists(path):
+        raise FileNotFoundError("Can't find resources directory")
+    return path
 
 
 def icon_path() -> str:
