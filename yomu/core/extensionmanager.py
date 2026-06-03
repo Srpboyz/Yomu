@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 
     class BaseInfo(TypedDict):
         name: str
-        icon: str | None
         enabled: bool
 
     class ExtenstionModule:
@@ -36,12 +35,11 @@ logger = getLogger(__name__)
 class ExtensionInfo:
     id: int
     name: str
-    icon: str | None
     enabled: bool
     path: str
 
     def to_dict(self) -> BaseInfo:
-        return {"name": self.name, "icon": self.icon, "enabled": self.enabled}
+        return {"name": self.name, "enabled": self.enabled}
 
 
 @dataclass(kw_only=True)
@@ -114,10 +112,6 @@ class ExtensionManager(QObject):
             if not isinstance(name, str):
                 name = extension_dir
 
-            icon = ext_info.get("icon")
-            if icon is not None and not isinstance(icon, str):
-                icon = None
-
             ext_id = int(str(int(md5(extension_dir.encode()).hexdigest(), 16))[:12])
             if enabled:
                 with self.handle_dependency(path):
@@ -147,9 +141,7 @@ class ExtensionManager(QObject):
             else:
                 extension = None
 
-            ext_info = ExtensionInfo(
-                id=ext_id, name=name, icon=icon, enabled=enabled, path=path
-            )
+            ext_info = ExtensionInfo(id=ext_id, name=name, enabled=enabled, path=path)
             self._extensions[ext_id] = ExtensionWrapper(ext=extension, info=ext_info)
 
         sys.path.remove(appdata)
