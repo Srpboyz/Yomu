@@ -11,7 +11,10 @@ from yomu.source.base import Madara
 class WeebCentral(Madara):
     name = "Weeb Central"
     BASE_URL = "https://weebcentral.com"
-    rate_limit = RateLimit(1, 2)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.network.add_rate_limit(RateLimit(1, 2, url="weebcentral.com"))
 
     def get_latest(self, page: int) -> Request:
         return Request(
