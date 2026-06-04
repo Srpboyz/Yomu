@@ -79,6 +79,7 @@ class LatestWidget(BasePage):
             Request.CacheLoadControl.AlwaysNetwork,
         )
         request.setAttribute(Request.Attribute.CacheSaveControlAttribute, False)
+        request.source = self.source
 
         if (response := self.window().network.handle_request(request)) is None:
             return self._error_occured()

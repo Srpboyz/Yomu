@@ -3,8 +3,7 @@ from enum import StrEnum
 from hashlib import md5
 from typing import NotRequired, Sequence, TypedDict
 
-from yomu.core.network import Network, Request, Response
-from .ratelimit import RateLimit
+from yomu.core.network import Network, RateLimit, Request, Response
 from .models import *
 
 
@@ -63,6 +62,9 @@ class Source(ABC):
 
     def __hash__(self) -> int:
         return hash(self.id)
+
+    def __repr__(self) -> str:
+        return f"<Source id={self.id} name={self.name} rate_limit={self.rate_limit} supports_latest={self.supports_latest} supports_search={self.supports_search} has_filters={self.has_filters} >"
 
     @abstractmethod
     def get_latest(self, page: int) -> Request: ...

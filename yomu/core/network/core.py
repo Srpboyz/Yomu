@@ -16,6 +16,7 @@ from .response import Response
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
+    from .ratelimit import RateLimit
 
 
 logger = getLogger(__name__)
@@ -130,9 +131,13 @@ class Network(QNetworkAccessManager):
             self._online = is_online
             self.online_changed.emit(is_online, True)
 
+    def add_rate_limit(self, rate_limit: RateLimit) -> None:
+        if rate_limit.url is not None:
+            self._limit_handler.add_rate_limit(rate_limit)
+
     def handle_request(self, request: Request) -> Response:
         response = Response(self, request)
-        self._limit_handler.handle_request(response)
+        self._limit_handler.handle(response)
         return response
 
     def _send_response(self, response: Response) -> None:
