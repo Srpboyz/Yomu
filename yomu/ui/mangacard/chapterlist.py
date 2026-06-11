@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt6.QtCore import QEvent, Qt, pyqtSignal
 from PyQt6.QtGui import QContextMenuEvent, QMovie, QPixmap
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from yomu.ui.components.cardlist import CardList, BaseCardItem
+from yomu.ui.components.cardlist import BaseCardItem, CardList, CardSelector
 
 from yomu.core import utils
 from yomu.core.models import Chapter
@@ -88,47 +88,56 @@ class ChapterListItem(BaseCardItem):
         self.setProperty("selected", selected)
 
 
-class ChapterSelector(QObject):
-    def __init__(self, chapter_list: ChapterList):
+class ChapterSelector(CardSelector["ChapterList"]):
+    def __init__(self, chapter_list: ChapterList) -> None:
         super().__init__(chapter_list)
-        self.chapter_list = chapter_list
         self.selected_chapters: set[ChapterListItem] = set()
-        self.current_index = -1
 
-    def eventFilter(self, a0: ChapterListItem, a1: QEvent):
-        event_type = a1.type()
+    @property
+    def chapter_list(self) -> ChapterList:
+        return self.card_list
+
+    def eventFilter(self, chapterlist: ChapterList, a1: QEvent) -> bool:
         if (
-            event_type == QEvent.Type.MouseButtonRelease
-            and a1.button() == Qt.MouseButton.LeftButton
+            a1.type() != QEvent.Type.MouseButtonRelease
+            or a1.button() != Qt.MouseButton.LeftButton
         ):
-            modifiers = a1.modifiers()
-            if modifiers == Qt.KeyboardModifier.ControlModifier:
-                self.handle_ctrl_select(a0)
-            elif modifiers == Qt.KeyboardModifier.ShiftModifier:
-                if self.current_index != -1:
-                    self.handle_shift_select(a0)
-                else:
-                    self.handle_ctrl_select(a0)
-            elif (
-                modifiers
-                == Qt.KeyboardModifier.ControlModifier
-                | Qt.KeyboardModifier.ShiftModifier
-            ):
-                self.handle_ctrl_shift_select()
+            return super().eventFilter(chapterlist, a1)
+
+        pos = chapterlist.cursor().pos()
+        for item in filter(lambda item: isinstance(item, ChapterListItem), chapterlist):
+            if item.rect().contains(item.mapFromGlobal(pos)):
+                break
+        else:
+            return super().eventFilter(chapterlist, a1)
+
+        modifiers = a1.modifiers()
+        if modifiers == Qt.KeyboardModifier.ControlModifier:
+            self.handle_ctrl_select(item)
+        elif modifiers == Qt.KeyboardModifier.ShiftModifier:
+            if self.cursor != -1:
+                self.handle_shift_select(item)
+            else:
+                self.handle_ctrl_select(item)
+        elif (
+            modifiers
+            == Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier
+        ):
+            self.handle_ctrl_shift_select()
         return False
 
     def handle_ctrl_select(self, item: ChapterListItem) -> None:
         self.select_chapter(item) if not item.selected else self.deselect_chapter(item)
-        self.current_index = self.chapter_list.layout().indexOf(item)
+        self.cursor = self.chapter_list.layout().indexOf(item)
 
     def handle_shift_select(self, item: ChapterListItem) -> None:
         layout = self.chapter_list.layout()
         index = layout.indexOf(item)
 
         iterator = (
-            range(index, self.current_index + 1)
-            if index < self.current_index
-            else range(self.current_index, index + 1)
+            range(index, self.cursor + 1)
+            if index < self.cursor
+            else range(self.cursor, index + 1)
         )
 
         func = self.select_chapter if not item.selected else self.deselect_chapter
@@ -136,7 +145,7 @@ class ChapterSelector(QObject):
         for i in iterator:
             func(layout.itemAt(i).widget())
 
-        self.current_index = index
+        self.cursor = index
 
     def handle_ctrl_shift_select(self) -> None:
         layout = self.chapter_list.layout()
@@ -149,10 +158,7 @@ class ChapterSelector(QObject):
         for i in range(1, layout.count()):
             func(layout.itemAt(i).widget())
 
-        if not self.selected_chapters:
-            self.current_index = -1
-        else:
-            self.current_index = layout.count() - 1
+        self.cursor = layout.count() - 1 if self.selected_chapters else -1
 
     def select_chapter(self, item: ChapterListItem) -> None:
         item.set_selected(True)
@@ -166,12 +172,14 @@ class ChapterSelector(QObject):
         if unselect:
             for chapter in self.selected_chapters:
                 chapter.set_selected(False)
+            return self.selected_chapters.clear()
 
         self.selected_chapters.clear()
-        self.current_index = -1
+        self.cursor = -1
 
 
-class ChapterList(CardList[ChapterListItem]):
+class ChapterList(CardList[ChapterListItem, ChapterSelector]):
+    selector_cls = ChapterSelector
     items_changed = pyqtSignal()
     item_clicked = pyqtSignal(int)
     _mark_as_read_request = pyqtSignal((list, bool))
@@ -188,8 +196,6 @@ class ChapterList(CardList[ChapterListItem]):
         widget = self.widget()
         widget.setContentsMargins(0, 0, 0, 0)
         widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-        self.chapter_selector = ChapterSelector(self)
 
         self.loading_icon = QLabel(self)
         self.loading_icon.setObjectName("Loading")
@@ -233,7 +239,7 @@ class ChapterList(CardList[ChapterListItem]):
     def _handle_context_menu(
         self, item: ChapterListItem, event: QContextMenuEvent
     ) -> None:
-        self.chapter_selector.select_chapter(item)
+        self.selector.select_chapter(item)
         chapter = item.chapter
 
         menu = QMenu(self)
@@ -268,14 +274,14 @@ class ChapterList(CardList[ChapterListItem]):
         elif selected_action == delete_ch:
             self._download_chapters(False)
 
-        self.chapter_selector.clear_selection(unselect=True)
+        self.selector.clear_selection(unselect=True)
 
     def _mark_as_read(self, read: bool) -> None:
         self._mark_as_read_request.emit(
             sorted(
                 filter(
                     lambda chapter: chapter.read != read,
-                    (item.chapter for item in self.chapter_selector.selected_chapters),
+                    (item.chapter for item in self.selector.selected_chapters),
                 ),
                 key=lambda chapter: chapter.number,
             ),
@@ -287,7 +293,7 @@ class ChapterList(CardList[ChapterListItem]):
             sorted(
                 filter(
                     lambda chapter: chapter.downloaded != download,
-                    (item.chapter for item in self.chapter_selector.selected_chapters),
+                    (item.chapter for item in self.selector.selected_chapters),
                 ),
                 key=lambda chapter: chapter.number,
             ),
@@ -315,9 +321,7 @@ class ChapterList(CardList[ChapterListItem]):
 
         chapters = sorted(chapters, key=lambda chapter: chapter.number)
         for chapter in chapters:
-            item = ChapterListItem(self, chapter)
-            item.installEventFilter(self.chapter_selector)
-            self.add_card(item)
+            self.add_card(ChapterListItem(self, chapter))
 
         self.loading_icon.hide()
         self.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -335,7 +339,7 @@ class ChapterList(CardList[ChapterListItem]):
         layout = self.layout()
         for _ in range(layout.count() - 1):
             layout.takeAt(1).widget().deleteLater()
-        self.chapter_selector.clear_selection()
+        self.selector.clear_selection()
 
         layout.setDirection(QVBoxLayout.Direction.BottomToTop)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)

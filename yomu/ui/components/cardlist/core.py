@@ -1,4 +1,4 @@
-from typing import Any, Callable, Generator, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette
@@ -36,7 +36,12 @@ class VerticalBoxLayout[T: BaseCardItem](QVBoxLayout):
         return super().removeWidget(w)
 
 
-class CardList[T: BaseCardItem = BaseCardItem](QScrollArea, LayoutIterator[T]):
+class CardList[
+    T: BaseCardItem = BaseCardItem,
+    S: CardSelector = CardSelector,
+](QScrollArea, LayoutIterator[T]):
+    selector_cls: type[S] = CardSelector
+
     def __init__(self, window: ReaderWindow) -> None:
         super().__init__(window)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
@@ -53,8 +58,7 @@ class CardList[T: BaseCardItem = BaseCardItem](QScrollArea, LayoutIterator[T]):
         widget.setPalette(pallete)
 
         self.setWidget(widget)
-
-        self.selector = CardSelector(self)
+        self.selector = self.selector_cls(self)
 
     window: Callable[[], ReaderWindow]
     widget: Callable[[], QWidget]

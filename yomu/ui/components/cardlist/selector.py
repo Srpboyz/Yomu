@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from .core import CardList
 
 
-class CardSelector(QObject):
-    def __init__(self, card_list: CardList) -> None:
+class CardSelector[T: CardList = CardList](QObject):
+    def __init__(self, card_list: T) -> None:
         super().__init__(card_list)
         self.card_list = card_list
         card_list.installEventFilter(self)
