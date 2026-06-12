@@ -24,6 +24,10 @@ class Url(QUrl):
         if params is not None:
             self.set_params(params)
 
+    @property
+    def path_segments(self) -> list[str]:
+        return self.path().strip("/").split("/")
+
     def query(
         self,
         options: QUrl.ComponentFormattingOption = QUrl.ComponentFormattingOption.PrettyDecoded,
