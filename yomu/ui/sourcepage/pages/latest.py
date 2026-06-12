@@ -96,6 +96,13 @@ class LatestWidget(BasePage):
             return None
 
         if error != Response.Error.NoError:
+            try:
+                self.source.latest_request_error(response, self._page)
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {self.source.name} handle latest request error",
+                    exc_info=e,
+                )
             self.source.latest_request_error(response, self._page)
             return self._error_occured()
 

@@ -2,7 +2,8 @@ import os
 from copy import copy
 from datetime import datetime, timezone
 from email.utils import format_datetime
-from typing import overload, TYPE_CHECKING
+from logging import getLogger
+from typing import overload, Sequence, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QBuffer, QDir, QObject, Qt, QTimer, QFile
 from PyQt6.QtGui import QImage
@@ -16,6 +17,8 @@ from yomu.source import Source, Page as SourcePage
 
 if TYPE_CHECKING:
     from .app import YomuApp
+
+logger = getLogger(__name__)
 
 
 class DownloadChapter(QObject):
@@ -52,22 +55,39 @@ class DownloadChapter(QObject):
 
     def _pages_received(self) -> None:
         response: Response = self.sender()
-
+        source = self.chapter.source
         error = response.error()
         if error != Response.Error.NoError:
             if not self.cancelled:
-                self.chapter.source.chapter_pages_request_error(
-                    response, self.chapter.to_source_chapter()
-                )
+                try:
+                    source.chapter_pages_request_error(
+                        response, self.chapter.to_source_chapter()
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error occured while letting {source.name} handle chapter pages request error",
+                        exc_info=e,
+                    )
             return self._request_failed()
 
         try:
-            self._pages = self.chapter.source.parse_chapter_pages(
+            pages = source.parse_chapter_pages(
                 response, self.chapter.to_source_chapter()
             )
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to parse chapter for {source.name}", exc_info=e)
             return self._request_failed()
 
+        if not isinstance(pages, Sequence) or not all(
+            isinstance(page, SourcePage) for page in pages
+        ):
+            logger.error("Expected a sequence of pages")
+            return self._request_failed()
+
+        if not pages:
+            return self._request_failed()
+
+        self.pages = sorted(pages, key=lambda page: page.number)
         self.next_page()
 
     def next_page(self) -> None:
@@ -87,17 +107,21 @@ class DownloadChapter(QObject):
 
     def _page_image_received(self) -> None:
         response: Response = self.sender()
-
+        source = self.chapter.source
         error = response.error()
         if error != Response.Error.NoError:
             if not self.cancelled:
-                self.chapter.source.page_request_error(
-                    response, self._pages[self._index]
-                )
+                try:
+                    source.page_request_error(response, self._pages[self._index])
+                except Exception as e:
+                    logger.error(
+                        f"Error occured while letting {source.name} handle page request error",
+                        exc_info=e,
+                    )
             return self._request_failed()
 
         try:
-            data = self.chapter.source.parse_page(response, self._pages[self._index])
+            data = source.parse_page(response, self._pages[self._index])
         except Exception:
             return self._request_failed()
 
@@ -162,7 +186,6 @@ class DownloadThumbnail(QObject):
             request = self.manga.get_thumbnail()
         except Exception:
             return self.deleteLater()
-
         request.source = self.manga.source
         request.setPriority(Request.Priority.LowPriority)
 
@@ -171,19 +194,23 @@ class DownloadThumbnail(QObject):
 
     def _thumbnail_received(self) -> None:
         response: Response = self.sender()
-
+        source = self.manga.source
         error = response.error()
         if error != Response.Error.NoError:
             if error != Response.Error.OperationCanceledError:
-                self.manga.source.thumbnail_request_error(
-                    response, self.manga.to_source_manga()
-                )
+                try:
+                    source.thumbnail_request_error(
+                        response, self.manga.to_source_manga()
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Error occured while letting {source.name} handle thumbnail request error",
+                        exc_info=e,
+                    )
             return self.deleteLater()
 
         try:
-            data = self.manga.source.parse_thumbnail(
-                response, self.manga.to_source_manga()
-            )
+            data = source.parse_thumbnail(response, self.manga.to_source_manga())
         except Exception:
             return self.deleteLater()
 

@@ -1,5 +1,6 @@
 import os
 from enum import IntEnum
+from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QMimeData, Qt, QUrl
@@ -17,6 +18,9 @@ if TYPE_CHECKING:
 
     class Parent(QWidget):
         manga: Manga
+
+
+logger = getLogger(__name__)
 
 
 class LoadingStatus(IntEnum):
@@ -98,24 +102,26 @@ class ThumbnailWidget(QLabel):
 
     def _thumbnail_received(self) -> None:
         response: Response = self.sender()
-
+        source = self.manga.source
         error = response.error()
         if error == Response.Error.NoError:
             return self._load_image(
                 response.read_all()
                 if self.status == LoadingStatus.CACHE
-                else self.manga.source.parse_thumbnail(
-                    response, self.manga.to_source_manga()
-                )
+                else source.parse_thumbnail(response, self.manga.to_source_manga())
             )
 
         if self.status == LoadingStatus.CACHE:
             return self.fetch_thumbnail(force_network=True)
 
         if error != Response.Error.OperationCanceledError:
-            self.manga.source.thumbnail_request_error(
-                response, self.manga.to_source_manga()
-            )
+            try:
+                source.thumbnail_request_error(response, self.manga.to_source_manga())
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {source.name} handle thumbnail request error",
+                    exc_info=e,
+                )
             self.status = LoadingStatus.NULL
             return self.setText("Failed to load image")
 

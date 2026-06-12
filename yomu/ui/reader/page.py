@@ -87,15 +87,14 @@ class PageView(QLabel):
 
     def _page_fetched(self) -> None:
         response: Response = self.sender()
+        source = self.page.source
 
         if response.error() == Response.Error.NoError:
             if self.page.downloaded:
                 data = response.read_all()
             else:
                 try:
-                    data = self.page.chapter.source.parse_page(
-                        response, self.page.to_source_page()
-                    )
+                    data = source.parse_page(response, self.page.to_source_page())
                 except Exception as e:
                     logger.error("Failed to parse page", exc_info=e)
                     self.status = PageView.Status.FAILED
@@ -103,7 +102,13 @@ class PageView(QLabel):
 
             self._load_image(data)
         else:
-            self.page.source.page_request_error(response, self.page.to_source_page())
+            try:
+                source.page_request_error(response, self.page.to_source_page())
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {source.name} handle page request error",
+                    exc_info=e,
+                )
             self.status = PageView.Status.FAILED
 
     def _load_image(self, data: bytes) -> None:

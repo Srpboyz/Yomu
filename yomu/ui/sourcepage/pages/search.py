@@ -68,7 +68,13 @@ class SearchWidget(BasePage):
             return None
 
         if error != Response.Error.NoError:
-            self.source.search_request_error(response, self.current_text)
+            try:
+                self.source.search_request_error(response, self.current_text)
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {self.source.name} handle search request error",
+                    exc_info=e,
+                )
             return window.display_message("Error while searching for manga")
 
         try:

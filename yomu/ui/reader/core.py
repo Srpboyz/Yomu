@@ -269,25 +269,31 @@ class Reader(QScrollArea, StackWidgetMixin):
         if error == Response.Error.OperationCanceledError:
             return
 
+        source = self.chapter.source
         if error != Response.Error.NoError:
-            self.chapter.source.chapter_pages_request_error(
-                response, self.chapter.to_source_chapter()
-            )
+            try:
+                source.chapter_pages_request_error(
+                    response, self.chapter.to_source_chapter()
+                )
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {source.name} handle chapter pages request error",
+                    exc_info=e,
+                )
             return self.display_message("Error fetching chapter")
 
         try:
-            pages = self.chapter.source.parse_chapter_pages(
+            pages = source.parse_chapter_pages(
                 response, self.chapter.to_source_chapter()
             )
         except Exception as e:
-            logger.error(
-                f"Failed to parse chapter for {self.chapter.source.name}", exc_info=e
-            )
+            logger.error(f"Failed to parse chapter for {source.name}", exc_info=e)
             return self.display_message("Error fetching chapter")
 
         if not isinstance(pages, Sequence) or not all(
             isinstance(page, SourcePage) for page in pages
         ):
+            logger.error("Expected a sequence of pages")
             return self.display_message("Error fetching chapter")
 
         if not pages:

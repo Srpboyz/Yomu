@@ -42,8 +42,8 @@ class CardList[
 ](QScrollArea, LayoutIterator[T]):
     selector_cls: type[S] = CardSelector
 
-    def __init__(self, window: ReaderWindow) -> None:
-        super().__init__(window)
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent)
         self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.setWidgetResizable(True)
         self.setContentsMargins(0, 0, 0, 0)

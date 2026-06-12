@@ -33,11 +33,10 @@ class MangaUpdate(BaseUpdate):
 
     def _request_finished(self):
         response: Response = self.sender()
+        source = self.manga.source
         if response.error() == Response.Error.NoError:
             try:
-                smanga = self.manga.source.parse_manga_info(
-                    response, self.manga.to_source_manga()
-                )
+                smanga = source.parse_manga_info(response, self.manga.to_source_manga())
             except Exception as e:
                 if logger is not None:
                     logger.error(
@@ -50,9 +49,13 @@ class MangaUpdate(BaseUpdate):
                 else:
                     self.failed.emit(self.manga)
         else:
-            self.manga.source.manga_info_request_error(
-                response, self.manga.to_source_manga()
-            )
+            try:
+                source.manga_info_request_error(response, self.manga.to_source_manga())
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {source.name} handle manga info request error",
+                    exc_info=e,
+                )
 
         self.deleteLater()
 
@@ -65,11 +68,10 @@ class ChaptersUpdate(BaseUpdate):
 
     def _request_finished(self):
         response: Response = self.sender()
+        source = self.manga.source
         if response.error() == Response.Error.NoError:
             try:
-                chapters = self.manga.source.parse_chapters(
-                    response, self.manga.to_source_manga()
-                )
+                chapters = source.parse_chapters(response, self.manga.to_source_manga())
             except Exception as e:
                 if logger is not None:
                     logger.error(
@@ -84,9 +86,13 @@ class ChaptersUpdate(BaseUpdate):
                 else:
                     self.failed.emit(self.manga)
         else:
-            self.manga.source.chapter_request_error(
-                response, self.manga.to_source_manga()
-            )
+            try:
+                source.chapter_request_error(response, self.manga.to_source_manga())
+            except Exception as e:
+                logger.error(
+                    f"Error occured while letting {source.name} handle chapter request error",
+                    exc_info=e,
+                )
             self.failed.emit(self.manga)
 
         self.deleteLater()
