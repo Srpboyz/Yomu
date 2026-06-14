@@ -8,6 +8,7 @@ from .galaxydegenscans import GalaxyDegenScans
 from .kappabeast import KappaBeast
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
+from .mangadotnet import Mangadotnet
 from .nyxscans import NyxScans
 from .philiascans import PhiliaScans
 from .templescan import TempleScan
@@ -30,6 +31,7 @@ def _default_sources() -> list:
         KappaBeast,
         Manga18fx,
         MangaDex,
+        Mangadotnet,
         NyxScans,
         PhiliaScans,
         TempleScan,
