@@ -69,13 +69,14 @@ class SourceManager:
         os.makedirs(source_folder, exist_ok=True)
 
         source_cls = _default_sources()
-        for source_dir in os.listdir(source_folder):
+        for source_path in os.listdir(source_folder):
+            if os.path.isfile(os.path.join(source_folder, source_path)):
+                source_path = os.path.splitext(source_path)[0]
+
             try:
-                mod = importlib.import_module(f".{source_dir}", package="sources")  # fmt:skip
+                mod = importlib.import_module(f".{source_path}", package="sources")  # fmt:skip
             except Exception as e:
-                logger.error(
-                    f"Failed to load source directory {source_dir}", exc_info=e
-                )
+                logger.error(f"Failed to load source {source_path}", exc_info=e)
                 continue
 
             for obj_name in dir(mod):

@@ -25,13 +25,17 @@
 * Atsumaru
 * Comick (Removed)
 * Comix (Broken)
+* Diva Scans (Broken)
+* Eris Scans
 * Firescans
 * Galaxy Degen Scans
 * Kappa Beast (Broken)
 * Manga18fx
 * Mangadex
+* Mangadotnet
 * Mangafire (Removed)
 * Nyx Scans
+* Philia Scans
 * Temple Scan
 * The Blank Scans (Broken)
 * ToonGod
