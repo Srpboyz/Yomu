@@ -5,10 +5,9 @@ from dateparser import parse as parse_date
 from yomu.core.network import Response, Request, Url
 from yomu.source import *
 from yomu.source import MangaList
-from yomu.source.base import Madara
 
 
-class WeebCentral(Madara):
+class WeebCentral(Source):
     name = "Weeb Central"
     BASE_URL = "https://weebcentral.com"
 
