@@ -1,8 +1,6 @@
 import re
-from typing import Sequence
 
 from dateparser import parse
-from PyQt6.QtNetwork import QHttpHeaders
 
 from yomu.core import Request
 from yomu.core.network import Response, Url
@@ -27,11 +25,10 @@ class MangaDex(Source):
     }
 
     def get_latest(self, page: int) -> Request:
-        limit = 100
-        offset = limit * (page - 1)
+        offset = 100 * (page - 1)
 
         params = {
-            "limit": limit,
+            "limit": 100,
             "offset": offset,
             "translatedLanguage[]": ["en"],
             "order[readableAt]": "desc",
@@ -41,9 +38,7 @@ class MangaDex(Source):
             "contentRating[]": self.filters["content-rating"]["value"],
         }
 
-        url = Url(f"{MangaDex.API_URL}/chapter")
-        url.set_params(params)
-        return Request(url)
+        return Request(Url(f"{API_URL}/chapter", params=params), user_agent=USER_AGENT)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
         json = response.json()
@@ -82,9 +77,7 @@ class MangaDex(Source):
             "contentRating[]": self.filters["content-rating"]["value"],
         }
 
-        url = Url(f"{MangaDex.API_URL}/manga")
-        url.set_params(params)
-        return Request(url)
+        return Request(Url(f"{API_URL}/manga", params=params), user_agent=USER_AGENT)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
         json = response.json()
@@ -103,8 +96,8 @@ class MangaDex(Source):
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         json = response.json()
 
-        manga_url = MangaDex.BASE_URL + "/title/{0}"
-        cover_url = MangaDex.UPLOAD_URL + "/covers/{}/{}"
+        manga_url = BASE_URL + "/title/{0}"
+        cover_url = UPLOAD_URL + "/covers/{}/{}"
 
         manga_data = json["data"][0]
         thumbnail, author, artist = None, None, None
@@ -148,18 +141,19 @@ class MangaDex(Source):
             "includeEmptyPages": 0,
         }
 
-        url = Url(f"{MangaDex.API_URL}/manga/{manga_id}/feed")
-        url.set_params(params)
-        return Request(url)
+        return Request(
+            Url(f"{API_URL}/manga/{manga_id}/feed", params=params),
+            user_agent=USER_AGENT,
+        )
 
-    def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
+    def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
         json = response.json()
         total = json["total"]
 
         manga_id = re.match(Regex.CHAPTER, response.url().toString()).group(1)
 
-        chapter_url = MangaDex.BASE_URL + "/chapter/{0}"
-        manga_feed_url = f"{MangaDex.API_URL}/manga/{manga_id}/feed"
+        chapter_url = BASE_URL + "/chapter/{0}"
+        manga_feed_url = f"{API_URL}/manga/{manga_id}/feed"
         params = {
             "limit": 500,
             "offset": 0,
@@ -192,11 +186,9 @@ class MangaDex(Source):
             if params["offset"] >= total:
                 break
 
-            url = Url(manga_feed_url)
-            url.set_params(params)
-
-            request = Request(url)
-            request.source = self
+            request = Request(
+                Url(manga_feed_url, params=params), user_agent=USER_AGENT, source=self
+            )
             request.setPriority(Request.Priority.HighPriority)
 
             response = self.network.handle_request(request)
@@ -211,15 +203,14 @@ class MangaDex(Source):
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         id = re.match(r"https://mangadex\.org/chapter/((\S+))", chapter.url).group(1)  # fmt: skip
-        url = f"{MangaDex.API_URL}/at-home/server/{id}?forcePort443=true"
-        return Request(url)
+        return Request(
+            f"{API_URL}/at-home/server/{id}?forcePort443=true", user_agent=USER_AGENT
+        )
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         json = response.json()
 
-        url: str = MangaDex.UPLOAD_URL + "/data/" + json["chapter"]["hash"] + "/{0}"
+        url: str = UPLOAD_URL + "/data/" + json["chapter"]["hash"] + "/{0}"
         pages = [
             Page(number=number, url=url.format(page))
             for number, page in enumerate(json["chapter"]["data"])
@@ -227,13 +218,10 @@ class MangaDex(Source):
         return pages
 
     def get_thumbnail(self, manga: Manga) -> Request:
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Origin, BASE_URL)
-        headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Referer, f"{BASE_URL}/")
+        return Request(manga.thumbnail, user_agent=USER_AGENT)
 
-        request = super().get_thumbnail(manga)
-        request.setHeaders(headers)
-        return request
+    def get_page(self, page: Page) -> Request:
+        return Request(page.url, user_agent=USER_AGENT)
 
     def update_filters(self, filters) -> None:
         new_filters = filters["content-rating"]

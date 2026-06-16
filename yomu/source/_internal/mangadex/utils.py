@@ -7,6 +7,7 @@ __all__ = (
     "BASE_URL",
     "API_URL",
     "UPLOAD_URL",
+    "USER_AGENT",
     "Regex",
     "create_manga_request",
     "parse_manga_data",
@@ -15,6 +16,7 @@ __all__ = (
 BASE_URL = "https://mangadex.org"
 API_URL = "https://api.mangadex.org"
 UPLOAD_URL = "https://uploads.mangadex.org"
+USER_AGENT = "Yomu " + Request.DEFAULT_USER_AGENT
 
 
 class Regex(StrEnum):
@@ -30,9 +32,7 @@ def create_manga_request(manga_ids: list) -> Request:
         "includes[]": ["cover_art", "author", "artist"],
     }
 
-    url = Url(f"{API_URL}/manga")
-    url.set_params(params)
-    return Request(url)
+    return Request(Url(f"{API_URL}/manga", params=params), user_agent=USER_AGENT)
 
 
 def parse_manga_data(json: dict):
