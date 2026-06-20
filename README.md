@@ -24,12 +24,12 @@
 * Armageddon
 * Atsumaru
 * Comick (Removed)
-* Comix (Broken)
+* Comix (Removed)
 * Diva Scans (Broken)
 * Eris Scans
 * Firescans
 * Galaxy Degen Scans
-* Kappa Beast (Broken)
+* Kappa Beast (Removed)
 * Manga18fx
 * Mangadex
 * Mangadotnet
@@ -37,7 +37,7 @@
 * Nyx Scans
 * Philia Scans
 * Temple Scan
-* The Blank Scans (Broken)
+* The Blank Scans (Removed)
 * ToonGod
 * Toonily
 * WebtoonXYZ
