@@ -2,7 +2,14 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 from typing_extensions import deprecated
 
-from PyQt6.QtCore import pyqtSignal, QEventLoop, QJsonDocument, QStandardPaths
+from PyQt6.QtCore import (
+    pyqtSignal,
+    QDateTime,
+    QEventLoop,
+    QJsonDocument,
+    QStandardPaths,
+    QUrl,
+)
 from PyQt6.QtNetwork import (
     QNetworkAccessManager,
     QNetworkDiskCache,
@@ -10,9 +17,9 @@ from PyQt6.QtNetwork import (
 )
 
 from .cookiejar import CookieJar
+from .ratelimit import RateLimitHandler
 from .request import Request
 from .response import Response
-
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
@@ -20,6 +27,60 @@ if TYPE_CHECKING:
 
 
 logger = getLogger(__name__)
+
+
+class DiskCache(QNetworkDiskCache):
+    def __init__(self, network: Network) -> None:
+        super().__init__(network)
+        self.setMaximumCacheSize(512 * 1024 * 1024)
+        self.setCacheDirectory(
+            QStandardPaths.standardLocations(
+                QStandardPaths.StandardLocation.CacheLocation
+            )[0]
+        )
+
+    def is_valid(self, url: QUrl | str) -> bool:
+        """
+        Checks if the cache for a url is exists and is valid
+
+        Parameters
+        ----------
+        url : QUrl | str
+            The url to check
+
+        Returns
+        -------
+        bool
+            Whether the cache is valid or not
+        """
+        if isinstance(url, str):
+            url = QUrl(url)
+
+        if (
+            not (metadata := self.metaData(url))
+            or not metadata.isValid()
+            or not metadata.saveToDisk()
+        ):
+            return False
+
+        for name, value in metadata.rawHeaders():
+            if bytes(name).decode("latin1").lower() == "cache-control":
+                directives = {
+                    part.strip().split("=", 1)[0]
+                    for part in bytes(value).decode("latin1").split(",")
+                    if part.strip()
+                }
+                break
+        else:
+            directives = {}
+
+        if "must-revalidate" in directives or "no-cache" in directives:
+            return False
+
+        if (expiration := metadata.expirationDate()).isValid():
+            return expiration >= QDateTime.currentDateTimeUtc()
+
+        return False
 
 
 class Network(QNetworkAccessManager):
@@ -43,22 +104,11 @@ class Network(QNetworkAccessManager):
 
         self._online = not self.offline_mode and self.network_online
 
+        self._limit_handler = RateLimitHandler(self)
         jar = CookieJar(self)
         app.aboutToQuit.connect(jar.save_cookies)
         self.setCookieJar(jar)
-
-        from .ratelimit import RateLimitHandler
-
-        self._limit_handler = RateLimitHandler(self)
-
-        cache = QNetworkDiskCache(self)
-        cache.setMaximumCacheSize(512 * 1024 * 1024)
-        cache.setCacheDirectory(
-            QStandardPaths.standardLocations(
-                QStandardPaths.StandardLocation.CacheLocation
-            )[0]
-        )
-        self.setCache(cache)
+        self.setCache(DiskCache(self))
 
     @property
     def parent(self) -> None: ...

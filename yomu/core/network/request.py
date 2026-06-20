@@ -24,6 +24,9 @@ class Url(QUrl):
         if params is not None:
             self.set_params(params)
 
+    def __str__(self) -> str:
+        return self.toString()
+
     @property
     def path_segments(self) -> list[str]:
         return self.path().strip("/").split("/")

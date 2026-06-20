@@ -127,7 +127,7 @@ class RateLimitHandler(QObject):
         url = request.url()
         if (
             cache_attribute == Request.CacheLoadControl.PreferCache
-            and self.network.cache().metaData(url).isValid()
+            and self.network.cache().is_valid(url)
         ):
             request.setAttribute(
                 Request.Attribute.CacheLoadControlAttribute,
