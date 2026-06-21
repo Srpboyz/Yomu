@@ -73,11 +73,11 @@ class Mangadotnet(Source):
 
         description = data.get("description")
         try:
-            authors = ", ".join(json.loads(data.get("authors", "[]")))
-        except json.decoder.JSONDecodeError:
+            authors = ", ".join(json.loads(data.get("authors") or "[]"))
+        except Exception:
             authors = data.get("authors")
         try:
-            artists = ", ".join(json.loads(data.get("artists", "[]")))
+            artists = ", ".join(json.loads(data.get("artists") or "[]"))
         except json.decoder.JSONDecodeError:
             artists = data.get("artists")
 
@@ -100,25 +100,19 @@ class Mangadotnet(Source):
         )
 
     def parse_chapter_data(self, data: ChapterDto, number: int) -> Chapter:
-        title = data.get("chapter_title", "")
+        title = (data.get("chapter_title") or "").strip()
         if (
             "chapter" not in title.lower()
             and (chapter_num := data.get("chapter_number")) is not None
         ):
-            title = f"Chapter {chapter_num} • {title}"
-        if (
-            "vol" not in title.lower()
-            and (vol_num := data.get("volume_number")) is not None
-        ):
-            title = f"Vol {vol_num} • {title}"
+            title = " • ".join(filter(None, [f"Chapter {chapter_num}", title]))
 
         date_added = data.get("date_added")
         if date_added is not None:
             uploaded = datetime.fromisoformat(date_added)
 
-        return Chapter(
-            title=title, number=number, uploaded=uploaded, url=str(data["id"])
-        )
+        url = ("uploads" if data["source"] == "user" else "chapters") + f"/{data['id']}"
+        return Chapter(title=title, number=number, uploaded=uploaded, url=url)
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
         return [
@@ -129,7 +123,7 @@ class Mangadotnet(Source):
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
-        return Request(f"{Mangadotnet.BASE_URL}/api/chapters/{chapter.url}/images")
+        return Request(f"{Mangadotnet.BASE_URL}/api/{chapter.url}/images")
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
