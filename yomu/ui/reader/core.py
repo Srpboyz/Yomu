@@ -386,10 +386,13 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.info_bar.set_title(chapter.title)
         self.page_bar.reset()
 
+        for page in self._pages:
+            page.deleteLater()
+        self._pages = []
+        self.current_view.clear()
+
         self.chapter_changed.emit(chapter)
 
-        self.current_view.clear()
-        self._pages = []
         self._fetch_pages()
 
     def set_chapters(self, chapters: list[Chapter], index: int) -> None:
