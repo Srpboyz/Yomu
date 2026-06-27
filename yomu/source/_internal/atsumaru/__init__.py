@@ -17,7 +17,10 @@ class Atsumaru(Source):
 
     def get_latest(self, page: int) -> Request:
         request = Request(
-            f"{Atsumaru.API_URL}/infinite/recentlyUpdated?page={page - 1}&types=Manga,Manwha,Manhua,OEL"
+            Url(
+                f"{Atsumaru.API_URL}/infinite/recentlyUpdated",
+                params={"page": page - 1, "types": "Manga,Manwha,Manhua,OEL"},
+            )
         )
 
         headers = QHttpHeaders()
@@ -43,19 +46,19 @@ class Atsumaru(Source):
         )
 
     def search_for_manga(self, query: str) -> Request:
-        url = Url(f"{Atsumaru.BASE_URL}/collections/manga/documents/search")
-        url.set_params(
-            {
-                "q": query,
-                "query_by": "title,englishTitle,otherNames",
-                "limit": "24",
-                "query_by_weights": "3,2,1",
-                "include_fields": "id,title,englishTitle,poster",
-                "num_typos": "4,3,2",
-            }
+        request = Request(
+            Url(
+                f"{Atsumaru.BASE_URL}/collections/manga/documents/search",
+                params={
+                    "q": query,
+                    "query_by": "title,englishTitle,otherNames",
+                    "limit": "24",
+                    "query_by_weights": "3,2,1",
+                    "include_fields": "id,title,englishTitle,poster",
+                    "num_typos": "4,3,2",
+                },
+            )
         )
-
-        request = Request(url)
 
         headers = QHttpHeaders()
         headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Accept, "*/*")
@@ -89,7 +92,18 @@ class Atsumaru(Source):
         return Manga(
             title=data["title"],
             description=data["synopsis"],
-            author=", ".join(map(lambda author: author["name"], data["authors"])),
+            author=", ".join(
+                map(
+                    lambda author: author["name"],
+                    filter(lambda author: author["type"] == "Author", data["authors"]),
+                )
+            ),
+            artist=", ".join(
+                map(
+                    lambda author: author["name"],
+                    filter(lambda author: author["type"] == "Artist", data["authors"]),
+                )
+            ),
             thumbnail=f"{Atsumaru.BASE_URL}/static/{data['poster']['image']}",
             url=data["id"],
         )
@@ -121,11 +135,13 @@ class Atsumaru(Source):
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         manga_id, chapter_id = chapter.url.split("/")
-        url = Url(f"{Atsumaru.API_URL}/read/chapter")
-        url.set_params({"mangaId": manga_id, "chapterId": chapter_id})
 
-        request = Request(url)
-
+        request = Request(
+            Url(
+                f"{Atsumaru.API_URL}/read/chapter",
+                params={"mangaId": manga_id, "chapterId": chapter_id},
+            )
+        )
         headers = QHttpHeaders()
         headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Accept, "*/*")
         headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Host, "atsu.moe")

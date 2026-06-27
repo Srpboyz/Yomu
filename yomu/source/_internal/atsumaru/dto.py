@@ -7,6 +7,7 @@ class PosterDto(TypedDict):
 
 class AuthorDto(TypedDict):
     name: str
+    type: str
 
 
 class MangaDto(TypedDict):
