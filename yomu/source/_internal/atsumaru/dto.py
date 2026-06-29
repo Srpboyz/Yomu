@@ -33,6 +33,7 @@ class SearchResultDto(TypedDict):
 class ChapterDto(TypedDict):
     id: str
     title: str
+    number: float
     createdAt: str
 
 

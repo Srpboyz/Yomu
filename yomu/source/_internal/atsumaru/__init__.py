@@ -130,7 +130,9 @@ class Atsumaru(Source):
         result: ChapterListDto = response.json()
         return [
             self.parse_chapter(chapter, manga.url, i)
-            for i, chapter in enumerate(result["chapters"][::-1])
+            for i, chapter in enumerate(
+                sorted(result["chapters"], key=lambda data: data["number"])
+            )
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
