@@ -118,7 +118,7 @@ class PhiliaScans(Source):
             "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7,ja;q=0.6",
         )
         headers.replaceOrAppend("Sec-Fetch-Mode", "cors")
-        headers.replaceOrAppend("X-Requested-With", "cors")
+        headers.replaceOrAppend("X-Requested-With", "XMLHttpRequest")
 
         request = Request(
             f"{PhiliaScans.API_URL}/reader/access-token", route=Request.Route.POST
@@ -136,30 +136,39 @@ class PhiliaScans(Source):
         page_keys: PageKeysDto = response.json()
         response.deleteLater()
 
-        request = Request(
-            f"{PhiliaScans.API_URL}/chapters/{chapter_id}/open",
-            route=Request.Route.POST,
-        )
-        request.setHeaders(headers)
-        response = self.network.handle_request(request)
-        response.wait()
-        open_response: OpenResponseDto = response.json()
-        response.deleteLater()
+        if page_keys["sessionDefault"]:
+            request = Request(
+                f"{PhiliaScans.API_URL}/chapters/{chapter_id}/open",
+                route=Request.Route.POST,
+            )
+            request.setHeaders(headers)
+            response = self.network.handle_request(request)
+            response.wait()
+            open_response: OpenResponseDto = response.json()
+            response.deleteLater()
 
-        request = Request(
-            f"{PhiliaScans.API_URL}/chapters/{chapter_id}/get-drm?session={open_response['sessionId']}"
-        )
-        request.setHeaders(headers)
-        response = self.network.handle_request(request)
-        response.wait()
-        drm_response: DrmResponse = response.json()
-        response.deleteLater()
+            request = Request(
+                f"{PhiliaScans.API_URL}/chapters/{chapter_id}/get-drm?session={open_response['sessionId']}"
+            )
+            request.setHeaders(headers)
+            response = self.network.handle_request(request)
+            response.wait()
+            drm_response: DrmResponse = (
+                response.json()
+                if response.error() == Response.Error.NoError
+                else {"payloadB": "null"}
+            )
+            response.deleteLater()
+
+            payload_a, payload_b = open_response["payloadA"], drm_response["payloadB"]
+        else:
+            payload_a, payload_b = "null", "null"
 
         def parse_chapter_page_data(page: PageDto) -> Page:
             url = page["url"]
             if not url.startswith("http"):
                 url = PhiliaScans.BASE_URL + url
-            url = f"{url}#{int(is_scrambled)};{page['mime']};{page_keys['chapterKeyB64']};{page_keys['gridSize']};{open_response['payloadA']};{drm_response['payloadB']}"
+            url = f"{url}#{int(is_scrambled)};{page['mime']};{page_keys['chapterKeyB64']};{page_keys['gridSize']};{payload_a};{payload_b}"
             return Page(number=page["position"], url=url)
 
         return list(map(parse_chapter_page_data, data["pages"]))

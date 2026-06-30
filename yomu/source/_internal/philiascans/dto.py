@@ -47,6 +47,7 @@ class PageDto(TypedDict):
 class PageKeysDto(TypedDict):
     chapterKeyB64: str
     gridSize: int
+    sessionDefault: bool
 
 
 class OpenResponseDto(TypedDict):
