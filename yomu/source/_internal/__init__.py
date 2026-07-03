@@ -1,6 +1,5 @@
 from .armageddon import Armageddon
 from .atsumaru import Atsumaru
-from .divascans import DivaScans
 from .erisscans import ErisScans
 from .firescans import FireScans
 from .galaxydegenscans import GalaxyDegenScans
@@ -20,7 +19,6 @@ def _default_sources() -> list:
     return [
         Armageddon,
         Atsumaru,
-        DivaScans,
         ErisScans,
         FireScans,
         GalaxyDegenScans,

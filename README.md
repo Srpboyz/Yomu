@@ -25,7 +25,7 @@
 * Atsumaru
 * Comick (Removed)
 * Comix (Removed)
-* Diva Scans (Broken)
+* Diva Scans (Removed)
 * Eris Scans
 * Firescans
 * Galaxy Degen Scans
