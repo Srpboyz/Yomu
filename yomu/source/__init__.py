@@ -1,3 +1,3 @@
 from .core import *
 from .models import *
-from .ratelimit import *
+from yomu.core.network import RateLimit

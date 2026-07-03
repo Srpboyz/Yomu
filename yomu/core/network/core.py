@@ -1,15 +1,7 @@
 from logging import getLogger
 from typing import TYPE_CHECKING
-from typing_extensions import deprecated
 
-from PyQt6.QtCore import (
-    pyqtSignal,
-    QDateTime,
-    QEventLoop,
-    QJsonDocument,
-    QStandardPaths,
-    QUrl,
-)
+from PyQt6.QtCore import pyqtSignal, QDateTime, QJsonDocument, QStandardPaths, QUrl
 from PyQt6.QtNetwork import (
     QNetworkAccessManager,
     QNetworkDiskCache,
@@ -211,16 +203,3 @@ class Network(QNetworkAccessManager):
         response._connect_reply(qreply)
         response.finished.connect(self._response_finished)
         self.response_sent.emit(response)
-
-    @deprecated("Use `Response.wait() instead`")
-    def wait_for_request(self, response: Response) -> None:
-        response.set_attribute(
-            Request.Attribute.AutoDeleteReplyOnFinishAttribute, False
-        )
-        if response.is_finished():
-            return
-
-        loop = QEventLoop(self)
-        response.finished.connect(loop.quit)
-        loop.exec()
-        loop.deleteLater()

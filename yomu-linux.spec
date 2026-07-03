@@ -4,6 +4,7 @@ from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = ['asyncio', 'dataclasses', 'difflib', 'filecmp', 'packaging', 'psutil', 'pydoc', 'pywintypes', 'sqlite3', 'tzdata', 'uuid', 'zoneinfo', 'bs4', 'lxml', 'PIL']
 hiddenimports += collect_submodules('dateparser')
+hiddenimports += collect_submodules('pycryptodome')
 hiddenimports += collect_submodules('PyQt6')
 
 a = Analysis(
@@ -46,5 +47,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='yomu-linux',
+    name='yomu',
 )
