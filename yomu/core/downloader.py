@@ -87,7 +87,7 @@ class DownloadChapter(QObject):
         if not pages:
             return self._request_failed()
 
-        self.pages = sorted(pages, key=lambda page: page.number)
+        self._pages = sorted(pages, key=lambda page: page.number)
         self.next_page()
 
     def next_page(self) -> None:
@@ -273,9 +273,12 @@ class Downloader(QObject):
             self.delete_chapter(chapter)
 
     def handle_source_icon(self, source: Source) -> None:
-        url = Url("https://www.google.com/s2/favicons")
-        url.set_params({"domain": source.BASE_URL, "sz": 32})
-        request = Request(url=url)
+        request = Request(
+            Url(
+                "https://www.google.com/s2/favicons",
+                params={"domain": source.BASE_URL, "sz": 32},
+            )
+        )
 
         path = Downloader.resolve_path(source)
         if os.path.exists(path):
