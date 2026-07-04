@@ -1,12 +1,16 @@
+import os
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import (
+    QHBoxLayout,
     QInputDialog,
     QLineEdit,
     QMenu,
     QTabBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -31,15 +35,31 @@ class Library(QWidget, StackWidgetMixin):
         self.sql = window.app.sql
         self.current_source: Source | None = None
 
-        self.tab_bar = QTabBar(self)
+        tab_widget = QWidget(self)
+        layout = QHBoxLayout(tab_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        self.tab_bar = QTabBar(tab_widget)
         self.tab_bar.installEventFilter(self)
         self.tab_bar.currentChanged.connect(self._tab_changed)
         self.tab_bar.addTab("All")
 
+        add_button = QToolButton(tab_widget)
+        add_button.setIcon(
+            QIcon(os.path.join(core_utils.resource_path(), "icons", "plus.svg"))
+        )
+        add_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        add_button.clicked.connect(self.add_category)
+
+        layout.addWidget(self.tab_bar)
+        layout.addWidget(add_button)
+        tab_widget.setLayout(layout)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addWidget(self.tab_bar)
+        layout.addWidget(tab_widget)
         layout.addWidget(self._manga_list)
         self.setLayout(layout)
 
@@ -60,9 +80,6 @@ class Library(QWidget, StackWidgetMixin):
         }
         for category in self._categories.keys():
             self.tab_bar.addTab(category)
-
-        if self.tab_bar.count() == 1:
-            self.tab_bar.hide()
 
         self.addAction("Add Category").triggered.connect(self.add_category)
         window.app.keybinds_changed.connect(self._set_keybinds)
@@ -192,7 +209,6 @@ class Library(QWidget, StackWidgetMixin):
     def _category_created(self, category: Category):
         self._categories[category.name] = category
         self.tab_bar.addTab(category.name)
-        self.tab_bar.show()
 
     def _category_deleted(self, category: Category):
         del self._categories[category.name]
@@ -201,9 +217,6 @@ class Library(QWidget, StackWidgetMixin):
             if self.tab_bar.tabText(i) == category.name:
                 self.tab_bar.removeTab(i)
                 break
-
-        if self.tab_bar.count() == 1:
-            self.tab_bar.hide()
 
     def _category_manga_added(self, category: Category, manga: Manga) -> None:
         if self.tab_bar.tabText(self.tab_bar.currentIndex()) == category.name:

@@ -232,6 +232,11 @@ MenuWidget > MenuItem::hover {
     background-color: #3D3D3D;
 }
 
+Library QToolButton {
+    qproperty-iconSize: 24px;
+    padding: 4px 4px 4px 4px;
+}
+
 Downloads DownloadItem {
     background-color: #2D2D2D;
     font-weight: bold;
