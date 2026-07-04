@@ -85,15 +85,22 @@ class MangaCard(QFrame, StackWidgetMixin):
         self.chapter_list = ChapterList(self, window.app)
         self.chapter_list.item_clicked.connect(self._set_chapter)
 
+        download_button = QToolButton(self)
+        download_button.setToolTip("Download All Chapters")
+        download_button.setIcon(QIcon(os.path.join(icon_path, "download.png")))
+        download_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        download_button.clicked.connect(self.download_all_chapters)
+
         flip_button = QToolButton(self)
-        flip_button.setObjectName("Flip")
+        flip_button.setToolTip("Flip Chapters")
         flip_button.setIcon(QIcon(os.path.join(icon_path, "flip.png")))
         flip_button.setCursor(Qt.CursorShape.PointingHandCursor)
         flip_button.clicked.connect(self.chapter_list.flip_direction)
 
         chapter_info_layout = QHBoxLayout()
         chapter_info_layout.addWidget(label)
-        chapter_info_layout.addWidget(flip_button, stretch=2)
+        chapter_info_layout.addWidget(download_button, stretch=2)
+        chapter_info_layout.addWidget(flip_button)
 
         layout = QVBoxLayout(self)
         layout.addLayout(info_layout)
@@ -103,15 +110,13 @@ class MangaCard(QFrame, StackWidgetMixin):
 
         self._plus_button = QToolButton(self)
         self._plus_button.setToolTip("Add To Library")
-        path = os.path.join(icon_path, "plus.svg")
-        self._plus_button.setIcon(QIcon(path))
+        self._plus_button.setIcon(QIcon(os.path.join(icon_path, "plus.svg")))
         self._plus_button.pressed.connect(self.add_to_library)
         self._plus_button.hide()
 
         self._minus_button = QToolButton(self)
         self._minus_button.setToolTip("Remove From Library")
-        path = os.path.join(icon_path, "minus.svg")
-        self._minus_button.setIcon(QIcon(path))
+        self._minus_button.setIcon(QIcon(os.path.join(icon_path, "minus.svg")))
         self._minus_button.pressed.connect(self.remove_from_library)
         self._minus_button.hide()
 
@@ -263,11 +268,17 @@ class MangaCard(QFrame, StackWidgetMixin):
 
         self.details_widget.setMarkdown(MARKDOWN.format(**details))
 
-    def add_to_library(self):
-        self.window().app.sql.set_library(self.manga, library=True)
+    def add_to_library(self) -> None:
+        self.app.sql.set_library(self.manga, library=True)
 
-    def remove_from_library(self):
-        self.window().app.sql.set_library(self.manga, library=False)
+    def remove_from_library(self) -> None:
+        self.app.sql.set_library(self.manga, library=False)
+
+    def download_all_chapters(self) -> None:
+        self._download_chapters(
+            filter(lambda chapter: not chapter.downloaded, self.chapter_list.chapters),
+            download=True,
+        )
 
     def set_current_widget(self) -> None:
         super().set_current_widget()

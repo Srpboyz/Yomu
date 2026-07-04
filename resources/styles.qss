@@ -78,6 +78,16 @@ QTabBar::tab:selected:!focus {
     border-bottom-color: #FFFFFF;
 }
 
+QToolButton {
+    background: transparent;
+    border: 0;
+    qproperty-iconSize: 24px;
+}
+
+QToolButton:hover {
+    background-color: #3D3D3D;
+}
+
 /* Used for non kde linux */
 
 QScrollBar:vertical {
@@ -203,10 +213,6 @@ ReaderWindow > TitleBar > QToolButton {
     border: none;
 }
 
-ReaderWindow > TitleBar > QToolButton:hover {
-    background-color: #3D3D3D; 
-}
-
 ReaderWindow > TitleBar > QToolButton::menu-indicator {
     image: none;
 }
@@ -284,17 +290,11 @@ MangaCard > QTextEdit {
     border: none;
 }
 
-MangaCard > QLabel#ChapterList {
+MangaCard > QLabel {
     margin-bottom: 5px;
     margin-right: 0px;
     font-weight: bold;
     font-size: 25px;
-}
-
-MangaCard > QToolButton#Flip {
-    background: transparent;
-    border: 0;
-    qproperty-iconSize: 24px;
 }
 
 MangaCard > ChapterList {
@@ -331,6 +331,15 @@ MangaCard > ChapterList ChapterListItem > QLabel#Title {
 MangaCard > ChapterList ChapterListItem[read="true"] > QLabel#Title,
 MangaCard > ChapterList ChapterListItem > QLabel#Timestamp {
     color: #888888;
+}
+
+MangaCard > ChapterList ChapterListItem > QLabel#DownloadedIcon {
+    padding-right: 4px;
+}
+
+MangaCard QToolButton:hover {
+    background-color: #4D4D4D;
+    border-radius: 7px;
 }
 
 Reader NavigationBar {

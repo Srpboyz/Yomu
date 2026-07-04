@@ -3,12 +3,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, Qt, pyqtSignal
-from PyQt6.QtGui import QContextMenuEvent, QMovie, QPixmap
+from PyQt6.QtGui import QContextMenuEvent, QIcon, QMovie, QPixmap
 from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMenu,
     QSizePolicy,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
 
 
 class ChapterListItem(BaseCardItem):
+    _download_requested = pyqtSignal(Chapter)
+
     def __init__(self, parent: ChapterList, chapter: Chapter) -> None:
         super().__init__(parent)
         self.installEventFilter(parent)
@@ -47,9 +50,26 @@ class ChapterListItem(BaseCardItem):
         )
         self.timestamp_widget.setObjectName("Timestamp")
 
+        icon_path = os.path.join(utils.resource_path(), "icons")
+
+        self.download_button = QToolButton(self)
+        self.download_button.setToolTip("Download Chapter")
+        self.download_button.setIcon(
+            QIcon(
+                QPixmap(os.path.join(icon_path, "download.png")).scaled(
+                    20, 20, transformMode=Qt.TransformationMode.SmoothTransformation
+                )
+            )
+        )
+        self.download_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.download_button.clicked.connect(self.download_chapter)
+        self.download_button.setHidden(chapter.downloaded)
+        self.download_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         self.downloaded_icon = QLabel(self)
+        self.downloaded_icon.setObjectName("DownloadedIcon")
         self.downloaded_icon.setPixmap(
-            QPixmap(os.path.join(utils.resource_path(), "icons", "check.svg")).scaled(
+            QPixmap(os.path.join(icon_path, "check.svg")).scaled(
                 20, 20, transformMode=Qt.TransformationMode.SmoothTransformation
             )
         )
@@ -64,6 +84,7 @@ class ChapterListItem(BaseCardItem):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addLayout(vLayout)
+        layout.addWidget(self.download_button, alignment=Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self.downloaded_icon, alignment=Qt.AlignmentFlag.AlignRight)
         self.setLayout(layout)
 
@@ -81,7 +102,11 @@ class ChapterListItem(BaseCardItem):
 
     def mark_as_downloaded(self, downloaded: bool) -> None:
         self.chapter.downloaded = downloaded
+        self.download_button.hide() if downloaded else self.download_button.show()
         self.downloaded_icon.show() if downloaded else self.downloaded_icon.hide()
+
+    def download_chapter(self) -> None:
+        self._download_requested.emit(self.chapter)
 
     def set_selected(self, selected: bool) -> None:
         self.selected = selected
@@ -210,10 +235,10 @@ class ChapterList(CardList[ChapterListItem, ChapterSelector]):
         layout.setSpacing(0)
 
         app.chapter_read_status_changed.connect(
-            self._chapter_read_updated, Qt.ConnectionType.QueuedConnection
+            self.on_chapter_read_changed, Qt.ConnectionType.QueuedConnection
         )
         app.chapter_download_status_changed.connect(
-            self._chapter_downloaded_updated, Qt.ConnectionType.QueuedConnection
+            self.on_chapter_downloaded_changed, Qt.ConnectionType.QueuedConnection
         )
 
     @property
@@ -300,7 +325,7 @@ class ChapterList(CardList[ChapterListItem, ChapterSelector]):
             download,
         )
 
-    def _chapter_read_updated(self, chapter: Chapter):
+    def on_chapter_read_changed(self, chapter: Chapter):
         layout = self.layout()
         for i in range(1, layout.count()):
             chapter_item: ChapterListItem = layout.itemAt(i).widget()
@@ -308,7 +333,7 @@ class ChapterList(CardList[ChapterListItem, ChapterSelector]):
                 chapter_item.mark_as_read(chapter.read)
                 return
 
-    def _chapter_downloaded_updated(self, chapter: Chapter):
+    def on_chapter_downloaded_changed(self, chapter: Chapter):
         layout = self.layout()
         for i in range(1, layout.count()):
             chapter_item: ChapterListItem = layout.itemAt(i).widget()
@@ -316,12 +341,17 @@ class ChapterList(CardList[ChapterListItem, ChapterSelector]):
                 chapter_item.mark_as_downloaded(chapter.downloaded)
                 return
 
+    def on_download_requested(self, chapter: Chapter) -> None:
+        self._download_chapters_request.emit([chapter], True)
+
     def display_chapters(self, chapters: list[Chapter]) -> None:
         self.clear()
 
         chapters = sorted(chapters, key=lambda chapter: chapter.number)
         for chapter in chapters:
-            self.add_card(ChapterListItem(self, chapter))
+            item = ChapterListItem(self, chapter)
+            item._download_requested.connect(self.on_download_requested)
+            self.add_card(item)
 
         self.loading_icon.hide()
         self.layout().setAlignment(Qt.AlignmentFlag.AlignTop)
