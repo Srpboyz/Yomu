@@ -27,7 +27,7 @@ class AnimationDirection(IntEnum):
 
 
 class FitDirection(IntEnum):
-    Height, Width = range(2)
+    Auto, Height, Width = range(3)
 
 
 class AnimationGroup(QParallelAnimationGroup):
@@ -78,6 +78,15 @@ class StackLayout(QStackedLayout):
             return item.widget()
         return None
 
+    def auto_fit(self, image_size: QSize) -> FitDirection:
+        width_ratio = self.reader.width() / image_size.width()
+        height_ratio = self.reader.height() / image_size.height()
+
+        if width_ratio <= height_ratio:
+            return FitDirection.Width
+        else:
+            return FitDirection.Height
+
     def fit_to_width(self, image_size: QSize) -> QRect:
         reader_size = self.reader.size()
 
@@ -102,8 +111,10 @@ class StackLayout(QStackedLayout):
 
     def calculate_target_geometry(self, widget: PageWidget) -> QRect:
         if widget.page_status == PageView.Status.LOADED:
-            image_size = widget.image_size()
-            if self.fit_direction == FitDirection.Width:
+            image_size, fit_direction = widget.image_size(), self.fit_direction
+            if fit_direction == FitDirection.Auto:
+                fit_direction = self.auto_fit(image_size)
+            if fit_direction == FitDirection.Width:
                 return self.fit_to_width(image_size)
             else:
                 return self.fit_to_height(image_size)
@@ -184,7 +195,10 @@ class StackLayout(QStackedLayout):
         if current_widget is not None:
             if current_widget.page_status == PageView.Status.LOADED:
                 image_size = current_widget.image_size()
-                if self.fit_direction == FitDirection.Width:
+                fit_direction = self.fit_direction
+                if fit_direction == FitDirection.Auto:
+                    fit_direction = self.auto_fit(image_size)
+                if fit_direction == FitDirection.Width:
                     rect = self.fit_to_width(image_size)
                     view.setFixedSize(
                         self.reader.size()
@@ -207,8 +221,8 @@ class StackLayout(QStackedLayout):
 
 
 class SinglePageView(BaseView):
-    name = "Single Page (Left-To-Right) (Fit To Height)"
-    fit_direction = FitDirection.Height
+    name = "Single Page (Left-To-Right) (Auto)"
+    fit_direction = FitDirection.Auto
     animation_direction = AnimationDirection.LEFT_TO_RIGHT
 
     def __init__(self, reader: Reader) -> None:
@@ -255,11 +269,21 @@ class SinglePageViewFTW(SinglePageView):
     fit_direction = FitDirection.Width
 
 
+class SinglePageViewFTH(SinglePageView):
+    name = "Single Page (Left-To-Right) (Fit To Height)"
+    fit_direction = FitDirection.Height
+
+
 class ReverseSinglePageView(SinglePageView):
-    name = "Single Page (Right-To-Left) (Fit To Height)"
+    name = "Single Page (Right-To-Left) (Auto)"
     animation_direction = AnimationDirection.RIGHT_TO_LEFT
 
 
 class ReverseSinglePageViewFTW(ReverseSinglePageView):
     name = "Single Page (Right-To-Left) (Fit To Width)"
     fit_direction = FitDirection.Width
+
+
+class ReverseSinglePageViewFTH(ReverseSinglePageView):
+    name = "Single Page (Right-To-Left) (Fit To Height)"
+    fit_direction = FitDirection.Height

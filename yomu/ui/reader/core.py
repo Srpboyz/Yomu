@@ -5,7 +5,7 @@ from enum import IntEnum
 from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QRect, Qt, QUrl
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QRect, QSignalBlocker, Qt, QUrl
 from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
@@ -37,8 +37,10 @@ class Reader(QScrollArea, StackWidgetMixin):
         HorizontalView.name: HorizontalView,
         SinglePageView.name: SinglePageView,
         SinglePageViewFTW.name: SinglePageViewFTW,
+        SinglePageViewFTH.name: SinglePageViewFTH,
         ReverseSinglePageView.name: ReverseSinglePageView,
         ReverseSinglePageViewFTW.name: ReverseSinglePageViewFTW,
+        ReverseSinglePageViewFTH.name: ReverseSinglePageViewFTH,
         WebtoonView.name: WebtoonView,
     }
 
@@ -234,10 +236,8 @@ class Reader(QScrollArea, StackWidgetMixin):
             self.overlay.hide()
 
     def _scroll_to(self, page: int) -> None:
-        scrollbar = self.verticalScrollBar()
-        scrollbar.valueChanged.disconnect(self._value_changed)
-        self.current_view.current_index = page
-        scrollbar.valueChanged.connect(self._value_changed)
+        with QSignalBlocker(self.verticalScrollBar()):
+            self.current_view.current_index = page
 
     def _fetch_pages(self) -> None:
         if not self.chapter.downloaded:
