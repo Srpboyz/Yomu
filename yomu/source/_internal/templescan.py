@@ -34,7 +34,7 @@ class TempleScan(Source):
     rate_limit = RateLimit(1)
 
     DETAILS_REGEX = re.compile(r'info\\":(\{.*\}).*userIsFollowed')
-    IMAGES_REGEX = re.compile(r'images\\":(\[.*?]).*')
+    IMAGES_REGEX = re.compile(r'pages\\":(\[.*?]).*')
     UNESCAPE_REGEX = re.compile(r"\\(.)")
 
     def __init__(self, *args, **kwargs) -> None:
