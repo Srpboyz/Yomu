@@ -12,6 +12,13 @@ if TYPE_CHECKING:
     from yomu.ui.reader import Reader
 
 
+ZOOM_IN_FACTOR = 1.25
+ZOOM_OUT_FACTOR = 0.8
+
+MAX_ZOOM_IN = ZOOM_IN_FACTOR**5
+MAX_ZOOM_OUT = ZOOM_OUT_FACTOR**5
+
+
 class WebtoonPage(QWidget):
     def __init__(self, parent: WebtoonView, page: PageView):
         super().__init__(parent)
@@ -113,13 +120,13 @@ class WebtoonView(BaseView, LayoutIterator[WebtoonPage]):
             if page_widget.geometry().contains(pos):
                 return page_widget.page_view
 
-    def zoom_out(self):
-        factor = 0.8
-        if self.scale_factor <= factor**5:
+    def zoom_out(self) -> None:
+        factor = ZOOM_OUT_FACTOR
+        if self.scale_factor <= MAX_ZOOM_OUT:
             return
 
         scrollbar = self.reader.verticalScrollBar()
-        value = int(scrollbar.value() / 1.25)
+        value = int(scrollbar.value() * factor)
 
         self.scale_pages(factor)
         self.scale_factor *= factor
@@ -128,12 +135,12 @@ class WebtoonView(BaseView, LayoutIterator[WebtoonPage]):
         self.zoomed.emit()
 
     def zoom_in(self) -> None:
-        factor = 1.25
-        if self.scale_factor >= factor**5:
+        factor = ZOOM_IN_FACTOR
+        if self.scale_factor >= MAX_ZOOM_IN:
             return
 
         scrollbar = self.reader.verticalScrollBar()
-        value = int(scrollbar.value() * 1.25)
+        value = int(scrollbar.value() * factor)
 
         self.scale_pages(factor)
         self.scale_factor *= factor

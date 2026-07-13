@@ -11,15 +11,20 @@ from PyQt6.QtCore import (
     QSignalBlocker,
     QSize,
 )
-from PyQt6.QtWidgets import QMenu, QHBoxLayout, QStackedLayout, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QStackedLayout, QWidget
 
-from yomu.core import utils as core_utils
 from yomu.ui.reader.page import PageView
 
 from .base import BaseView
 
 if TYPE_CHECKING:
     from yomu.ui.reader import Reader
+
+ZOOM_IN_FACTOR = 1.25
+ZOOM_OUT_FACTOR = 0.8
+
+MAX_ZOOM_IN = ZOOM_IN_FACTOR**5
+MAX_ZOOM_OUT = ZOOM_OUT_FACTOR**5
 
 
 class AnimationDirection(IntEnum):
@@ -67,6 +72,7 @@ class StackLayout(QStackedLayout):
         self.fit_direction = fit_direction
         self.animation_direction = animation_direction
         self._animation = None
+        self.scale_factor = 1
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setSpacing(0)
@@ -90,24 +96,34 @@ class StackLayout(QStackedLayout):
     def fit_to_width(self, image_size: QSize) -> QRect:
         reader_size = self.reader.size()
 
-        width = reader_size.width()
-        height = round(width * image_size.height() / image_size.width())
+        width = round(reader_size.width() * self.scale_factor)
+        height = int(round(width * image_size.height() / image_size.width()))
 
-        if reader_size.height() > height:
-            y = round((reader_size.height() - height) / 2)
-            return QRect(0, y, width, height)
-        return QRect(0, 0, width, height)
+        x = round((reader_size.width() - width) / 2) if self.scale_factor < 1 else 0
+
+        y = (
+            round((reader_size.height() - height) / 2)
+            if reader_size.height() > height
+            else 0
+        )
+
+        return QRect(x, y, width, height)
 
     def fit_to_height(self, image_size: QSize) -> QRect:
         reader_size = self.reader.size()
 
-        width = round(reader_size.height() * (image_size.width() / image_size.height()))
-        height = reader_size.height()
+        height = round(reader_size.height() * self.scale_factor)
+        width = round(height * image_size.width() / image_size.height())
 
-        if reader_size.width() > width:
-            x = round((reader_size.width() - width) / 2)
-            return QRect(x, 0, width, height)
-        return QRect(0, 0, width, height)
+        x = (
+            round((reader_size.width() - width) / 2)
+            if reader_size.width() > width
+            else 0
+        )
+
+        y = round((reader_size.height() - height) / 2) if self.scale_factor < 1 else 0
+
+        return QRect(x, y, width, height)
 
     def calculate_target_geometry(self, widget: PageWidget) -> QRect:
         if widget.page_status == PageView.Status.LOADED:
@@ -219,11 +235,26 @@ class StackLayout(QStackedLayout):
             view.setFixedSize(self.reader.size())
         super().setGeometry(rect)
 
+    def zoom_out(self) -> bool:
+        if self.scale_factor <= MAX_ZOOM_OUT:
+            return False
+        self.scale_factor *= ZOOM_OUT_FACTOR
+        self.update()
+        return True
+
+    def zoom_in(self) -> bool:
+        if self.scale_factor >= MAX_ZOOM_IN:
+            return False
+        self.scale_factor *= ZOOM_IN_FACTOR
+        self.update()
+        return True
+
 
 class SinglePageView(BaseView):
     name = "Single Page (Left-To-Right) (Auto)"
     fit_direction = FitDirection.Auto
     animation_direction = AnimationDirection.LEFT_TO_RIGHT
+    supports_zoom = True
 
     def __init__(self, reader: Reader) -> None:
         super().__init__(reader)
@@ -255,6 +286,14 @@ class SinglePageView(BaseView):
         page_widget = self.layout().currentWidget()
         if page_widget and page_widget.geometry().contains(self.mapFromParent(pos)):
             return page_widget.page_view
+
+    def zoom_out(self) -> None:
+        if self.layout().zoom_out():
+            self.zoomed.emit()
+
+    def zoom_in(self) -> None:
+        if self.layout().zoom_in():
+            self.zoomed.emit()
 
     def clear(self) -> None:
         layout = self.layout()

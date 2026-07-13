@@ -429,10 +429,12 @@ class Reader(QScrollArea, StackWidgetMixin):
             self._set_chapter(self._chapters[self._current_chapter_index])
 
     def zoom_out(self) -> None:
-        self.current_view.zoom_out()
+        if self.current_view.supports_zoom:
+            self.current_view.zoom_out()
 
     def zoom_in(self) -> None:
-        self.current_view.zoom_in()
+        if self.current_view.supports_zoom:
+            self.current_view.zoom_in()
 
     def mark_chapter_as_read(self) -> None:
         if not self.chapter.read:
