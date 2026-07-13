@@ -176,7 +176,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         page = self.current_view.page_at(a0.pos())
         if page is not None:
             if page.status == PageView.Status.FAILED:
-                menu.addAction("Reload").triggered.connect(page.fetch_page)
+                menu.addAction("Reload").triggered.connect(page.reload)
             elif page.status == PageView.Status.LOADED:
                 copy_image = menu.addAction("Copy Image")
                 copy_image.triggered.connect(page.copy_image_to_clipboard)

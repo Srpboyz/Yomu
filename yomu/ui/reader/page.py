@@ -34,7 +34,7 @@ class PageView(QLabel):
         self.page = page
         self.status = PageView.Status.NULL
 
-        self.fetch_page()
+        self.fetch()
         self.show()
 
     window: Callable[[], ReaderWindow]
@@ -56,7 +56,7 @@ class PageView(QLabel):
 
         self.status_changed.emit(status)
 
-    def fetch_page(self) -> None:
+    def fetch(self, *, force_network: bool = False) -> None:
         if self.status not in (PageView.Status.NULL, PageView.Status.FAILED):
             return
 
@@ -74,18 +74,23 @@ class PageView(QLabel):
             request.setPriority(Request.Priority.HighPriority)
             request.setAttribute(
                 Request.Attribute.CacheLoadControlAttribute,
-                Request.CacheLoadControl.PreferCache,
+                Request.CacheLoadControl.AlwaysNetwork
+                if force_network
+                else Request.CacheLoadControl.PreferCache,
             )
 
         else:
             request = Request(QUrl.fromLocalFile(self.page.url))
 
         response = window.network.handle_request(request)
-        response.finished.connect(self._page_fetched)
+        response.finished.connect(self.on_page_fetched)
         self._cancel_request.connect(response.abort)
         self.status = PageView.Status.LOADING
 
-    def _page_fetched(self) -> None:
+    def reload(self) -> None:
+        self.fetch(force_network=True)
+
+    def on_page_fetched(self) -> None:
         response: Response = self.sender()
         source = self.page.source
 
