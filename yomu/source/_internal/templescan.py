@@ -33,7 +33,7 @@ class TempleScan(Source):
     BASE_URL = "https://templetoons.com"
     rate_limit = RateLimit(1)
 
-    DETAILS_REGEX = re.compile(r'info\\":(\{.*\}).*userIsFollowed')
+    DETAILS_REGEX = re.compile(r'seriesData\\":(\{.*\}).*hasFollowed')
     IMAGES_REGEX = re.compile(r'pages\\":(\[.*?]).*')
     UNESCAPE_REGEX = re.compile(r"\\(.)")
 
@@ -130,10 +130,10 @@ class TempleScan(Source):
         )
 
         return Manga(
-            title=manga.title,
+            title=data["title"],
             description=data["description"],
             author=data["author"],
-            thumbnail=manga.thumbnail,
+            thumbnail=data["thumbnail"],
             url=manga.url,
         )
 
