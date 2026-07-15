@@ -1,4 +1,5 @@
 import sys
+from logging import Logger
 from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QPointF, Qt
@@ -20,6 +21,8 @@ from .titlebar import TitleBar
 
 if TYPE_CHECKING:
     from yomu.core.app import YomuApp
+
+logger = Logger(__name__)
 
 
 class ReaderWindow(QWidget):
@@ -109,6 +112,7 @@ class ReaderWindow(QWidget):
         widget = QWidget.find(winId)
         return widget if isinstance(widget, ReaderWindow) else None
 
+    @core_utils.pyqtSlot(logger)
     def on_keybinds_changed(self, keybinds: core_utils.Keybindings):
         for action in self.actions():
             keybindingData = keybinds.get(action.text(), {"keybinds": []})

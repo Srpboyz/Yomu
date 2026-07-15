@@ -251,6 +251,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self._fetch_pages()
         self.verticalScrollBar().setValue(0)
 
+    @core_utils.pyqtSlot(logger)
     def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})

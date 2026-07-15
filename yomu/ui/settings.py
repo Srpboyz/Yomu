@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from yomu.core import utils
+from yomu.core import utils as core_utils
 from .reader import Reader
 
 if TYPE_CHECKING:
@@ -55,11 +55,12 @@ class Keybinds(QTableWidget):
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.setSizeAdjustPolicy(QTableWidget.SizeAdjustPolicy.AdjustToContents)
 
-        self.set_keybindings(utils.get_keybinds())
+        self.on_keybinds_changed(core_utils.get_keybinds())
 
     def mousePressEvent(self, e: QMouseEvent | None) -> None: ...
 
-    def set_keybindings(self, keybinds: dict[str, utils.Keybind]) -> None:
+    @core_utils.pyqtSlot(logger)
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         self.setRowCount(sum(len(data["keybinds"]) for data in keybinds.values()))
 
         row = 0
@@ -106,7 +107,7 @@ class Settings(QDialog):
         tab_view.addTab(extension_settings, "Extensions")
 
         keybinds_table = Keybinds(self)
-        window.app.keybinds_changed.connect(keybinds_table.set_keybindings)
+        window.app.keybinds_changed.connect(keybinds_table.on_keybinds_changed)
         tab_view.addTab(keybinds_table, "Keybinds")
 
         layout = QVBoxLayout(self)

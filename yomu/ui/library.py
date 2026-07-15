@@ -1,4 +1,5 @@
 import os
+from logging import Logger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import QEvent, QObject, Qt
@@ -24,6 +25,9 @@ from .stack import StackWidgetMixin
 if TYPE_CHECKING:
     from yomu.source import Source
     from yomu.ui import ReaderWindow
+
+
+logger = Logger(__name__)
 
 
 class Library(QWidget, StackWidgetMixin):
@@ -246,6 +250,7 @@ class Library(QWidget, StackWidgetMixin):
             if view is not None:
                 view.setVisible(view.manga in mangas)
 
+    @core_utils.pyqtSlot(logger)
     def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})

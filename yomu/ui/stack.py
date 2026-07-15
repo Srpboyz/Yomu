@@ -1,11 +1,14 @@
 import os
+from logging import Logger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import QRect, Qt
 from PyQt6.QtGui import QIcon, QMouseEvent
 from PyQt6.QtWidgets import QStackedLayout, QToolButton, QWidget
 
-from yomu.core import utils
+from yomu.core import utils as core_utils
+
+logger = Logger(__name__)
 
 
 class StackWidgetMixin:
@@ -44,14 +47,16 @@ class Stack(QWidget):
 
         button = self._back_button = QToolButton(self)
         button.setToolTip("Back")
-        button.setIcon(QIcon(os.path.join(utils.resource_path(), "icons", "back.svg")))
+        button.setIcon(
+            QIcon(os.path.join(core_utils.resource_path(), "icons", "back.svg"))
+        )
         button.setEnabled(False)
         button.pressed.connect(self.previous_widget)
         self.addAction("Go Back").triggered.connect(self.previous_widget)
 
         window.titlebar.insert_button(button, index=1)
         window.app.keybinds_changed.connect(self.on_keybinds_changed)
-        self.on_keybinds_changed(utils.get_keybinds())
+        self.on_keybinds_changed(core_utils.get_keybinds())
 
         self.setContentsMargins(0, 0, 0, 0)
         self.setLayout(StackLayout(self))
@@ -72,7 +77,8 @@ class Stack(QWidget):
             self.previous_widget()
         return super().mouseReleaseEvent(a0)
 
-    def on_keybinds_changed(self, keybinds):
+    @core_utils.pyqtSlot(logger)
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         data = keybinds.get("Go Back", {"keybinds": []})
         self.actions()[0].setShortcuts(data["keybinds"] if data is not None else [])
 

@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Callable, TYPE_CHECKING
 
 from PyQt6.QtCore import pyqtSignal, QEvent, QObject, Qt
@@ -16,6 +17,8 @@ if TYPE_CHECKING:
     from yomu.core.app import YomuApp
     from yomu.core.models import Manga
     from yomu.ui import ReaderWindow
+
+logger = Logger(__name__)
 
 
 class MangaList(QScrollArea, LayoutIterator[MangaView]):
@@ -87,6 +90,7 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
             self.focusNextChild()
         return super().focusInEvent(a0)
 
+    @core_utils.pyqtSlot(logger)
     def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})
