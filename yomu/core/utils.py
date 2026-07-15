@@ -1,6 +1,8 @@
 import json
 import os
-from typing import TypedDict
+from functools import wraps
+from logging import Logger
+from typing import Callable, TypedDict
 
 from PyQt6.QtCore import QCoreApplication, QEventLoop, QTimer, QStandardPaths
 
@@ -106,6 +108,24 @@ def sleep(
     QTimer.singleShot(int(seconds * 1000), loop.exit)
     loop.exec(processFlags)
     loop.deleteLater()
+
+
+def pyqtSlot(logger: Logger | None = None):
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as e:
+                if logger is not None:
+                    logger.exception(
+                        f"An exception occured while running {func.__name__}",
+                        exc_info=e,
+                    )
+
+        return wrapper
+
+    return decorator
 
 
 class _MissingValue:
