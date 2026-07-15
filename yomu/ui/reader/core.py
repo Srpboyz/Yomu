@@ -251,7 +251,7 @@ class Reader(QScrollArea, StackWidgetMixin):
         self._fetch_pages()
         self.verticalScrollBar().setValue(0)
 
-    def on_keybinds_changed(self, keybinds: dict[str, core_utils.Keybind]) -> None:
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(data["keybinds"] if data is not None else [])

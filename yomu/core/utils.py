@@ -73,7 +73,10 @@ class Keybind(TypedDict):
     keybinds: list[str]
 
 
-def get_keybinds() -> dict[str, Keybind]:
+type Keybindings = dict[str, Keybind]
+
+
+def get_keybinds() -> Keybindings:
     with open(os.path.join(resource_path(), "keybinds.json")) as f:
         keybinds: dict[str, dict[str, str | list[str]]] = json.load(f)
 

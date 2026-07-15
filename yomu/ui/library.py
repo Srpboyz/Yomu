@@ -82,8 +82,8 @@ class Library(QWidget, StackWidgetMixin):
             self.tab_bar.addTab(category)
 
         self.addAction("Add Category").triggered.connect(self.add_category)
-        window.app.keybinds_changed.connect(self._set_keybinds)
-        self._set_keybinds(core_utils.get_keybinds())
+        window.app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(core_utils.get_keybinds())
 
         self.setFocusProxy(self._manga_list)
 
@@ -246,7 +246,7 @@ class Library(QWidget, StackWidgetMixin):
             if view is not None:
                 view.setVisible(view.manga in mangas)
 
-    def _set_keybinds(self, keybinds: dict[str, core_utils.Keybind]) -> None:
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(data["keybinds"] if data is not None else [])

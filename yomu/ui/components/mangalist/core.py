@@ -4,7 +4,7 @@ from PyQt6.QtCore import pyqtSignal, QEvent, QObject, Qt
 from PyQt6.QtGui import QFocusEvent, QMouseEvent
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar, QWidget
 
-from yomu.core import utils
+from yomu.core import utils as core_utils
 from yomu.ui.components.iterator import LayoutIterator
 
 from .find import Find
@@ -35,8 +35,8 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.addAction("Find").triggered.connect(self.find_manga)
-        app.keybinds_changed.connect(self._set_keybinds)
-        self._set_keybinds(utils.get_keybinds())
+        app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(core_utils.get_keybinds())
         self.setMouseTracking(True)
         self.selector = MangaSelector(self)
 
@@ -87,7 +87,7 @@ class MangaList(QScrollArea, LayoutIterator[MangaView]):
             self.focusNextChild()
         return super().focusInEvent(a0)
 
-    def _set_keybinds(self, keybinds: dict[str, utils.Keybind]) -> None:
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings) -> None:
         for action in self.actions():
             data = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(data["keybinds"] if data is not None else [])

@@ -5,7 +5,7 @@ from PyQt6.QtCore import pyqtSignal, QEvent, QObject, QPointF, Qt
 from PyQt6.QtGui import QCloseEvent, QMouseEvent
 from PyQt6.QtWidgets import QMessageBox, QScrollArea, QVBoxLayout, QWidget
 
-from yomu.core import utils
+from yomu.core import utils as core_utils
 from .components.autoscroll import AutoScroller
 from .downloads import Downloads
 from .library import Library
@@ -78,8 +78,8 @@ class ReaderWindow(QWidget):
 
         fullscreen = self.addAction("Toggle Fullscreen")
         fullscreen.triggered.connect(self.toggle_fullscreen)
-        app.keybinds_changed.connect(self._set_keybinds)
-        self._set_keybinds(utils.get_keybinds())
+        app.keybinds_changed.connect(self.on_keybinds_changed)
+        self.on_keybinds_changed(core_utils.get_keybinds())
         self.setMouseTracking(True)
 
         self.setAttribute(Qt.WidgetAttribute.WA_NativeWindow)
@@ -109,7 +109,7 @@ class ReaderWindow(QWidget):
         widget = QWidget.find(winId)
         return widget if isinstance(widget, ReaderWindow) else None
 
-    def _set_keybinds(self, keybinds):
+    def on_keybinds_changed(self, keybinds: core_utils.Keybindings):
         for action in self.actions():
             keybindingData = keybinds.get(action.text(), {"keybinds": []})
             action.setShortcuts(
