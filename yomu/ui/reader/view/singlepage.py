@@ -88,10 +88,9 @@ class StackLayout(QStackedLayout):
         width_ratio = self.reader.width() / image_size.width()
         height_ratio = self.reader.height() / image_size.height()
 
-        if width_ratio <= height_ratio:
-            return FitDirection.Width
-        else:
-            return FitDirection.Height
+        return (
+            FitDirection.Width if width_ratio <= height_ratio else FitDirection.Height
+        )
 
     def fit_to_width(self, image_size: QSize) -> QRect:
         reader_size = self.reader.size()

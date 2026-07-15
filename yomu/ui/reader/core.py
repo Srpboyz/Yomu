@@ -5,7 +5,7 @@ from enum import IntEnum
 from logging import getLogger
 from typing import Callable, TYPE_CHECKING
 
-from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QRect, QSignalBlocker, Qt, QUrl
+from PyQt6.QtCore import pyqtSignal, QEvent, QMimeData, QRect, Qt, QUrl
 from PyQt6.QtGui import QContextMenuEvent, QDrag, QMouseEvent, QWheelEvent
 from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QMenu, QScrollArea, QScrollBar
@@ -88,10 +88,10 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.setWidgetResizable(True)
         self.setWidget(self.current_view)
 
-        self.verticalScrollBar().valueChanged.connect(self._value_changed)
-        self.horizontalScrollBar().rangeChanged.connect(self._range_changed)
+        self.verticalScrollBar().valueChanged.connect(self.on_vvalue_changed)
+        self.horizontalScrollBar().rangeChanged.connect(self.on_hrange_changed)
         self.current_view.page_changed.connect(self.page_bar.set_value)
-        self.page_bar.value_changed.connect(self._scroll_to)
+        self.page_bar.value_changed.connect(self.on_page_bar_value_changed)
 
         self.addAction("Change Reader Mode").triggered.connect(self.change_view)
         self.addAction("Previous Page").triggered.connect(self.previous_page)
@@ -101,9 +101,9 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.addAction("Zoom Out").triggered.connect(self.zoom_out)
         self.addAction("Zoom In").triggered.connect(self.zoom_in)
 
-        window.app.keybinds_changed.connect(self._set_keybinds)
-        window.titlebar.refresh_button.released.connect(self._refresh)
-        self._set_keybinds(core_utils.get_keybinds())
+        window.app.keybinds_changed.connect(self.on_keybinds_changed)
+        window.titlebar.refresh_button.released.connect(self.on_refresh)
+        self.on_keybinds_changed(core_utils.get_keybinds())
 
     window: Callable[[], ReaderWindow]
     verticalScrollBar: Callable[[], QScrollBar]
@@ -228,16 +228,33 @@ class Reader(QScrollArea, StackWidgetMixin):
         drag.setHotSpot(pixmap.rect().center())
         drag.exec(Qt.DropAction.CopyAction)
 
-    def _range_changed(self, min: int, max: int) -> None:
+    def on_hrange_changed(self, min: int, max: int) -> None:
         self.horizontalScrollBar().setValue(int((min + max) / 2))
 
-    def _value_changed(self, _) -> None:
+    def on_vvalue_changed(self, _) -> None:
         if self.status != Reader.Status.LOADING:
             self.overlay.hide()
 
-    def _scroll_to(self, page: int) -> None:
-        with QSignalBlocker(self.verticalScrollBar()):
-            self.current_view.current_index = page
+    def on_page_bar_value_changed(self, page: int) -> None:
+        self.current_view.current_index = page
+
+    def on_refresh(self) -> None:
+        if self.window().current_widget != self:
+            return
+
+        self._cancel_request.emit()
+
+        self.current_view.clear()
+        self._pages = []
+        self.page_bar.reset()
+
+        self._fetch_pages()
+        self.verticalScrollBar().setValue(0)
+
+    def on_keybinds_changed(self, keybinds: dict[str, core_utils.Keybind]) -> None:
+        for action in self.actions():
+            data = keybinds.get(action.text(), {"keybinds": []})
+            action.setShortcuts(data["keybinds"] if data is not None else [])
 
     def _fetch_pages(self) -> None:
         if not self.chapter.downloaded:
@@ -311,24 +328,6 @@ class Reader(QScrollArea, StackWidgetMixin):
         self.page_bar.set_total_pages(self.current_view.page_count - 1)
         self.current_view.current_index = 0
         self.status = Reader.Status.NULL
-
-    def _set_keybinds(self, keybinds: dict[str, core_utils.Keybind]) -> None:
-        for action in self.actions():
-            data = keybinds.get(action.text(), {"keybinds": []})
-            action.setShortcuts(data["keybinds"] if data is not None else [])
-
-    def _refresh(self) -> None:
-        if self.window().current_widget != self:
-            return
-
-        self._cancel_request.emit()
-
-        self.current_view.clear()
-        self._pages = []
-        self.page_bar.set_total_pages(0)
-
-        self._fetch_pages()
-        self.verticalScrollBar().setValue(0)
 
     def setGeometry(self, rect: QRect) -> None:
         super().setGeometry(rect)

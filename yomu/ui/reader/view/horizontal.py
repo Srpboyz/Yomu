@@ -58,7 +58,7 @@ class HorizontalView(BaseView, LayoutIterator[HorizontalPage]):
 
         reader.installEventFilter(self)
         scrollbar = reader.horizontalScrollBar()
-        scrollbar.rangeChanged.disconnect(reader._range_changed)
+        scrollbar.rangeChanged.disconnect(reader.on_hrange_changed)
         scrollbar.valueChanged.connect(self.scrollbar_value_changed)
         self.setFixedHeight(
             reader.height() - (scrollbar.height() if scrollbar.isVisible() else 0)
@@ -124,4 +124,4 @@ class HorizontalView(BaseView, LayoutIterator[HorizontalPage]):
 
     def unload(self) -> None:
         reader = self.reader
-        reader.horizontalScrollBar().rangeChanged.connect(reader._range_changed)
+        reader.horizontalScrollBar().rangeChanged.connect(reader.on_hrange_changed)
