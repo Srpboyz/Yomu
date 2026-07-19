@@ -6,7 +6,7 @@ from typing import Callable, TypedDict
 
 from PyQt6.QtCore import QCoreApplication, QEventLoop, QTimer, QStandardPaths
 
-RESOURCES_DIR = os.getenv("RESOURCES_DIR")
+from .config import RESOURCES_DIR
 
 
 def app_data_path() -> str:

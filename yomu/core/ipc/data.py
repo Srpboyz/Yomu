@@ -1,8 +1,9 @@
 from enum import IntEnum
 from typing import NotRequired, TypedDict
-import os
 
-IPC_NAME = "yomu-ipc-dev" if int(os.getenv("YOMU_DEV", "0")) else "yomu-ipc"
+from yomu.core.config import YOMU_DEV
+
+IPC_NAME = "yomu-ipc-dev" if YOMU_DEV else "yomu-ipc"
 
 
 class Command(IntEnum):

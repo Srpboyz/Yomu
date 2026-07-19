@@ -15,6 +15,7 @@ from PyQt6.QtWebEngineCore import (
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 from yomu.core import utils
+from yomu.core.config import YOMU_DEV
 from yomu.core.network import Request
 from yomu.source import Source, FilterOption
 from yomu.ui.stack import StackWidgetMixin
@@ -27,8 +28,6 @@ if TYPE_CHECKING:
     from yomu.ui import ReaderWindow
     from .pages import BasePage
 
-
-YOMU_DEV = int(os.getenv("YOMU_DEV", "0"))
 
 if YOMU_DEV:
 

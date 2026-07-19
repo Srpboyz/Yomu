@@ -29,6 +29,7 @@ from PyQt6.QtWidgets import (
 from yomu.source import Source
 from yomu.ui import ReaderWindow
 
+from .config import APP_NAME, YOMU_DEV
 from .ipc import IPCServer
 from .extensionmanager import ExtensionManager
 from .models import Category, Chapter, Manga
@@ -42,15 +43,9 @@ if TYPE_CHECKING:
 __all__ = ("YomuApp",)
 
 
-YOMU_DEV = int(os.getenv("YOMU_DEV", "0"))
-
-if YOMU_DEV:
-    QApplication.setApplicationName("Yomu-Dev")
-    QApplication.setApplicationDisplayName("Yomu-Dev")
-else:
-    QApplication.setApplicationName("Yomu")
-    QApplication.setApplicationDisplayName("Yomu")
-QApplication.setApplicationVersion("1.4.4")
+QApplication.setApplicationName(APP_NAME)
+QApplication.setApplicationDisplayName(APP_NAME)
+QApplication.setApplicationVersion("1.4.5")
 if sys.platform == "linux":
     QApplication.setDesktopFileName("yomu")
 

@@ -195,14 +195,16 @@ class ReaderWindow(QWidget):
 
 
 if sys.platform == "win32":
+    import os
+
     from ctypes import byref, c_int, Structure, windll
     from win32com.propsys import propsys, pscon  # type: ignore
     from win32com.shell import shell  # type: ignore
-
-    import os
     import pythoncom
     import win32con
     import win32gui
+
+    from yomu.core.config import YOMU_DEV
 
     class MARGINS(Structure):
         _fields_ = [
@@ -273,7 +275,7 @@ if sys.platform == "win32":
         jumplist.AddUserTasks(collection)
         jumplist.CommitList()
 
-    if not int(os.getenv("YOMU_DEV", "0")):
+    if not YOMU_DEV:
         __create_jumplist()
     del __create_jumplist
 
