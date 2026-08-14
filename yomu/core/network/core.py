@@ -124,10 +124,7 @@ class Network(QNetworkAccessManager):
         response: Response = self.sender()
         error = response.error()
 
-        if error not in (
-            Response.Error.OperationCanceledError,
-            Response.Error.NoError,
-        ):
+        if error not in (Response.Error.OperationCanceledError, Response.Error.NoError):
             logger.warning(
                 f"{response.operation.name} request to {response.url().toString()} failed - Reason: {error.name}({response.attribute(Request.Attribute.HttpStatusCodeAttribute)}) - {response.error_string()}"
             )
