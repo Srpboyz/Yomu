@@ -40,7 +40,7 @@ class Mangadotnet(Source):
     def search_for_manga(self, query: str) -> Request:
         return Request(
             Url(
-                f"{Mangadotnet.BASE_URL}/search.data",
+                f"{Mangadotnet.BASE_URL}/api/search",
                 params={
                     "adult": "both",
                     "_routes": "pages/SearchPage",
@@ -51,12 +51,7 @@ class Mangadotnet(Source):
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
         return MangaList(
-            mangas=list(
-                map(
-                    self.parse_manga_data,
-                    decode_rsc(response.json())["pages/SearchPage"]["data"]["results"],
-                )
-            ),
+            mangas=list(map(self.parse_manga_data, response.json()["manga_list"])),
             has_next_page=False,
         )
 
