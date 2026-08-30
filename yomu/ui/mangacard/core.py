@@ -333,8 +333,9 @@ class DisplayThumbnail(QFrame):
         return super().eventFilter(a0, a1)
 
     def mousePressEvent(self, a0: QMouseEvent) -> None:
-        if not self.label.underMouse():
-            self.deleteLater()
+        if a0.button() == Qt.MouseButton.LeftButton and self.label.underMouse():
+            return
+        self.deleteLater()
 
     def mouseMoveEvent(self, ev: QMouseEvent) -> None:
         if (
