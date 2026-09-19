@@ -42,7 +42,16 @@ class Atsumaru(Source):
     def parse_latest(self, response: Response, page: int) -> MangaList:
         data: BrowseMangaDto = response.json()
         return MangaList(
-            mangas=list(map(self.parse_latest_manga, data["items"])), has_next_page=True
+            mangas=list(
+                map(
+                    self.parse_latest_manga,
+                    filter(
+                        lambda d: d["medium"] == "Comic",
+                        data["items"],
+                    ),
+                )
+            ),
+            has_next_page=True,
         )
 
     def search_for_manga(self, query: str) -> Request:
@@ -159,7 +168,7 @@ class Atsumaru(Source):
                 f"{Atsumaru.BASE_URL}/static/" 
                 + url.removeprefix("/").removeprefix("static/")
             )  # fmt: skip
-        url = re.sub(r"^https?:?//", "https://", url, count=1)
+        url = re.sub(r"^https?:?//", "https://cdn.", url, count=1)
         return Page(number=i, url=url)
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
