@@ -21,7 +21,7 @@
 
 ## Supported Sources
 
-* Armageddon
+* Armageddon (Removed)
 * Atsumaru
 * Comick (Removed)
 * Comix (Removed)

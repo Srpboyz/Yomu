@@ -1,4 +1,3 @@
-from .armageddon import Armageddon
 from .atsumaru import Atsumaru
 from .erisscans import ErisScans
 from .firescans import FireScans
@@ -17,7 +16,6 @@ from .weebcentral import WeebCentral
 
 def _default_sources() -> list:
     return [
-        Armageddon,
         Atsumaru,
         ErisScans,
         FireScans,
