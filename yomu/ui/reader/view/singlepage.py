@@ -215,18 +215,19 @@ class StackLayout(QStackedLayout):
                     fit_direction = self.auto_fit(image_size)
                 if fit_direction == FitDirection.Width:
                     rect = self.fit_to_width(image_size)
-                    view.setFixedSize(
-                        self.reader.size()
-                        if self.reader.height() > rect.height()
-                        else rect.size()
-                    )
                 else:
                     rect = self.fit_to_height(image_size)
-                    view.setFixedSize(
-                        self.reader.size()
-                        if self.reader.width() > rect.width()
-                        else rect.size()
-                    )
+                width = (
+                    self.reader.width()
+                    if self.reader.width() > rect.width()
+                    else rect.width()
+                )
+                height = (
+                    self.reader.height()
+                    if self.reader.height() > rect.height()
+                    else rect.height()
+                )
+                view.setFixedSize(width, height)
             else:
                 rect = QRect(QPoint(0, 0), self.reader.size())
                 view.setFixedSize(self.reader.size())
