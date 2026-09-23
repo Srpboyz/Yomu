@@ -1,6 +1,5 @@
 import json
 import re
-from typing import TypedDict
 
 from bs4 import BeautifulSoup
 from dateparser import parse as parse_date
@@ -9,23 +8,12 @@ from PyQt6.QtNetwork import QHttpHeaders
 from yomu.core.network import Response, Request
 from yomu.source import *
 
+from .dto import *
 
-class MangaData(TypedDict):
-    id: int
-    title: str
-    description: str
-    author: str
-    thumbnail: str
-    series_slug: str
-
-
-class ChapterData(TypedDict):
-    index: int
-    chapter_name: str
-    chapter_title: str
-    chapter_slug: str
-    created_at: str
-    price: int
+MANGA_REGEX = re.compile(r'list\\":(.*),')
+DETAILS_REGEX = re.compile(r'seriesData\\":(\{.*\}).*hasFollowed')
+IMAGES_REGEX = re.compile(r'images\\":(\[.*?]).*')
+UNESCAPE_REGEX = re.compile(r"\\(.)")
 
 
 class TempleScan(Source):
@@ -33,18 +21,14 @@ class TempleScan(Source):
     BASE_URL = "https://templetoons.com"
     rate_limit = RateLimit(1)
 
-    DETAILS_REGEX = re.compile(r'seriesData\\":(\{.*\}).*hasFollowed')
-    IMAGES_REGEX = re.compile(r'pages\\":(\[.*?]).*')
-    UNESCAPE_REGEX = re.compile(r"\\(.)")
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.cache: list[Manga] = []
 
     def _create_request(self, url: str) -> Request:
-        request = Request(url)
-
         headers = QHttpHeaders()
+        headers.replaceOrAppend("Sec-Fetch-Dest", "document")
+        headers.replaceOrAppend("Sec-Fetch-Mode", "navigate")
         headers.replaceOrAppend(
             QHttpHeaders.WellKnownHeader.Referer, f"{TempleScan.BASE_URL}/"
         )
@@ -52,32 +36,34 @@ class TempleScan(Source):
             QHttpHeaders.WellKnownHeader.Origin, TempleScan.BASE_URL
         )
 
+        request = Request(url)
         request.setHeaders(headers)
         return request
 
-    def _parse_manga(self, data: MangaData) -> Manga:
+    def _parse_manga(self, data: MangaDataDto) -> Manga:
         return Manga(
             title=data["title"],
             thumbnail=data["thumbnail"],
-            url=f"/comic/{data['series_slug']}",
+            url=f"/comic/{data['sref']}",
         )
 
     def _parse_manga_cache(self, response: Response) -> None:
-        document = BeautifulSoup(response.read_all().data(), features="lxml")
-
-        script = document.select_one("script:-soup-contains(allComics)")
+        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        script = document.select_one("script:-soup-contains(list)")
         if script is None:
             raise TypeError
 
-        script_text = TempleScan.UNESCAPE_REGEX.sub(r"\1", script.get_text(strip=True))
-        start = script_text.index("[", script_text.index("allComics"))
-        end = script_text.rfind("}]", start)
+        manga_data = json.loads(
+            UNESCAPE_REGEX.sub(
+                r"\1", MANGA_REGEX.search(script.get_text(strip=True)).group(1)
+            )
+        )
 
         self.cache = list(
             map(
                 self._parse_manga,
                 sorted(
-                    json.loads(script_text[start:end]),
+                    manga_data,
                     key=lambda data: parse_date(
                         data["update_chapter"]
                         if data["update_chapter"]
@@ -118,14 +104,14 @@ class TempleScan(Source):
         return self._create_request(TempleScan.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        data: MangaData = json.loads(
-            TempleScan.UNESCAPE_REGEX.sub(
-                r"\1",
-                next(
-                    TempleScan.DETAILS_REGEX.finditer(
-                        response.read_all().data().decode()
-                    )
-                ).group(1),
+        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        script = document.select_one("script:-soup-contains(seriesData)")
+        if script is None:
+            raise TypeError
+
+        data: MangaDataDto = json.loads(
+            UNESCAPE_REGEX.sub(
+                r"\1", DETAILS_REGEX.search(script.get_text(strip=True)).group(1)
             )
         )
 
@@ -141,7 +127,7 @@ class TempleScan(Source):
         return self._create_request(TempleScan.BASE_URL + manga.url)
 
     def _parse_chapter_data(
-        self, data: ChapterData, index: int, manga_slug: str
+        self, data: ChapterDataDto, index: int, manga_slug: str
     ) -> Chapter:
         title = data["chapter_name"]
         if data["chapter_title"]:
@@ -155,27 +141,25 @@ class TempleScan(Source):
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Page]:
-        data: MangaData = json.loads(
-            TempleScan.UNESCAPE_REGEX.sub(
-                r"\1",
-                next(
-                    TempleScan.DETAILS_REGEX.finditer(
-                        response.read_all().data().decode()
-                    )
-                ).group(1),
+        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        script = document.select_one("script:-soup-contains(seriesData)")
+        if script is None:
+            raise TypeError
+
+        data: MangaDataDto = json.loads(
+            UNESCAPE_REGEX.sub(
+                r"\1", DETAILS_REGEX.search(script.get_text(strip=True)).group(1)
             )
         )
 
-        chapters: list[ChapterData] = next(
-            filter(
-                lambda season: season["season_name"] == "All chapters", data["Season"]
-            )
-        )["Chapter"][::-1]
+        chapters: list[ChapterDataDto] = next(
+            filter(lambda group: group["season_name"] == "All chapters", data["groups"])
+        )["items"][::-1]
 
         return list(
             map(
                 lambda pair: self._parse_chapter_data(pair[1], pair[0] + 1, manga.url),
-                enumerate(filter(lambda chapter: chapter["price"] == 0, chapters)),
+                enumerate(filter(lambda chapter: chapter["lk"] == 0, chapters)),
             )
         )
 
@@ -183,14 +167,14 @@ class TempleScan(Source):
         return self._create_request(TempleScan.BASE_URL + chapter.url)
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[str]:
+        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        script = document.select_one("script:-soup-contains(images)")
+        if script is None:
+            raise TypeError
+
         pages = json.loads(
-            TempleScan.UNESCAPE_REGEX.sub(
-                r"\1",
-                next(
-                    TempleScan.IMAGES_REGEX.finditer(
-                        response.read_all().data().decode()
-                    )
-                ).group(1),
+            UNESCAPE_REGEX.sub(
+                r"\1", IMAGES_REGEX.search(script.get_text(strip=True)).group(1)
             )
         )
 
