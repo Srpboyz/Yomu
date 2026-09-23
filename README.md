@@ -27,7 +27,7 @@
 * Comix (Removed)
 * Diva Scans (Removed)
 * Eris Scans
-* Firescans
+* Firescans (Removed)
 * Galaxy Degen Scans
 * Kappa Beast (Removed)
 * Manga18fx

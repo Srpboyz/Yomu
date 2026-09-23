@@ -1,6 +1,5 @@
 from .atsumaru import Atsumaru
 from .erisscans import ErisScans
-from .firescans import FireScans
 from .galaxydegenscans import GalaxyDegenScans
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
@@ -18,7 +17,6 @@ def _default_sources() -> list:
     return [
         Atsumaru,
         ErisScans,
-        FireScans,
         GalaxyDegenScans,
         Manga18fx,
         MangaDex,
