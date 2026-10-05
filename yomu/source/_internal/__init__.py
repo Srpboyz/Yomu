@@ -6,6 +6,7 @@ from .mangadex import MangaDex
 from .mangadotnet import Mangadotnet
 from .nyxscans import NyxScans
 from .philiascans import PhiliaScans
+from .silentquill import SilentQuill
 from .templescan import TempleScan
 from .toongod import ToonGod
 from .toonily import Toonily
@@ -22,6 +23,7 @@ def _default_sources() -> list:
         Mangadotnet,
         NyxScans,
         PhiliaScans,
+        SilentQuill,
         TempleScan,
         ToonGod,
         Toonily,

@@ -21,7 +21,7 @@
 
 ## Supported Sources
 
-* Armageddon (Removed)
+* Armageddon (Replaced by SilentQuill)
 * Atsumaru
 * Comick (Removed)
 * Comix (Removed)
@@ -36,7 +36,8 @@
 * Mangafire (Removed)
 * Nyx Scans
 * Philia Scans
-* Temple Scan
+* SilentQuill
+* Temple Scan (Broken)
 * The Blank Scans (Removed)
 * ToonGod
 * Toonily
