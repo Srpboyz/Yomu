@@ -70,7 +70,11 @@ class LatestWidget(BasePage):
         self._page += 1
         try:
             request = self.source.get_latest(self._page)
-        except Exception:
+        except Exception as e:
+            logger.error(
+                f"Error occured while creaing the latest updates request for {self.source.name}",
+                exc_info=e,
+            )
             return self._error_occured()
 
         request.setPriority(Request.Priority.HighPriority)
