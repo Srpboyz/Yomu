@@ -27,7 +27,7 @@
 * Comix (Removed)
 * Diva Scans (Removed)
 * Eris Scans
-* Firescans (Removed)
+* Firescans (Removed; Site Down)
 * Galaxy Degen Scans
 * Kappa Beast (Removed)
 * Manga18fx
@@ -40,7 +40,7 @@
 * The Blank Scans (Removed)
 * ToonGod
 * Toonily
-* WebtoonXYZ
+* WebtoonXYZ (Removed; Site Down)
 * Weeb Central
 
 Note: Sources may not be up to date
