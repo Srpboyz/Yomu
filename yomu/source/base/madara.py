@@ -1,11 +1,10 @@
 from datetime import datetime
 from typing import Sequence
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 from dateparser import parse
-from PyQt6.QtCore import QUrl, QUrlQuery
 
-from yomu.core.network import Request, Response
+from yomu.core.network import Request, Response, Url
 from yomu.source import *
 
 
@@ -33,7 +32,7 @@ class Madara(Source):
 
     def _build_request(
         self,
-        url: str | QUrl,
+        url: str | Url,
         route: Request.Route = Request.Route.GET,
         data: dict | None = None,
     ) -> Request:
@@ -60,9 +59,7 @@ class Madara(Source):
         url = f"{self.BASE_URL}/{self.request_sub_string}/"
         if page >= 2:
             url += f"page/{page}"
-        url += "?m_orderby=latest"
-
-        return self._build_request(url)
+        return self._build_request(Url(url, params={"m_orderby": "latest"}))
 
     def latest_manga_from_element(self, element: Tag) -> Manga:
         a = element.select_one("div.post-title.font-title a")
@@ -74,18 +71,23 @@ class Madara(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-
+        document = response.as_beautifulsoup()
         mangas = list(
-            map(self.latest_manga_from_element, html.select(self.manga_latest_selector))
+            map(
+                self.latest_manga_from_element,
+                document.select(self.manga_latest_selector),
+            )
         )
-        can_load_more = bool(html.select(self.next_page_selector))
-
+        can_load_more = bool(document.select(self.next_page_selector))
         return MangaList(mangas=mangas, has_next_page=can_load_more)
 
     def search_for_manga(self, query: str) -> None:
-        query = query.replace(" ", "+")
-        return self._build_request(self._build_search_query(query))
+        return self._build_request(
+            Url(
+                f"{self.BASE_URL}/",
+                params={"s": query.replace(" ", "+"), "post_type": "wp-manga"},
+            )
+        )
 
     def search_manga_from_element(self, element: Tag) -> Manga:
         a = element.select_one("div.post-title a")
@@ -95,9 +97,11 @@ class Madara(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
         mangas = list(
-            map(self.search_manga_from_element, html.select(self.manga_search_selector))
+            map(
+                self.search_manga_from_element,
+                response.as_beautifulsoup().select(self.manga_search_selector),
+            )
         )
         return MangaList(mangas=mangas)
 
@@ -105,19 +109,19 @@ class Madara(Source):
         return self._build_request(self.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
+        document = response.as_beautifulsoup()
 
         title = (
-            html.select_one(self.manga_title_selector)
+            document.select_one(self.manga_title_selector)
             .find(string=True, recursive=False)
             .strip()
         )
 
-        description = html.select_one(self.manga_details_selector).get_text(separator=" ", strip=True)  # fmt:skip
-        author = getattr(html.select_one(self.manga_author_selector), "text", None)
-        artist = getattr(html.select_one(self.manga_artist_selector), "text", None)
+        description = document.select_one(self.manga_details_selector).get_text(separator=" ", strip=True)  # fmt:skip
+        author = getattr(document.select_one(self.manga_author_selector), "text", None)
+        artist = getattr(document.select_one(self.manga_artist_selector), "text", None)
 
-        img = html.select_one(self.manga_thumbnail_selector)
+        img = document.select_one(self.manga_thumbnail_selector)
         thumbnail = self.get_image_from_element(img) if img is not None else img
         url = self.url_to_slug(response.url().toString())
 
@@ -156,45 +160,30 @@ class Madara(Source):
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
         chapters = [
             self.chapter_from_element(element, number)
-            for number, element in enumerate(html.select(self.chapter_selector)[::-1])
+            for number, element in enumerate(
+                response.as_beautifulsoup().select(self.chapter_selector)[::-1]
+            )
         ]
         return chapters
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return self._build_request(self.BASE_URL + chapter.url)
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        pages = [
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
+        return [
             Page(
                 number=number,
                 url=self.get_image_from_element(div.select_one("img")).strip(),
             )
-            for number, div in enumerate(html.select(self.page_selector))
+            for number, div in enumerate(
+                response.as_beautifulsoup().select(self.page_selector)
+            )
         ]
-        return pages
 
     def get_thumbnail(self, manga: Manga) -> Request:
         return self._build_request(manga.thumbnail)
 
     def get_page(self, page: Page) -> Request:
         return self._build_request(page.url)
-
-    def _build_search_query(self, query: str) -> QUrl:
-        params = {"s": query, "post_type": "wp-manga"}
-
-        url = QUrl(f"{self.BASE_URL}/")
-        url_query = QUrlQuery()
-        for param, value in params.items():
-            if isinstance(value, list):
-                for val in value:
-                    url_query.addQueryItem(param, str(val))
-            else:
-                url_query.addQueryItem(param, str(value))
-        url.setQuery(url_query)
-        return url

@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup, BeautifulStoneSoup
 from yomu.core.network import Response
 from yomu.source.base import Keyoapp
 from yomu.source import Page
@@ -13,7 +12,6 @@ class ErisScans(Keyoapp):
     manga_artist_selector = "div[alt=Artist]"
 
     def parse_chapter_pages(self, response: Response, _) -> list[Page]:
-        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
         return [
             Page(number=i, url=f"https://cdn.meowing.org/uploads/{uid}")
             for i, uid in enumerate(
@@ -21,7 +19,7 @@ class ErisScans(Keyoapp):
                     None,
                     map(
                         lambda element: element.attrs["uid"],
-                        document.select("#pages > img"),
+                        response.as_beautifulsoup().select("#pages > img"),
                     ),
                 )
             )

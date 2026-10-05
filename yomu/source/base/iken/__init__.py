@@ -98,11 +98,9 @@ class Iken(Source):
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return Request(f"{self.BASE_URL}/series/{chapter.url}")
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        script = html.select_one("script:-soup-contains(images)")
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
+        document = response.as_beautifulsoup()
+        script = document.select_one("script:-soup-contains(images)")
         if script is None:
             raise TypeError()
 

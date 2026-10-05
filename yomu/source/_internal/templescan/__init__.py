@@ -1,7 +1,6 @@
 import json
 import re
 
-from bs4 import BeautifulSoup
 from dateparser import parse as parse_date
 from PyQt6.QtNetwork import QHttpHeaders
 
@@ -48,7 +47,7 @@ class TempleScan(Source):
         )
 
     def _parse_manga_cache(self, response: Response) -> None:
-        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        document = response.as_beautifulsoup()
         script = document.select_one("script:-soup-contains(list)")
         if script is None:
             raise TypeError
@@ -104,7 +103,7 @@ class TempleScan(Source):
         return self._create_request(TempleScan.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        document = response.as_beautifulsoup()
         script = document.select_one("script:-soup-contains(seriesData)")
         if script is None:
             raise TypeError
@@ -141,7 +140,7 @@ class TempleScan(Source):
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Page]:
-        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        document = response.as_beautifulsoup()
         script = document.select_one("script:-soup-contains(seriesData)")
         if script is None:
             raise TypeError
@@ -167,7 +166,7 @@ class TempleScan(Source):
         return self._create_request(TempleScan.BASE_URL + chapter.url)
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[str]:
-        document = BeautifulSoup(bytes(response.read_all()), features="lxml")
+        document = response.as_beautifulsoup()
         script = document.select_one("script:-soup-contains(images)")
         if script is None:
             raise TypeError

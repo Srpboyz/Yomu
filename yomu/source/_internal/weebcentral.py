@@ -1,5 +1,5 @@
 import re
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 from dateparser import parse as parse_date
 
 from yomu.core.network import Response, Request, Url
@@ -49,7 +49,7 @@ class WeebCentral(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        document = BeautifulSoup(response.read_all().data(), features="lxml")
+        document = response.as_beautifulsoup()
         mangas = list(
             map(self.parse_latest_manga, document.select("article > section > a"))
         )
@@ -76,7 +76,7 @@ class WeebCentral(Source):
         return Request(WeebCentral.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        document = BeautifulSoup(response.read_all().data(), features="lxml")
+        document = response.as_beautifulsoup()
 
         content_elements = document.select("section[x-data] > section")
         if not content_elements:
@@ -120,10 +120,11 @@ class WeebCentral(Source):
         return Chapter(title=title, number=number, uploaded=uploaded, url=url)
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
-        document = BeautifulSoup(response.read_all().data(), features="lxml")
         return [
             self.parse_chapter_element(element, i)
-            for i, element in enumerate(document.select("div[x-data] > a")[::-1])
+            for i, element in enumerate(
+                response.as_beautifulsoup().select("div[x-data] > a")[::-1]
+            )
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
@@ -135,11 +136,9 @@ class WeebCentral(Source):
         )
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        document = BeautifulSoup(response.read_all().data(), features="lxml")
-        pages = [
+        return [
             Page(number=i, url=element.attrs["src"])
             for i, element in enumerate(
-                document.select("section[x-data*=scroll] > img")
+                response.as_beautifulsoup().select("section[x-data*=scroll] > img")
             )
         ]
-        return pages

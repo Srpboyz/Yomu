@@ -1,6 +1,3 @@
-from typing import Sequence
-
-from bs4 import BeautifulSoup
 from PyQt6.QtNetwork import QNetworkCookie
 
 from yomu.core import Request
@@ -46,18 +43,16 @@ class Toonily(Madara):
         query = query.replace(" ", "-")
         return self._build_request(f"{Toonily.BASE_URL}/search/{query}")
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        pages = [
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
+        return [
             Page(
                 number=number,
                 url=self.get_image_from_element(div.select_one("img")).strip(),
             )
-            for number, div in enumerate(html.select(self.page_selector)[:-1])
+            for number, div in enumerate(
+                response.as_beautifulsoup().select(self.page_selector)[:-1]
+            )
         ]
-        return pages
 
     def update_filters(self, filters: dict[str, int | str | bool]) -> bool:
         new_value = filters.get("nsfw", False)

@@ -1,6 +1,8 @@
-from typing import Any, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
+from warnings import deprecated
 import json
 
+from bs4 import BeautifulSoup
 from PyQt6.QtCore import pyqtSignal, QByteArray, QEventLoop, QObject
 from PyQt6.QtNetwork import QHttpHeaders, QNetworkReply
 
@@ -110,8 +112,17 @@ class Response(QObject):
     def read_all(self) -> QByteArray:
         return QByteArray(self._data)
 
-    def json(self) -> Any:
+    def as_json(self) -> Any:
         return json.loads(self.read_all().data())
+
+    @deprecated("Use `Response.as_json` instead")
+    def json(self) -> Any:
+        return self.as_json()
+
+    def as_beautifulsoup(
+        self, *, parser: Literal["html.parser", "lxml"] = "lxml"
+    ) -> BeautifulSoup:
+        return BeautifulSoup(bytes(self.read_all()), features=parser)
 
     def wait(self) -> None:
         if self.is_finished():

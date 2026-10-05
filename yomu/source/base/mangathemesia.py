@@ -42,11 +42,11 @@ class MangaThemesia(Source):
         request.setRawHeader(b"Referer", f"{self.BASE_URL}/".encode())
         return request
 
-    def get_image_url(self, tag: Tag | None) -> str | None:
-        if tag is None:
+    def get_image_url(self, element: Tag | None) -> str | None:
+        if element is None:
             return None
 
-        attrs = tag.attrs
+        attrs = element.attrs
         if "data-lazy-src" in attrs:
             return attrs["data-lazy-src"]
         if "data-src" in attrs:
@@ -81,29 +81,29 @@ class MangaThemesia(Source):
     def parse_search_results(
         self, response: Response, query: str, *, check_for_next: bool = False
     ) -> MangaList:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-
-        mangas = list(map(self.manga_from_element, html.select(self.search_selector)))
+        document = response.as_beautifulsoup()
+        mangas = list(
+            map(self.manga_from_element, document.select(self.search_selector))
+        )
         has_next_page = (
-            bool(html.select_one("div.pagination .next, div.hpage .r"))
+            bool(document.select_one("div.pagination .next, div.hpage .r"))
             if check_for_next
             else False
         )
-
         return MangaList(mangas=mangas, has_next_page=has_next_page)
 
     def get_manga_info(self, manga: Manga) -> Request:
         return self._build_request(self.BASE_URL + manga.url)
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
+        document = response.as_beautifulsoup()
 
-        title = html.select_one(self.title_selector).text
-        description = html.select_one(self.details_selector).get_text(separator=" ", strip=True)  # fmt:skip
-        author = getattr(html.select_one(self.author_selector), "text", None)
-        artist = getattr(html.select_one(self.artist_selector), "text", None)
+        title = document.select_one(self.title_selector).text
+        description = document.select_one(self.details_selector).get_text(separator=" ", strip=True)  # fmt:skip
+        author = getattr(document.select_one(self.author_selector), "text", None)
+        artist = getattr(document.select_one(self.artist_selector), "text", None)
 
-        thumbnail = self.get_image_url(html.select_one(self.thumbnail_selector))
+        thumbnail = self.get_image_url(document.select_one(self.thumbnail_selector))
         url = self.url_to_slug(response.url().toString())
 
         info = Manga(
@@ -128,24 +128,22 @@ class MangaThemesia(Source):
         return Chapter(number=number, title=title, url=url, uploaded=uploaded)
 
     def parse_chapters(self, response: Response, manga: Manga) -> Sequence[Chapter]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        chapters = [
-            self.chapter_from_element(tag, number)
-            for number, tag in enumerate(html.select(self.chapter_selector)[::-1])
+        return [
+            self.chapter_from_element(element, number)
+            for number, element in enumerate(
+                response.as_beautifulsoup().select(self.chapter_selector)[::-1]
+            )
         ]
-        return chapters
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
         return self._build_request(self.BASE_URL + chapter.url)
 
-    def parse_chapter_pages(
-        self, response: Response, chapter: Chapter
-    ) -> Sequence[Page]:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
-        pages = html.select(self.page_selector)
+    def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
             Page(number=number, url=self.get_image_url(page))
-            for number, page in enumerate(pages)
+            for number, page in enumerate(
+                response.as_beautifulsoup().select(self.page_selector)
+            )
         ]
 
     def get_page(self, page: Page) -> Request:

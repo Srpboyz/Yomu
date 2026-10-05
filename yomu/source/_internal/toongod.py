@@ -1,5 +1,3 @@
-from bs4 import BeautifulSoup
-
 from yomu.core.network import Response
 from yomu.source.base import Madara
 from yomu.source import *
@@ -10,23 +8,23 @@ class ToonGod(Madara):
     request_sub_string = "webtoons"
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        html = BeautifulSoup(response.read_all().data(), features="lxml")
+        document = response.as_beautifulsoup()
 
         title = (
-            html.select_one(self.manga_title_selector)
+            document.select_one(self.manga_title_selector)
             .find(string=True, recursive=False)
             .strip()
         )
 
         description = (
-            html.select_one(self.manga_details_selector)
+            document.select_one(self.manga_details_selector)
             .select_one("p")
             .get_text(separator=" ", strip=True)
         )
-        author = getattr(html.select_one(self.manga_author_selector), "text", None)
-        artist = getattr(html.select_one(self.manga_artist_selector), "text", None)
+        author = getattr(document.select_one(self.manga_author_selector), "text", None)
+        artist = getattr(document.select_one(self.manga_artist_selector), "text", None)
 
-        img = html.select_one(self.manga_thumbnail_selector)
+        img = document.select_one(self.manga_thumbnail_selector)
         thumbnail = self.get_image_from_element(img) if img is not None else img
         url = self.url_to_slug(response.url().toString())
 
