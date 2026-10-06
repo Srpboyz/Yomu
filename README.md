@@ -30,6 +30,7 @@
 * Firescans (Removed; Site Down)
 * Galaxy Degen Scans
 * Kappa Beast (Removed)
+* Luna Toons
 * Manga18fx
 * Mangadex
 * Mangadotnet

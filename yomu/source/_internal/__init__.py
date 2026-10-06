@@ -1,6 +1,7 @@
 from .atsumaru import Atsumaru
 from .erisscans import ErisScans
 from .galaxydegenscans import GalaxyDegenScans
+from .lunatoons import LunaToons
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
 from .mangadotnet import Mangadotnet
@@ -18,6 +19,7 @@ def _default_sources() -> list:
         Atsumaru,
         ErisScans,
         GalaxyDegenScans,
+        LunaToons,
         Manga18fx,
         MangaDex,
         Mangadotnet,

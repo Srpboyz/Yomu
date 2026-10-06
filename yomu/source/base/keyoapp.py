@@ -13,7 +13,7 @@ CDN_REGEX = re.compile(r"^(https?:)?//cdn\d*\.keyoapp\.com")
 class Keyoapp(Source):
     latest_updates_selector: str = "div.grid > div.group"
     search_selector: str = "#searched_series_page > button"
-    manga_description_selector: str = "div:containsOwn(Synopsis) ~ div"
+    manga_description_selector: str = "div:-soup-contains-own(Synopsis) ~ div"
     manga_author_selector: str = "div:has(span:-soup-contains(Author)) ~ div"
     manga_artist_selector: str = "div:has(span:-soup-contains(Artist)) ~ div"
     chapter_date_selector: str = ".text-xs"
