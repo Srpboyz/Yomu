@@ -99,27 +99,9 @@ class Iken(Source):
         return Request(f"{self.BASE_URL}/series/{chapter.url}")
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        document = response.as_beautifulsoup()
-        script = document.select_one("script:-soup-contains(images)")
-        if script is None:
-            raise TypeError()
-
-        data = script.get_text(strip=True)
-        index = data.index("images")
-        start = data.index("[", index)
-
-        depth = 1
-        end = start + 1
-
-        while end < len(data) and depth > 0:
-            char = data[end]
-            if char == "[":
-                depth += 1
-            elif char == "]":
-                depth -= 1
-            end += 1
-
-        images = json.loads(data[start:end].replace("\\", ""))
-        return list(
-            map(lambda image: Page(number=image["order"], url=image["url"]), images)
-        )
+        return [
+            Page(number=i, url=img.attrs["src"])
+            for i, img in enumerate(
+                response.as_beautifulsoup().select('img[data-reader-page-image="true"]')
+            )
+        ]
