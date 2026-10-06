@@ -48,7 +48,7 @@ class PhiliaScans(Source):
         return Manga(title=title, thumbnail=thumbnail, url=url)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        data: SeriesDto = response.json()
+        data: SeriesDto = response.as_json()
         return MangaList(
             mangas=list(map(self.parse_manga_data, data["items"])),
             has_next_page=data["page"] < data["totalPages"],
@@ -59,7 +59,7 @@ class PhiliaScans(Source):
         return Request(f"{PhiliaScans.API_URL}/manga/{url}")
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        data: MangaDetailsDto = response.json()
+        data: MangaDetailsDto = response.as_json()
 
         thumbnail = data.get("coverImageUrl")
         if thumbnail is not None and not thumbnail.startswith("http"):
@@ -93,7 +93,7 @@ class PhiliaScans(Source):
                 sorted(
                     filter(
                         lambda data: not data["coinPrice"],
-                        response.json()["items"],
+                        response.as_json()["items"],
                     ),
                     key=lambda data: float(data["number"]),
                 )
@@ -108,7 +108,7 @@ class PhiliaScans(Source):
         )
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        data: ChapterDto = response.json()["chapter"]
+        data: ChapterDto = response.as_json()["chapter"]
         chapter_id, is_scrambled = data["id"], data["scrambled"]
 
         headers = QHttpHeaders()
@@ -126,14 +126,14 @@ class PhiliaScans(Source):
         request.setHeaders(headers)
         response = self.network.handle_request(request)
         response.wait()
-        headers.replaceOrAppend("X-Reader-Access-Token", response.json()["token"])
+        headers.replaceOrAppend("X-Reader-Access-Token", response.as_json()["token"])
         response.deleteLater()
 
         request = Request(f"{PhiliaScans.API_URL}/chapters/{chapter_id}/page-keys")
         request.setHeaders(headers)
         response = self.network.handle_request(request)
         response.wait()
-        page_keys: PageKeysDto = response.json()
+        page_keys: PageKeysDto = response.as_json()
         response.deleteLater()
 
         if page_keys["sessionDefault"]:
@@ -144,7 +144,7 @@ class PhiliaScans(Source):
             request.setHeaders(headers)
             response = self.network.handle_request(request)
             response.wait()
-            open_response: OpenResponseDto = response.json()
+            open_response: OpenResponseDto = response.as_json()
             response.deleteLater()
 
             request = Request(
@@ -154,7 +154,7 @@ class PhiliaScans(Source):
             response = self.network.handle_request(request)
             response.wait()
             drm_response: DrmResponse = (
-                response.json()
+                response.as_json()
                 if response.error() == Response.Error.NoError
                 else {"payloadB": "null"}
             )

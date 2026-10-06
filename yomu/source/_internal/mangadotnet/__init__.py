@@ -28,7 +28,7 @@ class Mangadotnet(Source):
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
         data: ViewAllDataDto = (
-            decode_rsc(response.json())
+            decode_rsc(response.as_json())
                 ["pages/ViewAllPage"]["data"]["data"]
         )  # fmt:skip
 
@@ -51,7 +51,7 @@ class Mangadotnet(Source):
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
         return MangaList(
-            mangas=list(map(self.parse_manga_data, response.json()["manga_list"])),
+            mangas=list(map(self.parse_manga_data, response.as_json()["manga_list"])),
             has_next_page=False,
         )
 
@@ -62,7 +62,7 @@ class Mangadotnet(Source):
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
         data: MangaDto = (
-            decode_rsc(response.json())
+            decode_rsc(response.as_json())
                 ["pages/MangaDetailPage"]["data"]["mangaData"]["manga"]
         )  # fmt:skip
 
@@ -113,7 +113,7 @@ class Mangadotnet(Source):
         return [
             self.parse_chapter_data(chapter_data, i)
             for i, chapter_data in enumerate(
-                sorted(response.json(), key=lambda data: data["chapter_number"])
+                sorted(response.as_json(), key=lambda data: data["chapter_number"])
             )
         ]
 
@@ -130,5 +130,5 @@ class Mangadotnet(Source):
                     else Mangadotnet.BASE_URL + image["url"]
                 ),
             )
-            for i, image in enumerate(response.json()["images"])
+            for i, image in enumerate(response.as_json()["images"])
         ]

@@ -40,7 +40,7 @@ class Atsumaru(Source):
         return Manga(title=data["title"], thumbnail=thumbnail, url=data["id"])
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        data: BrowseMangaDto = response.json()
+        data: BrowseMangaDto = response.as_json()
         return MangaList(
             mangas=list(
                 map(
@@ -77,7 +77,7 @@ class Atsumaru(Source):
         return request
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        data: SearchResultDto = response.json()
+        data: SearchResultDto = response.as_json()
         return MangaList(
             mangas=list(
                 map(lambda hit: self.parse_latest_manga(hit["document"]), data["hits"])
@@ -96,7 +96,7 @@ class Atsumaru(Source):
         return request
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        data: MangaDto = response.json()["mangaPage"]
+        data: MangaDto = response.as_json()["mangaPage"]
 
         return Manga(
             title=data["title"],
@@ -136,7 +136,7 @@ class Atsumaru(Source):
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
-        result: ChapterListDto = response.json()
+        result: ChapterListDto = response.as_json()
         return [
             self.parse_chapter(chapter, manga.url, i)
             for i, chapter in enumerate(
@@ -172,7 +172,7 @@ class Atsumaru(Source):
         return Page(number=i, url=url)
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        pages: PageDto = response.json()["readChapter"]
+        pages: PageDto = response.as_json()["readChapter"]
 
         return [
             self.parse_chatper_page(i, page["image"])

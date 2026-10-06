@@ -35,7 +35,7 @@ class Iken(Source):
     def parse_search_results(
         self, response: Response, query: str, page: int = 1
     ) -> MangaList:
-        data: MangaListDto = response.json()
+        data: MangaListDto = response.as_json()
 
         mangas = [
             Manga(
@@ -56,7 +56,7 @@ class Iken(Source):
         return Request(f"{self.API_URL}/post?postId={manga_id}")
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        data: MangaDto = response.json()["post"]
+        data: MangaDto = response.as_json()["post"]
 
         return Manga(
             title=data["postTitle"],
@@ -90,7 +90,7 @@ class Iken(Source):
                 self._parse_chapter,
                 filter(
                     lambda chapter: chapter["isAccessible"],
-                    response.json()["post"]["chapters"],
+                    response.as_json()["post"]["chapters"],
                 ),
             )
         )

@@ -41,7 +41,7 @@ class MangaDex(Source):
         return Request(Url(f"{API_URL}/chapter", params=params), user_agent=USER_AGENT)
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
-        json = response.json()
+        json = response.as_json()
 
         can_load_more = json["offset"] + 7 < min(json["total"], 10000)
 
@@ -58,7 +58,7 @@ class MangaDex(Source):
         response = self.network.handle_request(request)  # fmt: skip
         response.wait()
 
-        json = response.json()
+        json = response.as_json()
         response.deleteLater()
 
         mangas = [
@@ -80,7 +80,7 @@ class MangaDex(Source):
         return Request(Url(f"{API_URL}/manga", params=params), user_agent=USER_AGENT)
 
     def parse_search_results(self, response: Response, query: str) -> MangaList:
-        json = response.json()
+        json = response.as_json()
         mangas = list(
             dict.fromkeys(
                 Manga(title=title, url=url, thumbnail=thumbnail)
@@ -94,7 +94,7 @@ class MangaDex(Source):
         return create_manga_request([manga_id])
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
-        json = response.json()
+        json = response.as_json()
 
         manga_url = BASE_URL + "/title/{0}"
         cover_url = UPLOAD_URL + "/covers/{}/{}"
@@ -147,7 +147,7 @@ class MangaDex(Source):
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Chapter]:
-        json = response.json()
+        json = response.as_json()
         total = json["total"]
 
         manga_id = re.match(Regex.CHAPTER, response.url().toString()).group(1)
@@ -196,7 +196,7 @@ class MangaDex(Source):
             if response.error() != Response.Error.NoError:
                 break
 
-            json = response.json()
+            json = response.as_json()
             response.deleteLater()
 
         return chapters
@@ -208,7 +208,7 @@ class MangaDex(Source):
         )
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
-        json = response.json()
+        json = response.as_json()
 
         url: str = UPLOAD_URL + "/data/" + json["chapter"]["hash"] + "/{0}"
         pages = [
