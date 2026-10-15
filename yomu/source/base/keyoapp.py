@@ -19,8 +19,7 @@ class Keyoapp(Source):
     chapter_date_selector: str = ".text-xs"
 
     def get_latest(self, page: int) -> Request:
-        request = Request(f"{self.BASE_URL}/latest/")
-        return request
+        return Request(f"{self.BASE_URL}/latest/")
 
     def parse_latest_element(self, element: Tag) -> Manga:
         data = element.select_one("a[href]")
@@ -66,7 +65,9 @@ class Keyoapp(Source):
         document = response.as_beautifulsoup()
 
         element = document.select_one("div.grid > h1")
-        title = element.get_text(" ", strip=True) if element is not None else None
+        title = (
+            element.get_text(" ", strip=True) if element is not None else manga.title
+        )
 
         element = document.select_one(self.manga_description_selector)
         description = element.get_text(" ", strip=True) if element is not None else None
@@ -108,9 +109,11 @@ class Keyoapp(Source):
         return [
             self.chapter_from_element(element, i)
             for i, element in enumerate(
-                response.as_beautifulsoup().select(
-                    "#chapters > a:not(:has(.text-sm span:matches(Upcoming))):not(:has(img[alt~=Coin]))"
-                )[::-1]
+                reversed(
+                    response.as_beautifulsoup().select(
+                        "#chapters > a:not(:has(.text-sm span:matches(Upcoming))):not(:has(img[alt~=Coin]))"
+                    )
+                )
             )
         ]
 

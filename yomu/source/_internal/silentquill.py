@@ -97,7 +97,7 @@ class SilentQuill(Source):
         document = response.as_beautifulsoup()
         return [
             self.parse_chapter_from_element(element, i)
-            for i, element in enumerate(document.select("a.grid.h-11")[::-1])
+            for i, element in enumerate(reversed(document.select("a.grid.h-11")))
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:

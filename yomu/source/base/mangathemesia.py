@@ -1,5 +1,5 @@
 from typing import Sequence
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 from dateparser import parse
 from PyQt6.QtCore import QUrl
 
@@ -102,19 +102,16 @@ class MangaThemesia(Source):
         description = document.select_one(self.details_selector).get_text(separator=" ", strip=True)  # fmt:skip
         author = getattr(document.select_one(self.author_selector), "text", None)
         artist = getattr(document.select_one(self.artist_selector), "text", None)
-
         thumbnail = self.get_image_url(document.select_one(self.thumbnail_selector))
-        url = self.url_to_slug(response.url().toString())
 
-        info = Manga(
+        return Manga(
             title=title,
             description=description,
             author=author,
             artist=artist,
             thumbnail=thumbnail,
-            url=url,
+            url=manga.url,
         )
-        return info
 
     def get_chapters(self, manga: Manga) -> Request:
         return self._build_request(self.BASE_URL + manga.url)
@@ -131,7 +128,7 @@ class MangaThemesia(Source):
         return [
             self.chapter_from_element(element, number)
             for number, element in enumerate(
-                response.as_beautifulsoup().select(self.chapter_selector)[::-1]
+                reversed(response.as_beautifulsoup().select(self.chapter_selector))
             )
         ]
 

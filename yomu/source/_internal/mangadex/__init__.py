@@ -167,7 +167,7 @@ class MangaDex(Source):
 
         chapters = []
         while True:
-            for i, chapter_data in enumerate(json.get("data", [])[::-1]):
+            for i, chapter_data in enumerate(reversed(json.get("data", []))):
                 url = chapter_url.format(chapter_data["id"])
                 if chapter_num := chapter_data["attributes"]["chapter"]:
                     title = f"Chapter {chapter_num}"

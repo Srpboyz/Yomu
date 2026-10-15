@@ -26,7 +26,6 @@ class ToonGod(Madara):
 
         img = document.select_one(self.manga_thumbnail_selector)
         thumbnail = self.get_image_from_element(img) if img is not None else img
-        url = self.url_to_slug(response.url().toString())
 
         info = Manga(
             title=title,
@@ -34,6 +33,6 @@ class ToonGod(Madara):
             author=author,
             artist=artist,
             thumbnail=thumbnail,
-            url=url,
+            url=manga.url,
         )
         return info

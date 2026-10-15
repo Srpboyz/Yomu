@@ -123,7 +123,7 @@ class WeebCentral(Source):
         return [
             self.parse_chapter_element(element, i)
             for i, element in enumerate(
-                response.as_beautifulsoup().select("div[x-data] > a")[::-1]
+                reversed(response.as_beautifulsoup().select("div[x-data] > a"))
             )
         ]
 
