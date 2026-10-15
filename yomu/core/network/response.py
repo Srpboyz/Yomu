@@ -57,7 +57,14 @@ class Response(QObject):
     def headers(self) -> QHttpHeaders:
         return QHttpHeaders(self._headers)
 
+    @property
+    def content(self) -> bytes:
+        return bytes(self)
+
     operation = route
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.read_all())
 
     def _connect_reply(self, reply: QNetworkReply) -> None:
         reply.finished.connect(self._reply_finished)
@@ -112,8 +119,11 @@ class Response(QObject):
     def read_all(self) -> QByteArray:
         return QByteArray(self._data)
 
+    def text(self, encoding: str = "utf-8") -> str:
+        return self.content.decode(encoding)
+
     def as_json(self) -> Any:
-        return json.loads(self.read_all().data())
+        return json.loads(bytes(self))
 
     @deprecated("Use `Response.as_json` instead")
     def json(self) -> Any:
@@ -122,7 +132,7 @@ class Response(QObject):
     def as_beautifulsoup(
         self, *, parser: Literal["html.parser", "lxml"] = "lxml"
     ) -> BeautifulSoup:
-        return BeautifulSoup(bytes(self.read_all()), features=parser)
+        return BeautifulSoup(bytes(self), features=parser)
 
     def wait(self) -> None:
         if self.is_finished():
