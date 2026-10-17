@@ -9,26 +9,40 @@ from yomu.source import *
 if TYPE_CHECKING:
     from .dto import *
 
+LIMIT = 40
+
 
 class Atsumaru(Source):
     BASE_URL = "https://atsu.moe"
     API_URL = f"{BASE_URL}/api"
     rate_limit = RateLimit(2)
 
+    has_filters = True
+    filters = {
+        "nsfw": {
+            "display_name": "NSFW",
+            "value": False,
+            "type": FilterType.CHECKBOX,
+        }
+    }
+
     def get_latest(self, page: int) -> Request:
-        request = Request(
+        content_ratings = ["Safe", "Suggestive"]
+        if self.filters["nsfw"]["value"]:
+            content_ratings.extend(["Erotica", "Pornographic"])
+
+        return Request(
             Url(
-                f"{Atsumaru.API_URL}/infinite/recentlyUpdated",
-                params={"page": page - 1, "types": "Manga,Manwha,Manhua,OEL"},
+                f"{Atsumaru.API_URL}/home2/recentlyUpdated",
+                params={
+                    "offset": (page - 1) * LIMIT,
+                    "limit": LIMIT,
+                    "types": "Manga,Manwha,Manhua,OEL",
+                    "mediums": "Comic",
+                    "contentRatings": ",".join(content_ratings),
+                },
             )
         )
-
-        headers = QHttpHeaders()
-        headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Accept, "*/*")
-        headers.replaceOrAppend(QHttpHeaders.WellKnownHeader.Host, "atsu.moe")
-        request.setHeaders(headers)
-
-        return request
 
     def parse_latest_manga(self, data: MangaDto) -> None:
         thumbnail = (
@@ -55,16 +69,21 @@ class Atsumaru(Source):
         )
 
     def search_for_manga(self, query: str) -> Request:
+        filters = ["hidden:!=true"]
+        if not self.filters["nsfw"]["value"]:
+            filters.append("isAdult:=false")
+
         request = Request(
             Url(
                 f"{Atsumaru.BASE_URL}/collections/manga/documents/search",
                 params={
                     "q": query,
                     "query_by": "title,englishTitle,otherNames",
-                    "limit": "24",
+                    "limit": LIMIT,
                     "query_by_weights": "3,2,1",
                     "include_fields": "id,title,englishTitle,poster",
                     "num_typos": "4,3,2",
+                    "filter_by": " && ".join(filters),
                 },
             )
         )
@@ -191,3 +210,11 @@ class Atsumaru(Source):
         request.setHeaders(headers)
 
         return request
+
+    def update_filters(self, filters: dict[str, int | str | bool]) -> bool:
+        new_value = filters.get("nsfw", False)
+        if new_value == self.filters["nsfw"]["value"]:
+            return False
+
+        self.filters["nsfw"]["value"] = new_value
+        return True
