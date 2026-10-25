@@ -19,8 +19,9 @@
 * Library categories
 * Extendibility via extensions
 
-## Supported Sources
+## Sources
 
+Built in:
 * Armageddon (Replaced by SilentQuill)
 * Atsumaru
 * Comick (Removed)
@@ -34,7 +35,7 @@
 * Manga18fx
 * Mangadex
 * Mangadotnet
-* Mangafire (Removed)
+* Mangafire
 * Nyx Scans
 * Philia Scans
 * SilentQuill
@@ -45,7 +46,33 @@
 * WebtoonXYZ (Removed; Site Down)
 * Weeb Central
 
-Note: Sources may not be up to date
+If you wish to add your own sources, you can add them to:
+* Windows: `C:\\Users\\<name>\\AppData\\Local\\sources`
+* Linux: `~/.local/Yomu/sources`
+
+Once you've added the source, restart Yomu  
+
+Note: Sources may not be up to date. Yomu will not auto update the external sources
+
+## Extensions
+
+Extensions allow you to add features to the reader without having to write it directly into the reader. You can add them to:
+
+* Windows: `C:\\Users\\<name>\\AppData\\Local\\extensions`
+* Linux: `~/.local/Yomu/extensions`
+ 
+Once you've added the extension, restart Yomu
+
+Current Extensions:
+
+| Name | Description |
+| --- | --- |
+| [Yomu-Server](https://github.com/Srpboyz/Yomu-Server) | A server that runs in the background allowing you to read on other devices |
+| [Acrylic-Theme](https://github.com/Srpboyz/Yomu-Acrylic-Theme) | An acrylic theme for Yomu |
+| [Discord-RPC](https://github.com/Srpboyz/Yomu-Discord) | Displays what you are currently doing on Yomu as a discord game status |
+
+
+Note: Yomu will not auto-update the extension. Please be aware that extensions have full access/control to the app
 
 ## Screenshots
 

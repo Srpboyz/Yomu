@@ -5,6 +5,7 @@ from .lunatoons import LunaToons
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
 from .mangadotnet import Mangadotnet
+from .mangafire import MangaFire
 from .nyxscans import NyxScans
 from .philiascans import PhiliaScans
 from .silentquill import SilentQuill
@@ -23,6 +24,7 @@ def _default_sources() -> list:
         Manga18fx,
         MangaDex,
         Mangadotnet,
+        MangaFire,
         NyxScans,
         PhiliaScans,
         SilentQuill,
