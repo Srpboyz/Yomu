@@ -31,6 +31,10 @@ class Source(ABC):
     filters: dict[str, FilterOption] = {}
     supports_latest: bool = True
     supports_search: bool = True
+    # Note: Changing the version will treat it as a new source
+    # Change only if the source made a change that breaks smth
+    # important like urls
+    version: int = 1
 
     def __init__(self, network: Network) -> None:
         self._network = network
@@ -45,7 +49,10 @@ class Source(ABC):
             else cls.name
         )
 
-        self.id = int(str(int(md5(self.name.lower().encode()).hexdigest(), 16))[:12])
+        hash = self.name.lower()
+        if self.version > 1:
+            hash += f":v{self.version}"
+        self.id = int(str(int(md5(hash.encode()).hexdigest(), 16))[:12])
 
     def __init_subclass__(cls) -> None:
         if hasattr(cls, "name") and not isinstance(cls.name, str):
