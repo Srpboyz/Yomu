@@ -57,10 +57,10 @@ class LatestWidget(BasePage):
             self.load_page()
 
     def _page_finished_loading(self):
+        scrollbar = self.manga_list.verticalScrollBar()
         if (
-            not self.manga_list.verticalScrollBar().maximum()
-            and self.is_current_widget()
-        ):
+            not scrollbar.maximum() or scrollbar.value() == scrollbar.maximum()
+        ) and self.is_current_widget():
             self.load_page()
 
     def load_page(self) -> None:
@@ -144,9 +144,11 @@ class LatestWidget(BasePage):
         self.window().display_message(message)
 
     def set_current_widget(self) -> None:
+        scrollbar = self.manga_list.verticalScrollBar()
         if (
             not self.manga_list.count()
-            or not self.manga_list.verticalScrollBar().maximum()
+            or not scrollbar.maximum()
+            or scrollbar.maximum() == scrollbar.value()
         ):
             self.load_page()
 
