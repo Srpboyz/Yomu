@@ -4,7 +4,7 @@ from .galaxydegenscans import GalaxyDegenScans
 from .lunatoons import LunaToons
 from .manga18fx import Manga18fx
 from .mangadex import MangaDex
-from .mangadotnet import Mangadotnet
+from .mangadot import MangaDot
 from .mangafire import MangaFire
 from .nyxscans import NyxScans
 from .philiascans import PhiliaScans
@@ -23,7 +23,7 @@ def _default_sources() -> list:
         LunaToons,
         Manga18fx,
         MangaDex,
-        Mangadotnet,
+        MangaDot,
         MangaFire,
         NyxScans,
         PhiliaScans,

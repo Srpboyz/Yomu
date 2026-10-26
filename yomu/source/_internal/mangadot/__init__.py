@@ -9,21 +9,25 @@ from .dto import *
 from .helpers import has_next_page, decode_rsc
 
 
-class Mangadotnet(Source):
+class MangaDot(Source):
     BASE_URL = "https://mangadot.net"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.id = 252615896697
 
     def get_latest(self, page: int) -> Request:
         params = {"adult": "both", "_routes": "pages/ViewAllPage"}
         if page > 1:
             params["page"] = page
         return Request(
-            Url(f"{Mangadotnet.BASE_URL}/view-all/latest-updates.data", params=params)
+            Url(f"{MangaDot.BASE_URL}/view-all/latest-updates.data", params=params)
         )
 
     def parse_manga_data(self, manga: MangaDto) -> Manga:
         thumbnail = manga.get("photo")
         if thumbnail is not None and thumbnail.startswith("/"):
-            thumbnail = Mangadotnet.BASE_URL + thumbnail
+            thumbnail = MangaDot.BASE_URL + thumbnail
         return Manga(title=manga["title"], thumbnail=thumbnail, url=str(manga["id"]))
 
     def parse_latest(self, response: Response, page: int) -> MangaList:
@@ -40,7 +44,7 @@ class Mangadotnet(Source):
     def search_for_manga(self, query: str) -> Request:
         return Request(
             Url(
-                f"{Mangadotnet.BASE_URL}/api/search",
+                f"{MangaDot.BASE_URL}/api/search",
                 params={
                     "adult": "both",
                     "_routes": "pages/SearchPage",
@@ -57,7 +61,7 @@ class Mangadotnet(Source):
 
     def get_manga_info(self, manga: Manga) -> Request:
         return Request(
-            f"{Mangadotnet.BASE_URL}/manga/{manga.url}.data?_routes=pages/MangaDetailPage"
+            f"{MangaDot.BASE_URL}/manga/{manga.url}.data?_routes=pages/MangaDetailPage"
         )
 
     def parse_manga_info(self, response: Response, manga: Manga) -> Manga:
@@ -78,7 +82,7 @@ class Mangadotnet(Source):
 
         thumbnail = data.get("photo")
         if thumbnail is not None and thumbnail.startswith("/"):
-            thumbnail = Mangadotnet.BASE_URL + thumbnail
+            thumbnail = MangaDot.BASE_URL + thumbnail
 
         return Manga(
             title=data["title"],
@@ -91,7 +95,7 @@ class Mangadotnet(Source):
 
     def get_chapters(self, manga: Manga) -> Request:
         return Request(
-            f"{Mangadotnet.BASE_URL}/api/manga/{manga.url}/chapters/list?lang=en"
+            f"{MangaDot.BASE_URL}/api/manga/{manga.url}/chapters/list?lang=en"
         )
 
     def parse_chapter_data(self, data: ChapterDto, number: int) -> Chapter:
@@ -118,7 +122,7 @@ class Mangadotnet(Source):
         ]
 
     def get_chapter_pages(self, chapter: Chapter) -> Request:
-        return Request(f"{Mangadotnet.BASE_URL}/api/{chapter.url}/images")
+        return Request(f"{MangaDot.BASE_URL}/api/{chapter.url}/images")
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         return [
@@ -127,7 +131,7 @@ class Mangadotnet(Source):
                 url=(
                     image["url"]
                     if image["url"].startswith("http")
-                    else Mangadotnet.BASE_URL + image["url"]
+                    else MangaDot.BASE_URL + image["url"]
                 ),
             )
             for i, image in enumerate(response.as_json()["images"])
