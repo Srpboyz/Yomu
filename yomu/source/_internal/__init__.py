@@ -12,6 +12,7 @@ from .silentquill import SilentQuill
 from .templescan import TempleScan
 from .toongod import ToonGod
 from .toonily import Toonily
+from .toonverse import ToonVerse
 from .weebcentral import WeebCentral
 
 
@@ -30,6 +31,7 @@ def _default_sources() -> list:
         SilentQuill,
         TempleScan,
         ToonGod,
+        ToonVerse,
         Toonily,
         WeebCentral,
     ]
