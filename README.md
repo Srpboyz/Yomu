@@ -39,7 +39,7 @@ Built in:
 * Nyx Scans
 * Philia Scans
 * SilentQuill
-* Temple Scan (Broken)
+* Temple Scan (Removed)
 * The Blank Scans (Removed)
 * ToonGod
 * Toonily
