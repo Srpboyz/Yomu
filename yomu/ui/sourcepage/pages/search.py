@@ -42,7 +42,6 @@ class SearchWidget(BasePage):
             return window.display_message("Error while searching for manga")
 
         request.setPriority(QNetworkRequest.Priority.HighPriority)
-        request.source = self.source
 
         response = window.network.handle_request(request)
         response.finished.connect(self._parse_search_results)

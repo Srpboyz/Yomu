@@ -1,7 +1,6 @@
 from PyQt6.QtNetwork import QNetworkCookie
 
-from yomu.core import Request
-from yomu.core.network import Response
+from yomu.core.network import Request, Response
 from yomu.source import *
 from yomu.source.base import Madara
 

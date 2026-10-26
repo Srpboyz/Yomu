@@ -4,7 +4,7 @@ from bs4 import Tag
 from dateparser import parse
 from PyQt6.QtNetwork import QSslConfiguration, QSslSocket
 
-from yomu.core import Request
+from yomu.core.network import Request
 from yomu.source import *
 from yomu.source.base import Madara
 

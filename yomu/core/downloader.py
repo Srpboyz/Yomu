@@ -38,7 +38,6 @@ class DownloadChapter(QObject):
         self.get_pages()
 
     def _handle_request(self, request: Request) -> Response:
-        request.source = self.chapter.source
         request.setPriority(Request.Priority.LowPriority)
         response = self.network.handle_request(request)
         self.aborted.connect(response.abort)
@@ -186,9 +185,7 @@ class DownloadThumbnail(QObject):
             request = self.manga.get_thumbnail()
         except Exception:
             return self.deleteLater()
-        request.source = self.manga.source
         request.setPriority(Request.Priority.LowPriority)
-
         response = self.network.handle_request(request)
         response.finished.connect(self._thumbnail_received)
 

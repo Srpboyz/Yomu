@@ -1,10 +1,8 @@
-import json
 from typing import Sequence
 
-from bs4 import BeautifulSoup
 from dateparser import parse
 
-from yomu.core.network import Response, Request, Url
+from yomu.core.network import Request, Response, Url
 from yomu.source import *
 
 from .dto import *

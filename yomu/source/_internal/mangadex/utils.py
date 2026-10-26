@@ -1,7 +1,6 @@
 from enum import StrEnum
 
-from yomu.core import Request
-from yomu.core.network import Url
+from yomu.core.network import Request, Url
 
 __all__ = (
     "BASE_URL",

@@ -75,14 +75,12 @@ class Request(QNetworkRequest):
         *,
         route: Route = Route.GET,
         data: dict = None,
-        source: Source | None = None,
         user_agent: str = DEFAULT_USER_AGENT,
     ) -> None:
         super().__init__(Url(url))
 
         self.route = route
         self.data = data
-        self.source = source
 
         self.setHeader(Request.KnownHeaders.UserAgentHeader, user_agent)
         self.setAttribute(Request.Attribute.CacheSaveControlAttribute, True)

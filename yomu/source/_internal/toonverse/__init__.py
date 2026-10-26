@@ -1,7 +1,7 @@
 from datetime import datetime
 from math import ceil
 
-from yomu.core.network import Response, Request, Url
+from yomu.core.network import Request, Response, Url
 from yomu.source import *
 from .dto import *
 

@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from PyQt6.QtNetwork import QHttpHeaders
-from yomu.core.network import Request, Response, Url
+
+from yomu.core.network import RateLimit, Request, Response, Url
 from yomu.source import *
 
 if TYPE_CHECKING:
@@ -15,8 +16,6 @@ LIMIT = 40
 class Atsumaru(Source):
     BASE_URL = "https://atsu.moe"
     API_URL = f"{BASE_URL}/api"
-    rate_limit = RateLimit(2)
-
     has_filters = True
     filters = {
         "nsfw": {
@@ -25,6 +24,12 @@ class Atsumaru(Source):
             "type": FilterType.CHECKBOX,
         }
     }
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.network.add_rate_limit(
+            RateLimit(hosts=("atsu.moe", "cdn.atsu.moe"), rate=2)
+        )
 
     def get_latest(self, page: int) -> Request:
         content_ratings = ["Safe", "Suggestive"]
@@ -179,7 +184,7 @@ class Atsumaru(Source):
 
         return request
 
-    def parse_chatper_page(self, i: int, url: str) -> Page:
+    def parse_chapter_page(self, i: int, url: str) -> Page:
         if url.startswith("//"):
             url = f"https:{url}"
         elif not url.startswith("http"):
@@ -192,9 +197,8 @@ class Atsumaru(Source):
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[Page]:
         pages: PageDto = response.as_json()["readChapter"]
-
         return [
-            self.parse_chatper_page(i, page["image"])
+            self.parse_chapter_page(i, page["image"])
             for i, page in enumerate(pages["pages"])
         ]
 

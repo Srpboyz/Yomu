@@ -3,7 +3,6 @@ from datetime import datetime
 
 from yomu.core.network import Request, Response, Url
 from yomu.source import *
-from yomu.source.models import Manga, Page
 
 from .dto import *
 from .helpers import has_next_page, decode_rsc

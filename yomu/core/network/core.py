@@ -96,7 +96,7 @@ class Network(QNetworkAccessManager):
 
         self._online = not self.offline_mode and self.network_online
 
-        self._limit_handler = RateLimitHandler(self)
+        self._rate_limit_handler = RateLimitHandler(self)
         jar = CookieJar(self)
         app.aboutToQuit.connect(jar.save_cookies)
         self.setCookieJar(jar)
@@ -171,12 +171,11 @@ class Network(QNetworkAccessManager):
             self.online_changed.emit(is_online, True)
 
     def add_rate_limit(self, rate_limit: RateLimit) -> None:
-        if rate_limit.url is not None:
-            self._limit_handler.add_rate_limit(rate_limit)
+        self._rate_limit_handler.add_rate_limit(rate_limit)
 
     def handle_request(self, request: Request) -> Response:
         response = Response(self, request)
-        self._limit_handler.handle(response)
+        self._rate_limit_handler.handle(response)
         return response
 
     def _send_response(self, response: Response) -> None:

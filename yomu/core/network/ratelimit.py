@@ -2,9 +2,9 @@ from collections import deque
 from dataclasses import dataclass
 from enum import IntEnum
 from numbers import Real
-from typing import TYPE_CHECKING
+from typing import Sequence, TYPE_CHECKING
 
-from PyQt6.QtCore import QObject, QTimer, QUrl
+from PyQt6.QtCore import QObject, QTimer
 
 from .request import Request
 from .response import Response
@@ -21,22 +21,26 @@ class TimeUnit(IntEnum):
     HOURS, MINUTES, SECONDS, MILLISECONDS = range(4)
 
 
-@dataclass(frozen=True, repr=False, slots=True)
+@dataclass(frozen=True, kw_only=True, repr=False, slots=True)
 class RateLimit:
+    hosts: Sequence[str]
     rate: int
     per: Real = 1
     unit: TimeUnit = TimeUnit.SECONDS
-    url: str | None = None
 
     def __post_init__(self):
+        if (
+            not self.hosts
+            or not isinstance(self.hosts, Sequence)
+            or any((not isinstance(host, str) for host in self.hosts))
+        ):
+            raise TypeError("hosts must be a Sequence[str]")
         if not isinstance(self.rate, int):
             raise TypeError("rate must be an int")
         if not isinstance(self.per, Real):
             raise TypeError("per must be a number")
         if not isinstance(self.unit, TimeUnit):
             raise TypeError("unit must be a TimeUnit enum")
-        if self.url is not None and not isinstance(self.url, str):
-            raise TypeError("url must be a str")
 
     @property
     def milliseconds(self) -> float:
@@ -51,7 +55,7 @@ class RateLimit:
                 return self.per
 
     def __repr__(self) -> str:
-        return f"<RateLimit rate={self.rate} per={self.per} unit={self.unit.name} >"
+        return f"<RateLimit rate={self.rate} per={self.per} unit={self.unit.name} hosts={self.hosts}>"
 
 
 class NetworkDeque(deque[Response]):
@@ -113,7 +117,8 @@ class RateLimitHandler(QObject):
                     self.network._send_response(response)
 
     def add_rate_limit(self, rate_limit: RateLimit) -> None:
-        self.rate_limiters[QUrl(rate_limit.url).host()] = RateLimiter(self, rate_limit)
+        for host in rate_limit.hosts:
+            self.rate_limiters[host] = RateLimiter(self, rate_limit)
 
     def handle(self, response: Response) -> None:
         request = response.request
@@ -131,16 +136,7 @@ class RateLimitHandler(QObject):
         ):
             return self.network._send_response(response)
 
-        limiter = self.rate_limiters.get(url.host())
-        if limiter is not None:
-            return limiter.append(response)
-
-        source = request.source
-        if source is None or source.rate_limit is None:
+        rate_limiter = self.rate_limiters.get(url.host())
+        if rate_limiter is None:
             return self.network._send_response(response)
-
-        limiter = self.rate_limiters.get(str(source.id))
-        if limiter is None:
-            limiter = RateLimiter(self, source.rate_limit)
-            self.rate_limiters[str(source.id)] = limiter
-        limiter.append(response)
+        rate_limiter.append(response)

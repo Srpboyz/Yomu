@@ -3,7 +3,7 @@ from enum import IntEnum
 
 from PyQt6.QtCore import Qt
 
-from yomu.core.network import Response, Request
+from yomu.core.network import Request, Response
 from yomu.source import MangaList
 
 from .base import BasePage
@@ -83,7 +83,6 @@ class LatestWidget(BasePage):
             Request.CacheLoadControl.AlwaysNetwork,
         )
         request.setAttribute(Request.Attribute.CacheSaveControlAttribute, False)
-        request.source = self.source
 
         if (response := self.window().network.handle_request(request)) is None:
             return self._error_occured()

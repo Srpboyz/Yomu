@@ -1,17 +1,22 @@
 from datetime import datetime
 from typing import Sequence
 
-from yomu.core.network import Request, Response, Url
-from yomu.source import Chapter, MangaList, Manga, Page, RateLimit, Source
+from yomu.core.network import RateLimit, Request, Response, Url
+from yomu.source import *
 
-from .vrf import get_vrf_token
 from .dto import *
+from .vrf import get_vrf_token
 
 
 class MangaFire(Source):
     BASE_URL = "https://mangafire.to"
     API_URL = BASE_URL + "/api"
-    rate_limit = RateLimit(2)
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.network.add_rate_limit(
+            RateLimit(hosts=("mangafire.to", "static.mfcdn.nl"), rate=2)
+        )
 
     def get_latest(self, page: int) -> Request:
         path = "/titles"
@@ -125,7 +130,6 @@ class MangaFire(Source):
         items = data["items"]
         for page in range(2, data["meta"]["lastPage"] + 1):
             request = self.get_chapters(manga, page)
-            request.source = self
             request.setPriority(Request.Priority.HighPriority)
             response = self.network.handle_request(request)
             response.wait()

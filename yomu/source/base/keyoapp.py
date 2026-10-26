@@ -3,7 +3,7 @@ import re
 from bs4 import Tag
 from dateparser import parse as parse_date
 
-from yomu.core.network import Response, Request
+from yomu.core.network import Request, Response
 from yomu.source import *
 
 IMAGE_REGEX = re.compile(r'url\(\s*["\']?([^"\'\s\)]+)["\']?\s*\)')

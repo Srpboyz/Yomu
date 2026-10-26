@@ -60,19 +60,13 @@ class Manga(Base):
         )
 
     def get_manga_info(self) -> Request:
-        request = self.source.get_manga_info(self.to_source_manga())
-        request.source = self.source
-        return request
+        return self.source.get_manga_info(self.to_source_manga())
 
     def get_chapters(self) -> Request:
-        request = self.source.get_chapters(self.to_source_manga())
-        request.source = self.source
-        return request
+        return self.source.get_chapters(self.to_source_manga())
 
     def get_thumbnail(self) -> Request:
-        request = self.source.get_thumbnail(self.to_source_manga())
-        request.source = self.source
-        return request
+        return self.source.get_thumbnail(self.to_source_manga())
 
 
 @dataclass(repr=True, eq=False, kw_only=True)
@@ -93,9 +87,7 @@ class Chapter(Base):
         )
 
     def get_pages(self) -> Request:
-        request = self.source.get_chapter_pages(self.to_source_chapter())
-        request.source = self.source
-        return request
+        return self.source.get_chapter_pages(self.to_source_chapter())
 
 
 @dataclass
@@ -122,9 +114,7 @@ class Page:
         return SourcePage(number=self.number, url=self.url)
 
     def get(self) -> Request:
-        request = self.source.get_page(self.to_source_page())
-        request.source = self.source
-        return request
+        return self.source.get_page(self.to_source_page())
 
 
 @dataclass

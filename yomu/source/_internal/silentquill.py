@@ -5,7 +5,6 @@ from bs4 import Tag
 from dateparser import parse as parse_date
 
 from yomu.core.network import Request, Response, Url
-from yomu.source import Chapter, Page
 from yomu.source import *
 
 CARD_REGEX = re.compile(

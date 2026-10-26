@@ -2,9 +2,8 @@ import re
 from bs4 import Tag
 from dateparser import parse as parse_date
 
-from yomu.core.network import Response, Request, Url
+from yomu.core.network import RateLimit, Request, Response, Url
 from yomu.source import *
-from yomu.source import MangaList
 
 
 class WeebCentral(Source):
@@ -13,7 +12,9 @@ class WeebCentral(Source):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.network.add_rate_limit(RateLimit(1, 2, url="weebcentral.com"))
+        self.network.add_rate_limit(
+            RateLimit(hosts=("weebcentral.com",), rate=1, per=2)
+        )
 
     def get_latest(self, page: int) -> Request:
         return Request(

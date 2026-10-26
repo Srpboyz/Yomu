@@ -2,8 +2,7 @@ import re
 
 from dateparser import parse
 
-from yomu.core import Request
-from yomu.core.network import Response, Url
+from yomu.core.network import RateLimit, Request, Response, Url
 from yomu.source import *
 
 from .utils import *
@@ -11,10 +10,7 @@ from .utils import *
 
 class MangaDex(Source):
     BASE_URL = BASE_URL
-    API_URL = API_URL
-    UPLOAD_URL = UPLOAD_URL
     has_filters = True
-    rate_limit = RateLimit(3)
     filters = {
         "content-rating": {
             "display_name": "Content Rating",
@@ -23,6 +19,12 @@ class MangaDex(Source):
             "type": FilterType.LIST,
         }
     }
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.network.add_rate_limit(
+            RateLimit(hosts=("api.mangadex.org", "uploads.mangadex.org"), rate=3)
+        )
 
     def get_latest(self, page: int) -> Request:
         offset = 100 * (page - 1)
@@ -53,7 +55,6 @@ class MangaDex(Source):
 
         request = create_manga_request(manga_ids)
         request.setPriority(Request.Priority.HighPriority)
-        request.source = self
 
         response = self.network.handle_request(request)  # fmt: skip
         response.wait()
@@ -186,9 +187,7 @@ class MangaDex(Source):
             if params["offset"] >= total:
                 break
 
-            request = Request(
-                Url(manga_feed_url, params=params), user_agent=USER_AGENT, source=self
-            )
+            request = Request(Url(manga_feed_url, params=params), user_agent=USER_AGENT)
             request.setPriority(Request.Priority.HighPriority)
 
             response = self.network.handle_request(request)

@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 from dateparser import parse as parse_date
 
 from yomu.core.network import Request, Response, Url
-from yomu.source import Chapter, Manga, MangaList, Page, Source
+from yomu.source import *
 
 
 class LunaToons(Source):

@@ -50,10 +50,6 @@ class Response(QObject):
         return self.request.route
 
     @property
-    def source(self) -> Source | None:
-        return self.request.source
-
-    @property
     def headers(self) -> QHttpHeaders:
         return QHttpHeaders(self._headers)
 

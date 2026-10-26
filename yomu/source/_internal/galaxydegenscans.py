@@ -1,6 +1,5 @@
-from yomu.core import Request
-from yomu.source.models import *
-
+from yomu.core.network import Request
+from yomu.source.models import Manga
 from yomu.source.base import Madara
 
 
