@@ -9,6 +9,7 @@ from .mangafire import MangaFire
 from .nyxscans import NyxScans
 from .philiascans import PhiliaScans
 from .silentquill import SilentQuill
+from .templescan import TempleScan
 from .toongod import ToonGod
 from .toonily import Toonily
 from .toonverse import ToonVerse
@@ -28,6 +29,7 @@ def _default_sources() -> list:
         NyxScans,
         PhiliaScans,
         SilentQuill,
+        TempleScan,
         ToonGod,
         ToonVerse,
         Toonily,

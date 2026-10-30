@@ -24,7 +24,7 @@
 Built in:
 * Armageddon (Replaced by SilentQuill)
 * Atsumaru
-* Comick (Removed)
+* Comick (Removed; Site Down)
 * Comix (Removed)
 * Diva Scans (Removed)
 * Eris Scans
@@ -39,7 +39,7 @@ Built in:
 * Nyx Scans
 * Philia Scans
 * SilentQuill
-* Temple Scan (Removed)
+* Temple Scan
 * The Blank Scans (Removed)
 * ToonGod
 * Toonily
