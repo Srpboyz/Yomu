@@ -5,7 +5,7 @@ from PyQt6.QtNetwork import QNetworkRequest
 from PyQt6.QtWidgets import QLineEdit
 
 from yomu.core.network import Response
-from yomu.source import MangaList
+from yomu.source import MangaList, YomuSourceException
 
 from .base import BasePage
 
@@ -58,7 +58,6 @@ class SearchWidget(BasePage):
         self.manga_list.show()
 
         window = self.window()
-
         if window.current_widget != self.parent():
             return None
 
@@ -78,6 +77,13 @@ class SearchWidget(BasePage):
 
         try:
             manga_list = self.source.parse_search_results(response, self.current_text)
+        except YomuSourceException as e:
+            logger.exception(
+                f"Failed to parse search results for {self.source.name}", exc_info=e
+            )
+            return window.display_message(
+                message=f"Error while searching for manga.\nMessage from source: {e.message}"
+            )
         except Exception as e:
             logger.exception(
                 f"Failed to parse search results for {self.source.name}", exc_info=e

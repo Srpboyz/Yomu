@@ -4,10 +4,11 @@ from hashlib import md5
 from typing import NotRequired, Sequence, TypedDict
 
 from yomu.core.network import Network, RateLimit, Request, Response
+from yomu.core.exceptions import YomuException
 from .models import *
 
 
-__all__ = ("FilterOption", "FilterType", "Source")
+__all__ = ("FilterOption", "FilterType", "Source", "YomuSourceException")
 
 
 class FilterType(StrEnum):
@@ -20,6 +21,12 @@ class FilterOption(TypedDict):
     value: int | str | bool | list
     options: NotRequired[list[str]]
     type: FilterType
+
+
+class YomuSourceException(YomuException):
+    def __init__(self, message: str, *args) -> None:
+        super().__init__((message, *args))
+        self.message = message
 
 
 class Source(ABC):

@@ -14,7 +14,7 @@ from yomu.core import utils as core_utils
 from yomu.core.downloader import Downloader
 from yomu.core.models import Chapter, Page
 from yomu.core.network import Response
-from yomu.source import Page as SourcePage
+from yomu.source import Page as SourcePage, YomuSourceException
 from yomu.ui.stack import StackWidgetMixin
 
 from .page import PageView
@@ -298,21 +298,26 @@ class Reader(QScrollArea, StackWidgetMixin):
                     f"Error occured while letting {source.name} handle chapter pages request error",
                     exc_info=e,
                 )
-            return self.display_message("Error fetching chapter")
+            return self.display_message("Error fetching chapter pages")
 
         try:
             pages = source.parse_chapter_pages(
                 response, self.chapter.to_source_chapter()
             )
+        except YomuSourceException as e:
+            logger.error(f"Failed to parse chapter pages for {source.name}", exc_info=e)
+            return self.display_message(
+                f"Error fetching chapter pages.\nMessage from source: {e.message}"
+            )
         except Exception as e:
             logger.error(f"Failed to parse chapter for {source.name}", exc_info=e)
-            return self.display_message("Error fetching chapter")
+            return self.display_message("Error fetching chapter pages")
 
         if not isinstance(pages, Sequence) or not all(
             isinstance(page, SourcePage) for page in pages
         ):
             logger.error("Expected a sequence of pages")
-            return self.display_message("Error fetching chapter")
+            return self.display_message("Error fetching chapter pages")
 
         if not pages:
             return self.display_message("No pages were received")

@@ -4,7 +4,7 @@ from enum import IntEnum
 from PyQt6.QtCore import Qt
 
 from yomu.core.network import Request, Response
-from yomu.source import MangaList
+from yomu.source import MangaList, YomuSourceException
 
 from .base import BasePage
 
@@ -111,6 +111,14 @@ class LatestWidget(BasePage):
 
         try:
             manga_list = self.source.parse_latest(response, self._page)
+        except YomuSourceException as e:
+            logger.exception(
+                f"Failed to parse page {self._page} of latest update for {self.source.name}",
+                exc_info=e,
+            )
+            return self._error_occured(
+                message=f"Error fetching page {self._page} of latest updates.\nMessage from source: {e.message}"
+            )
         except Exception as e:
             logger.exception(
                 f"Failed to parse page {self._page} of latest update for {self.source.name}",
