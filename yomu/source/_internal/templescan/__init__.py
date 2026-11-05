@@ -6,12 +6,14 @@ from PyQt6.QtNetwork import QHttpHeaders
 
 from yomu.core.network import RateLimit, Response, Request
 from yomu.source import *
+from yomu.source.models import Page
 
 from .dto import *
+from .utils import decrypt_image_string
 
 MANGA_REGEX = re.compile(r'list\\":(.*),')
 DETAILS_REGEX = re.compile(r'seriesData\\":(\{.*\}).*now')
-IMAGES_REGEX = re.compile(r'k9wavlj\\":(\[.*?]).*')  # images -> k9wavlj
+IMAGES_REGEX = re.compile(r'aawp8qs\\":(\[.*?]).*')  # images -> aawp8qs
 UNESCAPE_REGEX = re.compile(r"\\(.)")
 
 
@@ -46,9 +48,9 @@ class TempleScan(Source):
 
     def parse_manga_dto(self, dto: MangaDataDto) -> Manga:
         return Manga(
-            title=dto["iw7kl7l"],
+            title=dto["zbs04ch"],  # title
             thumbnail=dto["thumbnail"],
-            url=f"/comic/{dto['ke8ivdg']}",
+            url=f"/comic/{dto['dsj6345']}",  # slug
         )
 
     def parse_manga_cache(self, response: Response) -> None:
@@ -127,7 +129,7 @@ class TempleScan(Source):
     def parse_chapter_dto(
         self, data: ChapterDataDto, index: int, manga_slug: str
     ) -> Chapter:
-        title = data["q8m6vtm"]
+        title = data["syzj8a3"]  # chapter_name
         if data["chapter_title"]:
             title += f" • {data['chapter_title']}"
 
@@ -135,7 +137,7 @@ class TempleScan(Source):
             title=title,
             number=index,
             uploaded=parse_date(data["created_at"]),
-            url=f"{manga_slug}/{data['yy1u07t']}",
+            url=f"{manga_slug}/{data['gwgbquh']}",  # chapter_slug
         )
 
     def parse_chapters(self, response: Response, manga: Manga) -> list[Page]:
@@ -150,19 +152,19 @@ class TempleScan(Source):
             )
         )
 
-        # Season -> fpqwjqw
-        # Chapter -> zjb9eix
-        # price -> q56zcrk
+        # Season -> jhz8319
+        # Chapter -> j9x9l7p
+        # price -> ig522pf
         chapters: list[ChapterDataDto] = next(
             filter(
-                lambda group: group["season_name"] == "All chapters", data["fpqwjqw"]
+                lambda group: group["season_name"] == "All chapters", data["jhz8319"]
             )
-        )["zjb9eix"][::-1]
+        )["j9x9l7p"][::-1]
 
         return list(
             map(
                 lambda pair: self.parse_chapter_dto(pair[1], pair[0], manga.url),
-                enumerate(filter(lambda chapter: chapter["q56zcrk"] == 0, chapters)),
+                enumerate(filter(lambda chapter: chapter["ig522pf"] == 0, chapters)),
             )
         )
 
@@ -171,8 +173,8 @@ class TempleScan(Source):
 
     def parse_chapter_pages(self, response: Response, chapter: Chapter) -> list[str]:
         document = response.as_beautifulsoup()
-        # images -> k9wavlj
-        script = document.select_one("script:-soup-contains(k9wavlj)")
+        # images -> aawp8qs
+        script = document.select_one("script:-soup-contains(aawp8qs)")
         if script is None:
             raise YomuSourceException("Failed to find script with images")
 
@@ -182,9 +184,7 @@ class TempleScan(Source):
             )
         )
 
-        return list(
-            map(
-                lambda data: Page(number=data[0], url=data[1].rstrip("\n")),
-                enumerate(pages),
-            )
-        )
+        return [
+            Page(number=i, url=decrypt_image_string(page, i, "3a04891h5gdifeb267c"))
+            for i, page in enumerate(pages)
+        ]

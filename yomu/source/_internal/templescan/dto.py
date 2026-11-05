@@ -3,17 +3,17 @@ from typing import TypedDict
 
 class MangaDataDto(TypedDict):
     id: int
-    iw7kl7l: str  # title
+    zbs04ch: str  # title
     description: str
     author: str
     thumbnail: str
-    ke8ivdg: str  # slug
+    dsj6345: str  # slug
 
 
 class ChapterDataDto(TypedDict):
-    index: int
-    q8m6vtm: str  # chapter_name
+    bhatw56: int
+    syzj8a3: str  # chapter_name
     chapter_title: str
-    yy1u07t: str  # chapter_slug
+    gwgbquh: str  # chapter_slug
     created_at: str
-    q56zcrk: int  # price
+    ig522pf: int  # price

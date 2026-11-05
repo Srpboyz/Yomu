@@ -45,6 +45,8 @@ RSC_FIELDS = [
     "Season",
     "price",
     "chapter_name",
+    "total_views",
+    "index",
     "series_slug",
 ]
 
@@ -87,33 +89,22 @@ def map_rsc_keys(source: str) -> dict[str, str] | None:
     if not chunks:
         return None
 
-    # 3. Extract initial position and increment
-    rotation_match = re.search(
-        r"(?P<array>[A-Za-z_$]\w*)\s*=\s*"
-        r"[A-Za-z_$]\w*\.slice\(\)\s*,\s*"
-        r"(?P<index>[A-Za-z_$]\w*)\s*=\s*"
-        r"(?P<initial>\d+)\s*;"
-        r"[\s\S]{0,300}?"
-        r"[A-Za-z_$]\w*\s*=\s*\(\s*\)\s*=>\s*"
-        r"(?P=array)\.splice\(\s*"
-        r"(?P=index)\s*=\s*\(\s*"
-        r"(?P=index)\s*\+\s*"
-        r"(?P<increment>\d+)\s*\)\s*%\s*"
-        r"(?P=array)\.length\s*,\s*1\s*\)\s*\[\s*0\s*\]",
+    # 3. Extract the base-36 lookup string
+    lookup_match = re.search(
+        r'parseInt\s*\(\s*["\']([0-9a-z]+)["\']\s*\[\s*[A-Za-z_$]\w*\s*\]\s*,\s*36\s*\)',
         module,
     )
-    if not rotation_match:
+    if not lookup_match:
         return None
 
-    position = int(rotation_match.group("initial"))
-    increment = int(rotation_match.group("increment"))
+    lookup_str = lookup_match.group(1)
 
     # 4. Find the registration function
     registrar_match = re.search(
         r"function\s+([A-Za-z_$]\w*)\s*"
         r"\(\s*[A-Za-z_$]\w*\s*\)\s*\{\s*"
         r"let\s+[A-Za-z_$]\w*\s*=\s*"
-        r"[A-Za-z_$]\w*\(\s*[A-Za-z_$]\w*\+\+\s*\)",
+        r"[A-Za-z_$]\w*\s*\(\s*[A-Za-z_$]\w*\+\+\s*\)",
         module,
     )
     if not registrar_match:
@@ -129,18 +120,17 @@ def map_rsc_keys(source: str) -> dict[str, str] | None:
     if not fields:
         return None
 
-    # 6. Reproduce JavaScript splice algorithm
-    remaining = chunks.copy()
+    # 6. Map fields using the base-36 lookup indices
     keys = {}
-    for field in fields:
-        if not remaining:
+    for i, field in enumerate(fields):
+        if i >= len(lookup_str):
             return None
 
-        position = (position + increment) % len(remaining)
-        key = remaining.pop(position)
-
-        if len(key) != 7:
+        idx = int(lookup_str[i], 36)
+        if idx >= len(chunks):
             return None
+
+        key = chunks[idx]
         if key in keys.values():
             return None
         keys[field] = key
