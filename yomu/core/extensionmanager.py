@@ -13,6 +13,7 @@ from PyQt6.QtCore import pyqtSignal, QObject
 from PyQt6.QtWidgets import QWidget
 
 from yomu.extension import YomuExtension
+from .config import FORCE_EXTENSIONS
 from .utils import app_data_path
 
 if TYPE_CHECKING:
@@ -104,9 +105,9 @@ class ExtensionManager(QObject):
             except Exception:
                 continue
 
-            enabled = ext_info.get("enabled", False)
+            enabled = ext_info.get("enabled", False) or FORCE_EXTENSIONS
             if not isinstance(enabled, bool):
-                enabled = False
+                enabled = False or FORCE_EXTENSIONS
 
             name = ext_info.get("name", extension_dir)
             if not isinstance(name, str):
