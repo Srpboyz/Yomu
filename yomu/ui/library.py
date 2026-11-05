@@ -280,7 +280,7 @@ class Library(QWidget, StackWidgetMixin):
     def update_all_manga(self) -> None:
         updater = self.window().app.updater
         for i in range(self._manga_list.count()):
-            if (view := self.manga_view_at(i)) is not None:
+            if (view := self.manga_view_at(i)) is not None and not view.isHidden():
                 manga = view.manga
                 updater.update_manga_details(
                     manga, priority=QNetworkRequest.Priority.LowPriority
